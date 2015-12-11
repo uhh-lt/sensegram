@@ -6,9 +6,9 @@
 #
 from gensim import corpora, models, similarities
 import logging
-import gensim
+import gensim as gs
 #import pandas as pd
-path = 'GoogleNews-vectors-negative300.bin'
+path = '../resrc/GoogleNews-vectors-negative300.bin'
 #path2 = '../english.rcv1.100.embeddings.gz'
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -27,4 +27,3 @@ start = time.time()
 thesaurus = dict((k,model.most_similar(k,topn=200)) for k in model.index2word[:5])
 end = time.time()
 logInfo(start,end,'Computed thesaurus in ')
-
