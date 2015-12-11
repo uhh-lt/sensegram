@@ -31,7 +31,7 @@ logInfo(start,end,'Computed thesaurus in ')
 
 
 # write the knn to file
-file = open('similarities.csv', 'w')
+file = open('../resrc/similarities.csv', 'w')
 
 [file.write(k.encode('utf-8') + '\t' + w.encode('utf-8') + '\t' + str(s) + '\n') for k in thesaurus
  for (w, s) in thesaurus[k].items()]
