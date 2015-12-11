@@ -4,6 +4,7 @@
 # Version: 0.1
 # Date: 12/11/2015
 #
+import time
 from gensim import corpora, models, similarities
 import logging
 import gensim as gs
@@ -21,9 +22,10 @@ end = time.time()
 def logInfo(start, end,txt):
 	logging.info(txt + str(end-start) + ' seconds')
 
-logInfo(strat,end,'Loaded model in ')
+logInfo(start,end,'Loaded model in ')
 #compute thesaurus of 200 nearest neighbours 
 start = time.time()
 thesaurus = dict((k,model.most_similar(k,topn=200)) for k in model.index2word[:5])
 end = time.time()
 logInfo(start,end,'Computed thesaurus in ')
+
