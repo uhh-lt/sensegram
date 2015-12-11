@@ -60,3 +60,6 @@ target/
 auto/
 *.aux
 *.out
+
+# copus file
+resrc/
