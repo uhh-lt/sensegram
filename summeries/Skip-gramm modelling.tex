@@ -1,0 +1,182 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+
+%%% math environment
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+%%% clickable urls/hyperlinks
+\usepackage{hyperref}
+
+%%% no indentation at the beginning of a paragraph
+\usepackage{parskip}
+
+%%% enables a subtitle
+\usepackage{titling}
+% usage: \subtitle{what ever else you have to say}
+\newcommand{\subtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+  \begin{center}\large#1\end{center}
+  \vskip0.5em}%
+}
+
+\title{Summery}
+\subtitle{A Closer Look at Skip-gram Modelling}
+\author{}
+\date{} % disables the date
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Data sparsity is a large problem in NLP.
+A language is a system of rare events, which are complex and vary a lot.
+The n-gram model becomes more sparse with increasing n.
+Skip-grams try to address this problem by allowing to skip tokens.
+
+\section{Defining skip-grams}
+
+The k-skip-n-grams for a sentence $w_1\ldots w_m$ is defined as the set
+
+$$
+\{w_{i_1}, w_{i_2}, \ldots, w_{i_n} | \sum_{j=1}^{n} i_j - i_{j-1} < k \}
+$$
+
+\begin{description}
+\item[Example:] \it{``Insurgents killed in ongoing fighting''}
+\item[Bi-grams] = \hfill \\
+  \{
+  Insurgents killed,
+  killed in,
+  in ongoing,
+  ongoing fighting
+  \}
+\item[2-skip-bi-grams] = \hfill \\
+  \{
+  Insurgents killed,
+  Insurgents in,
+  Insurgents ongoing,
+  killed in,
+  killed ongoing,
+  killed fighting,
+  in ongoing,
+  in fighting,
+  ongoing fighting
+  \}
+\item[Tri-grams] = \hfill \\
+  \{
+  Insurgents killed in,
+  killed in ongoing,
+  in ongoing fighting
+  \}
+\item[2-skip-tri-grams] = \hfill \\
+  \{
+  Insurgents killed in,
+  Insurgents killed ongoing,
+  Insurgents killed fighting,
+  Insurgents in ongoing,
+  Insurgents in fighting,
+  Insurgents ongoing fighting,
+  killed in ongoing,
+  killed in fighting,
+  killed ongoing fighting,
+  in ongoing fighting
+  \}
+\end{description}
+
+For a sentence with n words the number of k-skip grams of k skips or less and $n < k+2$ is given by,
+
+$$
+\frac{(k+1)(k+2)}{6}(3n-2k-6)
+$$
+
+If skip-grams are a good representation of context, then they are very beneficial otherwise they might skew the context model.
+
+\section{Data}
+
+\subsection{Training data}
+\begin{description}
+\item[British National Corpus] \hfill
+  \begin{itemize}
+  \item[-] 100 million words
+  \item[-] written and spoken text
+  \item[-] various sources
+  \item[-] many domains
+  \end{itemize}
+\item[English Gigaword] \hfill
+  \begin{itemize}
+  \item[-] 1.7 billion words
+  \item[-] news texts
+  \end{itemize}
+\end{description}
+
+\subsection{Testing data}
+\begin{description}
+\item[300,000 words of news feeds] Gigaword corpus
+\item[Eight News Documents] Daily Telegraph
+\item[Google Translate] Seven Chinese newspaper articles translated.
+\end{description}
+
+\section{Method}
+Skips do not expand over to the next sentence.
+All data was preprocessed by removing all non-alphanumeric characters, lower case and replace numbers with <Num>.
+
+All skip-grams are computed from the training corpus and all adjacent n-grams from the test document.
+The coverage of the n-grams over skip-grams is measured.
+
+\section{Results}
+
+\subsection{Coverage}
+
+Trainging on BNC. Measured the coverage of k-skip bi-grams on 300k words from Gigaword.
+
+\begin{tabular}{c|c}
+  Skips & Coverage \\
+  0 & $\sim 79\%$ \\
+  1 & $\sim 82\%$ \\
+  2 & $\sim 83\%$ \\
+  3 & $\sim 84\%$ \\
+  4 & $\sim 84\%$ \\
+\end{tabular}
+
+k-skip tri-grams
+
+\begin{tabular}{c|c}
+  Skips & Coverage \\
+  0 & $\sim 45\%$ \\
+  1 & $\sim 49\%$ \\
+  2 & $\sim 52\%$ \\
+  3 & $\sim 53\%$ \\
+  4 & $\sim 54\%$ \\
+\end{tabular}
+
+This result is interpreted to be caused by the fact that training was not performed on a specialized news corpus.
+Therefore, context might be captured if random skip-grams do not perform well.
+
+\subsection{Skip-gram usefulness}
+
+The distribution of adjacent n-grams is similar for documents with the same topic, otherwise hardly any context would have been modeled.
+The use of skip-grams to capture context is dependent upon them increasing the coverage of n-grams in similar documents, while not increasing the n-gram coverage in different documents to the extent that tri-grams can no longer be used to distinguish documents.
+Use of Chinese text and Google machine translation.
+
+\subsection{Skip-grams or more training data}
+
+Another experiment to make the point of the conclusion.
+
+\section{Conslusion}
+
+Skip-grams are more efficient in covering tri-grams than increasing the size of the training corpus (even quadrupling it).
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
