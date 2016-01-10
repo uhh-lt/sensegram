@@ -5,8 +5,12 @@
 # Date: 12/11/2015
 #
 
+<<<<<<< HEAD
+import re,pprint as pp
+=======
 import random
 import re
+>>>>>>> 66cea49e349219dd41c98ebad41cf91af6a3b52b
 from itertools import groupby
 from operator import itemgetter
 
@@ -58,3 +62,21 @@ def chinese_whispers():
 
     comp_rank(thesaurus)
 
+
+def filter_clusters(fname,min_cluster_size=0):
+	
+	with open(fname) as f:
+		raw_clusters = f.readlines()
+	
+	tab_pattern = re.compile('\t')
+	
+	clusters = [tab_pattern.split(entry.replace('\n','')) for entry in raw_clusters]
+	filtered_clusters = []
+	for k in clusters:
+		# split cluster into its elements
+		split = k[3].split('  ')
+		if(len(split)>min_cluster_size):
+						
+			filtered_clusters = filtered_clusters + [(k[2],[re.split(':0\.\d+',x)[0] for x in split])]
+
+	return filtered_clusters
