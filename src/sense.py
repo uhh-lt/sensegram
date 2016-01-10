@@ -25,15 +25,23 @@ def logInfo(start, end,txt):
 logInfo(start,end,'Loaded model in ')
 #compute thesaurus of 200 nearest neighbours 
 start = time.time()
-thesaurus = dict((k,dict(model.most_similar(k,topn=200))) for k in model.index2word[:5])
+counter = 0
+knn = []
+file = open('../resrc/similarities.csv', 'w')
+for k in model.index2word:
+    knn = knn + [(k, dict(model.most_similar(k,topn=200)))] 
+    if (counter == 1000):
+        thesaurus = dict(knn)
+        [file.write(k.encode('utf-8') + '\t' + w.encode('utf-8') + '\t' + str(s) + '\n') for k in thesaurus for (w, s) in thesaurus[k].items()]
+        knn = []
+        counter = 0
+    else:
+        counter = counter +1
+else:
+    thesaurus = dict(knn)
+    [file.write(k.encode('utf-8') + '\t' + w.encode('utf-8') + '\t' + str(s) + '\n') for k in thesaurus for (w, s) in thesaurus[k].items()]
+file.close()
+#thesaurus = dict((k,dict(model.most_similar(k,topn=200))) for k in model.index2word)
 end = time.time()
 logInfo(start,end,'Computed thesaurus in ')
 
-
-# write the knn to file
-file = open('../resrc/similarities.csv', 'w')
-
-[file.write(k.encode('utf-8') + '\t' + w.encode('utf-8') + '\t' + str(s) + '\n') for k in thesaurus
- for (w, s) in thesaurus[k].items()]
-
-file.close()
