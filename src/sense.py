@@ -26,12 +26,6 @@ def load_model():
     return model
 
 
-
-
-
-# initialize multiprocessing
-
-
 def compute_knn(model, start_idx, end_idx, part, nn):
     #compute thesaurus of 200 nearest neighbours
     start = time.time()
@@ -62,10 +56,21 @@ def compute_knn(model, start_idx, end_idx, part, nn):
     #thesaurus = dict((k,dict(model.most_similar(k,topn=200))) for k in model.index2word)
 
 
-def start():
-    #model = load_model()
+def start_serial():
+    model = load_model()
     modelsize = len(model.index2word)
     chunksize = 10000
     chunks = range(0, modelsize, chunksize)
     chunks.append(modelsize)
-    [compute_knn(model, chunks[x-1], chunks[x], x, 3) for x in range(1, len(chunks))]
+    [compute_knn(model, chunks[x-1], chunks[x], x, 200) for x in range(1, len(chunks))]
+
+# UNTESTED !
+def start_parallel():
+    model = load_model()
+    modelsize = len(model.index2word)
+    chunksize = 10000
+    chunks = range(0, modelsize, chunksize)
+    chunks.append(modelsize)
+
+    pool = mp.Pool(processes=16)
+    [pool.apply_async(compute_knn, args=(model, chunks[x-1], chunks[x], x, 200)) for x in range(1, len(chunks))]
