@@ -64,3 +64,4 @@ auto/
 # copus file
 resrc/
 src/output.txt
+src/tmp*/
