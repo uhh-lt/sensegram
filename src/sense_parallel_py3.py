@@ -28,20 +28,20 @@ def run_parallel(knn,model,numberOfFiles,folder,end_idx,start_idx=0,with_range=F
 
 	# counter the number of instantiated processes
 	processCounter = 0
-	start = time.time()
+	startTime = time.time()
 	logger.info("Start computation of KNN: \n" + str(datetime.fromtimestamp(start)))
 	processes = []
 	# start processes that compute knn of some ranges
 	if(with_range):
 		# number of words per process
 		sliceSize = len(model.index2word[start_idx:end_idx])//numberOfFiles
-		
-		myRange = range(start_idx,end_idx,sliceSize)
-		for x in range(0,(len(myRange) - 1)):
+		logger.info("Slicesize = " + str(sliceSize))
+		myRange = list(range(start_idx,end_idx,sliceSize))
+		for x in range(0,(len(myRange))):
 			if(x == len(myRange) - 1):
 				if((end_idx - myRange[x])!= 0):
 					myRange.append(myRange[x]+ sliceSize)
-			logger.debug("Start process with range (" + str(myRange[x]) + "," +str(myRange[x+1]) + ")")
+			logger.info("Start process with range (" + str(myRange[x]) + "," +str(myRange[x+1]) + ") for words "+ model.index2word[myRange[x]] + ", " + model.index2word[myRange[x+1]]) 
 			p = mp.Process(target=parallel_with_range,args=(model,(myRange[x],myRange[x+1]),counter,knn,locks.get(counter),folder))
 			p.start()
 			processes.append(p)
@@ -63,21 +63,24 @@ def run_parallel(knn,model,numberOfFiles,folder,end_idx,start_idx=0,with_range=F
 	logger.info("All processes initialized!")
 	for proc in processes:
 		proc.join()
-	end = time.time()
+	
+	# compute size of stored files
 	overallSize = 0
 	for dirpath,dirnames,filenames in os.walk(folder):
 		for f in filenames:
 			#print f + '\n'
 			fp = os.path.join(dirpath,f)
 			overallSize += os.path.getsize(fp)				
-	if(with_range):
-		logger.info("Used worker parallel_with_range()")
-	else:
-		logger.info("Used worker parallel_with_range()")
-	logger.info("End computation of KNN: \n" + str(datetime.fromtimestamp(end)))
+	endTime = time.time()
+	# log some infos about the current job 	
+	logger.info("End computation of " + str(knn) + " KNN: \n" + str(datetime.fromtimestamp(end)))
 	logger.info("Constructed " + str(processCounter) + " processes.")
-	logInfo(start,end,'Wrote files in ')
+	logInfo(startTime,endTime,'Wrote files in ')
+	logger.info("# of files: " + str(numberOfFiles))
 	logger.info("Overall file size: " + str(overallSize/1024) + "kb")
+	logger.info("Use range: " + str(with_range)) 
+	logger.info("#Words: " + str(end_idx - start_idx))
+		
 
 # Logs the difference between end and start 
 def logInfo(start, end,txt):
@@ -122,14 +125,16 @@ def parallel(model,word,id,nn,lock,folder):
 #	
 def parallel_with_range(model,range,id,nn,lock,folder):
 	pid = str(os.getpid())
-	logger.info("Start Pid: " + pid)
+	logger.info("Start Pid: " + pid + ", KNN: " + str(nn)) 
+	text  =[]
 	for word in model.index2word[range[0]:range[1]]:
+		logger.info("Compute " + str(nn) + " for \"" + word +"\"")
 		neighbours = dict(model.most_similar(word,topn=nn))
-		text = [('\t' + w + '\t' + str(s) + '\n') for (w,s) in neighbours.items()]
+		text.extend( [(word + '\t' + w + '\t' + str(s) + '\n') for (w,s) in neighbours.items()])
 	lock.acquire()
 	with open(folder+"/test_" + str(id) + ".csv", "w+") as myfile:
 		for line in text:
-			myfile.write(word + line)
+			myfile.write(line)
 	# allow other processes to write to the file
 	lock.release()
 	#end of function
@@ -137,7 +142,9 @@ def parallel_with_range(model,range,id,nn,lock,folder):
 
 if __name__ == "__main__":
 	model = load_model(path)
-	
-	run_parallel(knn=200,model=model,numberOfFiles=5,folder='/home/kurse/jm18magi/tmp1',end_idx=1000,with_range=True)
-	#run_parallel(knn=200,model=model,numberOfFiles=40,folder='/home/jm18magi/tmp',end_idx=1000,with_range=False)
+	directory = "/home/kurse/jm18magi/sensegram/output/" + str(datetime.fromtimestamp(time.time()))
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+	run_parallel(knn=200,model=model,numberOfFiles=10,folder=directory,end_idx=20,with_range=True)
+	#run_parallel(knn=200,model=model,numberOfFiles=40,folder=directory,end_idx=1000,with_range=False)
 	

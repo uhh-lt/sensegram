@@ -68,3 +68,5 @@ src/tmp*/
 run/
 summaries/
 paper/
+output/
+
