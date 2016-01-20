@@ -1,3 +1,8 @@
+""" Fills out the TWSI dataset with predictions. Requires sense and context vectors.
+If a word to disambiguate is not in the sense model -> no prediction
+If a context is not in the context model -> don't use it in computation
+All context words are lowercased and filtered from words with other chars than [a-z] before windowing
+"""
 from wsd import WSD
 from pandas import read_csv
 import pbar
@@ -33,10 +38,14 @@ for i, row in reader.iterrows():
 	reader.set_value(i, 'predict_related', ",".join(neigh))
 	#reader['predict_related'][i] = ",".join(neigh)
 	
-	
 	if i%step==0:
 		pbar.update_progressbar(i, rows_count)
 pbar.finish_progressbar()
 
 reader.to_csv(sep='\t', path_or_buf=output, encoding="utf-8", index=False)
 print("Saved predictions to " + output)
+
+# to run evaluation:
+# cd contextualization-eval/
+# time python twsi_evaluation.py ../dt/inventory.csv data/predictions.csv 
+
