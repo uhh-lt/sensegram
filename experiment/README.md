@@ -50,6 +50,7 @@ Evaluates predictions from previous step. This script is different from distribu
 ``` 
 cd contextualization-eval/
 time python twsi_evaluation.py ../dt/inventory.csv data/predictions.csv 
+```
 
 # Results
 All datasets and models can be found on frink server:
