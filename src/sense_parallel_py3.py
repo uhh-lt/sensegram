@@ -11,10 +11,12 @@ import logging as logger
 import gensim as gs
 import multiprocessing as mp
 import os
+import argparse as ap
+import weakref,gc #weakref and garbace collector
 
 path = '/home/kurse/jm18magi/sensegram/resrc/GoogleNews-vectors-negative300.bin'
 
-logger.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logger.INFO)
+logger.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',level=logger.INFO)
 # This function initiates the parallel computation, tracks the processes 
 # and provides some numbers via logging
 def run_parallel(knn,model,numberOfFiles,folder,end_idx,start_idx=0,with_range=False):
@@ -29,7 +31,7 @@ def run_parallel(knn,model,numberOfFiles,folder,end_idx,start_idx=0,with_range=F
 	# counter the number of instantiated processes
 	processCounter = 0
 	startTime = time.time()
-	logger.info("Start computation of KNN: \n" + str(datetime.fromtimestamp(start)))
+	logger.info("Start computation of KNN: \n" + str(datetime.fromtimestamp(startTime)))
 	processes = []
 	# start processes that compute knn of some ranges
 	if(with_range):
@@ -73,7 +75,7 @@ def run_parallel(knn,model,numberOfFiles,folder,end_idx,start_idx=0,with_range=F
 			overallSize += os.path.getsize(fp)				
 	endTime = time.time()
 	# log some infos about the current job 	
-	logger.info("End computation of " + str(knn) + " KNN: \n" + str(datetime.fromtimestamp(end)))
+	logger.info("End computation of " + str(knn) + " KNN: \n" + str(datetime.fromtimestamp(endTime)))
 	logger.info("Constructed " + str(processCounter) + " processes.")
 	logInfo(startTime,endTime,'Wrote files in ')
 	logger.info("# of files: " + str(numberOfFiles))
@@ -122,29 +124,52 @@ def parallel(model,word,id,nn,lock,folder):
 # Parameters:
 #	model: a gensim.word2vec model
 #	range: a integer tuple holding start index and end index of the computation
-#	
+#
+
+# Add support for weak references for dictionaries through subclassing!
+class WeakDict(dict):
+	pass
+	
 def parallel_with_range(model,range,id,nn,lock,folder):
 	pid = str(os.getpid())
 	logger.info("Start Pid: " + pid + ", KNN: " + str(nn)) 
 	text  =[]
-	for word in model.index2word[range[0]:range[1]]:
-		logger.info("Compute " + str(nn) + " for \"" + word +"\"")
-		neighbours = dict(model.most_similar(word,topn=nn))
-		text.extend( [(word + '\t' + w + '\t' + str(s) + '\n') for (w,s) in neighbours.items()])
 	lock.acquire()
-	with open(folder+"/test_" + str(id) + ".csv", "w+") as myfile:
-		for line in text:
-			myfile.write(line)
-	# allow other processes to write to the file
+
+	with open(folder+"/test_" + str(id) + ".csv", "w+") as myfile:	
+			for word in model.index2word[range[0]:range[1]]:
+#			#logger.info("Compute " + str(nn) + " for \"" + word +"\"")
+				neighbours = WeakDict(model.most_similar(word,topn=nn))
+				#write neighbours in csv format to the specified file	
+				for (w,s) in neighbours.items():
+					myfile.write(word + '\t' + w + '\t' + str(s) + '\n')
+				del neighbours
+#				gc.collect()
+			#text.extend( [(word + '\t' + w + '\t' + str(s) + '\n') for (w,s) in neighbours.items()])
 	lock.release()
 	#end of function
+	
 	logger.info("End Pid: " + pid)
 
 if __name__ == "__main__":
+	parser = ap.ArgumentParser(description="Compute KNN of Word2vec model.")
+	parser.add_argument('start', type=int, help='Start index of computation.')
+	parser.add_argument('end', type=int, help='End index of computation')
+	parser.add_argument('sub_dir',type=str,help='Specify the directory in which the ouput will be stored.')
+	args = parser.parse_args()
+	start = args.start
+	end = args.end
+	subDir = args.sub_dir
+	
 	model = load_model(path)
-	directory = "/home/kurse/jm18magi/sensegram/output/" + str(datetime.fromtimestamp(time.time()))
+	
+	
+	directory = subDir + "/" + str(datetime.fromtimestamp(time.time()))
 	if not os.path.exists(directory):
 		os.makedirs(directory)
-	run_parallel(knn=200,model=model,numberOfFiles=10,folder=directory,end_idx=20,with_range=True)
+	modelLength = len(model.index2word)
+
+	run_parallel(knn=200,model=model,numberOfFiles=50,folder=directory,start_idx=start,end_idx=end,with_range=True)
+	logger.info("Range: (" + str(start) + "," + str(end)+ ")") 
 	#run_parallel(knn=200,model=model,numberOfFiles=40,folder=directory,end_idx=1000,with_range=False)
 	
