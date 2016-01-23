@@ -1,0 +1,13 @@
+%%%%%%%%%%%%%%%%%  wiki  %%%%%%%%%%%%%%%%%%%%%%%%
+First 1.5 GB from english wikipedia dump from Polyglot project: 
+https://sites.google.com/site/rmyeid/projects/polyglot#TOC-Download-Wikipedia-Text-Dumps
+
+Pre-processing with Matt Mahoney's Perl script (at the bottom of the page):
+http://mattmahoney.net/dc/textdata.html
+perl wikifil.pl enwik9 > text
+Resulting text consists only of lowercase letters (a-z, converted from A-Z), and spaces (never consecutive).  
+All other characters are converted to spaces. Digits are spelled out.
+
+%%%%%%%%%%%%%%%%%  text8 %%%%%%%%%%%%%%%%%%%%%%%%
+100 Mb from english wikipedia dump from Matt Mahoney project (http://mattmahoney.net/dc/textdata.html)
+It is by word2vec demo scripts to test the program installation
