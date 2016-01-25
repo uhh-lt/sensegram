@@ -155,21 +155,24 @@ if __name__ == "__main__":
 	parser = ap.ArgumentParser(description="Compute KNN of Word2vec model.")
 	parser.add_argument('start', type=int, help='Start index of computation.')
 	parser.add_argument('end', type=int, help='End index of computation')
-	parser.add_argument('sub_dir',type=str,help='Specify the directory in which the ouput will be stored.')
+	parser.add_argument('sub_dir',type=str,default='tmp',help='Specify the directory in which the ouput will be stored.')
+	parser.add_argument('no_of_files',type=int,help='The number of files into which the result should be written, e.g. 60 will create 6 csv files.')
 	args = parser.parse_args()
 	start = args.start
 	end = args.end
 	subDir = args.sub_dir
-	
+	no_of_files = args.no_of_files
 	model = load_model(path)
 	
 	
-	directory = subDir + "/" + str(datetime.fromtimestamp(time.time()))
+	directory = os.getcwd() + "/" + subDir
+	
+
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 	modelLength = len(model.index2word)
 
-	run_parallel(knn=200,model=model,numberOfFiles=50,folder=directory,start_idx=start,end_idx=end,with_range=True)
+	run_parallel(knn=200,model=model,numberOfFiles=no_of_files,folder=directory,start_idx=start,end_idx=end,with_range=True)
 	logger.info("Range: (" + str(start) + "," + str(end)+ ")") 
 	#run_parallel(knn=200,model=model,numberOfFiles=40,folder=directory,end_idx=1000,with_range=False)
 	
