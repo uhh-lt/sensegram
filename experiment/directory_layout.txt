@@ -1,0 +1,34 @@
+experiment
+    /corpora        this directory contains text files used at the very beginning to train 
+                    word vectors with word2vec
+        test.txt    text should be tokenized, without tags, markup and puctuation
+                    Example: "We went to see this performance It was very exciting"
+                    Use short file name: by default they'll be used as prefix (=model identification) 
+                    for all files later produced by the pipeline.
+    /word2vec_c     (not commited)
+                    Modified implementation of word2vec program. Saves context vector model
+                    in addition to word vector model
+                    TODO: add links to github
+    /model          This directory is used to save vector models (word vectors, context vectors, sense vectors)
+                    By default the naming follows following styling:
+        <name>_word_vectors.bin     word vectors
+        <name>_context_vectors.bin  context vectors
+        <name>_sense_vectors.bin    sense vectors
+                    (e.g. skip/cbow standing for skip-gram model or bag of words training approach of word2vec)
+    /intermediate   This directory is used to store intermediate output of pipline steps
+                    By default the naming follows following styling:
+        <name>_neighbours.txt        output of word_neighbours.py
+                                                    Nearest neighbours of every word
+                                                    in word vector model identified by
+                                                    <corpus name>_<param> in the DT format:
+                                                    word1<TAB>neighbour1<TAB>similarity
+                                                    ...
+                                                    word1<TAB>neighbourN<TAB>similarity
+                                                    word2<TAB>neighbour1<TAB>similarity
+                                                    ...
+    word_neighbours.py  Collect nearest words for every item in the word vector model
+                        By default saves output to intermediate folder in <name>_neighbours.txt
+    Journal.xml     Statistics of experiments. 
+                    All parameters used for training, CPU time and other data.
+    pipeline.py     Executes all steps of the pipline starting from word vector model
+                    training

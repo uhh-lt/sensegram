@@ -1,5 +1,5 @@
 Scripts for the experiment described here: https://github.com/tudarmstadt-lt/sensegram/issues/2
-
+#(Outdated)
 ##1. word_neighbours.py
 Input: a pre-trained model of word vectors (use word2vec or gensim) 
 Loads the model and outputs 200 nearest neighbours for every word in the vocabulary in the DT format.
@@ -10,12 +10,12 @@ Output: dt/neighbours.txt
 
 
 ##2. cluster.sh 
-Input: dt/neighbours.txt. 
+Input: intermediate/neighbours.txt. 
 Calls java chinese-whispers clustering (https://github.com/tudarmstadt-lt/chinese-whispers).
 Inidicate the path to your own chinese-whispers.jar or place the chinese-whispers folder next to the experiments foder.
 Output: dt/clusters.txt - clusters of neighbours of each word.
 
-##3. dt/postprocess.py
+##3. postprocess.py
 Input: dt/clusters.txt
 Filters out any cluster with less than 5 elements.
 Output: dt/clusters-minsize5.csv all cluster with 5 elements or more.
@@ -64,5 +64,5 @@ Among most useful files are:
 * dt/inventory.csv - 100 nearest neighbours for every sense vector
 
 
-		
-Contents of `dt/` and `model/` folders will be uploaded separately (to frink).
+
+
