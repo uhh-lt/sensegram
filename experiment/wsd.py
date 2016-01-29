@@ -6,7 +6,7 @@ import numpy as np
 def get_senses(smodel, word):
 	""" returns all available senses for a given word.
 	example: 'mouse' -> ['mouse#0', 'mouse#1', 'mouse#2']
-	Assumption: no sense is larger than 200"""
+	Assumption: senses use continuous numbering"""
 	senses = []
 	for i in range(0,200):
 		try:
@@ -61,19 +61,25 @@ class WSD(object):
 		""" returns probability of a sense (vector) in a given context (list of words)"""
 		return reduce(operator.mul, [self.__logprob__(c, vsense) for c in ctx if c in self.vc], 1)
 		
-	def disambiguate(self, text, pos, word):
+	def dis_text(self, text, pos, word):
 		""" disambiguates the sense of a word in given text
 			text - a tokenized string ("Obviously , it was cold .")
 			pos - position of a word in text ("12,14")
 			word  - word to be disambiguated ("it")
 			returns None if word is not covered by the model"""
 		ctx = self.get_context(text, pos, 10)
+		return self.dis_context(ctx, word)
+
+	def dis_context(self, context, word):
+		""" disambiguates the sense of a word in given context
+			context - a list of context words
+			word  - word to be disambiguated
+			returns None if word is not covered by the model"""
 		senses = get_senses(self.vs, word)
 		if len(senses)==0:
 			return None
-		probs = [self.__prob__(ctx, self.vs[sense]) for sense in senses]
-		word, sid = senses[np.argmax(probs)].split('#')
-		return sid
+		probs = [self.__prob__(context, self.vs[sense]) for sense in senses]
+		return senses[np.argmax(probs)], max(probs)
 		# TODO: manage situation where senses is empty
 # Example:
 # text = "However , the term mouse can also be applied to species outside of this genus . Mouse often refers to any small muroid rodent , while rat refers to larger muroid rodents"
