@@ -6,8 +6,9 @@
 # os.getcwd() current working directory
 # line = "ls -l"
 # Popen(line.split(), cwd="..")
-import word_neighbours
+
 from subprocess import Popen, PIPE, call, check_output
+import word_neighbours, filter_clusters
 
 ###### Train word vector model from corpora file <name>.txt ###### 
 def train_word_vectors(prefix):
@@ -33,19 +34,36 @@ def collect_word_neighbours(prefix):
                                         #"model/text8_vectors.bin",
                                        "intermediate/" + name + "_neighbours.txt")
 
-# to apply clustering:
-# cd ../chinese-whispers/           
-# time java -Xms2G -Xmx2G -cp target/chinese-whispers.jar de.tudarmstadt.lt.wsi.WSI -in ../experiment/dt/neighbours.txt -n 200 -N 200 -out ../experiment/dt/clusters.txt -clustering cw -e 0.01
-#  -n <integer>           max. number of edges to process for each similar
-#                         word (word subgraph connectivity)
-#  -N <integer>           max. number of similar words to process for a
-#                         given word (size of word subgraph to be clustered)
+def cluster_word_neighbours(prefix):
+    """
+        -Xms    min (start) heap size
+        -Xmx    max heap size 
+        -in     input neighbours file in word1<TAB>neighbour1<TAB>similarity format
+        -out    name of cluster output file (add .gz for compressed output)
+        -n      max. number of edges to process for each similar word (word subgraph connectivity)
+        -N      max. number of similar words to process for a given word (size of word subgraph to be clustered)
+        -clustering     clustering algorithm to use: 'cw' or 'mcl'
+        -e      min. edge weight
+    """
+    bash_command = ("time java -Xms2G -Xmx2G -cp chinese-whispers/target/chinese-whispers.jar " +
+                    "de.tudarmstadt.lt.wsi.WSI -in intermediate/" + prefix + "_neighbours.txt -n 200 -N 200 " +
+                    "-out intermediate/" + prefix + "_clusters.txt -clustering cw")
+    p = Popen(bash_command.split())
+    p.wait()
 
-# to postprocess clusters:
-# cd ../experiment
+def postprocess_clusters(prefix):
+    minsize = "5";
+    return filter_clusters.postprocess("intermediate/" + prefix + "_clusters.txt",
+                                "intermediate/" + prefix + "_clusters_minsize" + minsize + ".csv",
+                                "intermediate/" + prefix + "_clusters_minsize" + minsize + "_filtered.csv", 
+                                minsize)
+
 # time dt/postprocess.py -min_size 5 dt/clusters.txt
 
-###### Start pipeline ######
+###### Run pipeline ######
 
 #train_word_vectors("test")
-collect_word_neighbours("test")
+#collect_word_neighbours("test")
+#cluster_word_neighbours("test")
+left_clusters, avg_number_senses = postprocess_clusters("test")
+

@@ -9,6 +9,7 @@ import codecs
 from gensim.models import word2vec
 import pbar
 
+
 def collect_neighbours(model_path, output_path, n=200, 
                        model_format='word2vec', binary=True):
     """Collect nearest words for every item in the word vector model
