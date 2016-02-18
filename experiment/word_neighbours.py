@@ -1,7 +1,9 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Collect nearest words for every item in the word vector model
 """
-#TODO: multithreading
+#TODO: multithreading? unicode strings
 #IDEA: what if every word was embedded separately for its every possible pos tag? Like run#VB, run#N?
 
 import argparse
@@ -53,7 +55,7 @@ def collect_neighbours(model_path, output_path, n=200,
         for word in model.index2word: # preserves the order of words in the model
             neighbours = model.most_similar(positive=[word],topn=n)
             for neighbour, sim in neighbours:
-                output.write("%s\t%s\t%s\n" % (word, neighbour, str(sim)))
+                output.write("%s\t%s\t%.4f\n" % (word, neighbour, sim))
             pb.update(i)
             i+=1
         pb.finish()   
@@ -65,7 +67,7 @@ def main():
     parser.add_argument("output", help="path to a text file for neighbours. Format: word1<TAB>neighbour1<TAB>similarity")
     parser.add_argument("-n", help="number of nearest neighbours to be collected for each word. Default 200.", default=200, type=int)
     parser.add_argument("-format", help="model type:'word2vec' or 'gensim'. Default 'word2vec'.", default="word2vec")
-    parser.add_argument("-binary", help="True for binary model, False for text model. Applies to word2vec only. Default True", default=True)
+    parser.add_argument("-binary", help="1 for binary model, 0 for text model. Applies to word2vec only. Default 1", default=1, type=int)
     args = parser.parse_args()
     collect_neighbours(args.model, args.output, args.n, args.format, args.binary)
 

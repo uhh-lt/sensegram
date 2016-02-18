@@ -1,0 +1,26 @@
+### create sense vectors  ###
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.senses -lowercase -inventory intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv
+
+24/7:0.003,90:0.003,0031:0.003,million:0.003,201:0.003,2004:0.003,375:0.003,406:0.003,12,000:0.003,301:0.003,285:0.003,475:0.003,242:0.003,1500:0.003,111:0.003,122:0.003,924:0.003,030:0.003,5:0.003,917:0.003,+44:0.003,6060:0.003,428:0.003,038:0.003,758:0.003,78:0.003,625:0.003,011:0.003,6500:0.003,246:0.003,260:0.003,mm:0.003,46:0.003,2001:0.003,447:0.003,2012:0.003,298:0.003,0659:0.003,1.3:0.003,3030:0.003,294:0.003,797:0.003,0301:0.003
+[u'mm', u'million']                                                                                                               
+sel�uk:0.001,grief:0.001,bereavement:0.001,parting:0.001,grief:0.001
+[u'grief', u'bereavement', u'parting', u'grief']
+(visited:0.001,11.30am:0.001,6.00pm:0.001,31st:0.001,4.00pm:0.001
+[]                                                                      
+Shrinking matrix size from 3488990 to 3079391
+Sense vectors: 3079391, duplicates: 0, small: 409599, clusters: 3488990
+Saving sense vectors...
+
+real    22m55.403s
+user    22m19.648s
+sys     0m33.652s
+
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.senses -lowercase 
+
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.senses -lowercase 
+
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.senses -lowercase 
+
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.senses -lowercase 
+
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.senses -lowercase -inventory intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory-test.csv

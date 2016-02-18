@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """ file in progress
     Execute all steps of the pipeline
 """
@@ -34,6 +37,8 @@ def collect_word_neighbours(prefix):
                                         #"model/text8_vectors.bin",
                                        "intermediate/" + name + "_neighbours.txt")
 
+###### Cluster word neighbours. The algorithm performs local clustering for each word. ######
+###### Each cluster thus represents one sense of a word. ###### 
 def cluster_word_neighbours(prefix):
     """
         -Xms    min (start) heap size
@@ -51,19 +56,22 @@ def cluster_word_neighbours(prefix):
     p = Popen(bash_command.split())
     p.wait()
 
+###### Filter out small clusters (might represent noise) ######
 def postprocess_clusters(prefix):
-    minsize = "5";
-    return filter_clusters.postprocess("intermediate/" + prefix + "_clusters.txt",
-                                "intermediate/" + prefix + "_clusters_minsize" + minsize + ".csv",
-                                "intermediate/" + prefix + "_clusters_minsize" + minsize + "_filtered.csv", 
-                                minsize)
+    return filter_clusters.run("intermediate/" + prefix + "_clusters.txt")
+    # time dt/postprocess.py -min_size 5 dt/clusters.txt
 
-# time dt/postprocess.py -min_size 5 dt/clusters.txt
+def pool_vectors():
+    bash_command = "time ./pooling.py intermediate/test_clusters_minsize5.csv 3999 model/test_word_vectors.bin model/test_sense_vectors.bin -lowercase -inventory intermediate/test_inventory.csv"
+    p = Popen(bash_command.split())
+    p.wait()
+
 
 ###### Run pipeline ######
 
 #train_word_vectors("test")
 #collect_word_neighbours("test")
 #cluster_word_neighbours("test")
-left_clusters, avg_number_senses = postprocess_clusters("test")
+#left_clusters, avg_number_senses = postprocess_clusters("test")
+pool_vectors()
 

@@ -1,6 +1,9 @@
-#!/usr/bin/env python
-# encoding: utf-8
-# adapted from chinese-whispers/scripts/postprocess
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Filter clusters produced by chinese-whispers. Delete clusters that are too small.
+This program was adapted from postprocess.py script distributed with chinese-whispers implementation.
+"""
 
 from os.path import splitext, join
 import codecs
@@ -34,8 +37,38 @@ def try_remove(fpath):
 def exists(dir_path):
     return os.path.isdir(dir_path) or os.path.isfile(dir_path)
 
+def build_output_fpath(clusters_fpath, minsize):
+        return splitext(clusters_fpath)[0] + "_minsize" + minsize + ".csv"
 
-def postprocess(ddt_fpath, output_fpath, filtered_fpath, min_size):
+def build_filtered_fpath(clusters_fpath, minsize):
+        return splitext(clusters_fpath)[0] + "_minsize" + minsize + "_filtered.csv"
+
+
+def run(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5"):
+    """ 
+    This function filters clusters produced by chinese-whispers clustering algorithm.
+    It deletes clusters that are smaller than min_size.
+
+    Args:
+        ddt_fpath:  a path to an input file with clusters.
+                    (output of chinese-whispers algorithm).
+                    Format: word<TAB>sense_id<TAB>keyword<TAB>cluster where cluster is word:sim<SPACE><SPACE>word:sim<SPACE><SPACE>...
+                    The file is without header.
+        output_fpath:   a path to an output file with clusters.
+                        Changed format:
+                        word<TAB>sense_id<TAB>cluster<TAB>isas where cluster is word:sim,word:sim...
+                        The file has a header.
+        filtered_fpath: a path to a file that holds all filtered clusters. Same format as in output file.
+        min_size:   a minimal accepted size of a cluster. By default = "5". Arg type is string.
+
+    Returns:
+        selected_num:   number of clusters in the output_fpath file
+        mean(senses):   average number of senses per word
+    """
+
+    output_fpath = output_fpath or build_output_fpath(ddt_fpath, min_size) 
+    filtered_fpath = filtered_fpath or build_filtered_fpath(ddt_fpath, min_size)
+
     print "Input DDT:", ddt_fpath
     print "Output DDT:", output_fpath
     print "Filtered out DDT clusters:", filtered_fpath
@@ -77,15 +110,14 @@ def postprocess(ddt_fpath, output_fpath, filtered_fpath, min_size):
     try_remove(ddt_tmp_fpath)
     return selected_num, mean(values)
 
-
 def main():
-    parser = argparse.ArgumentParser(description='Postprocess word sense induction file.')
-    parser.add_argument('ddt', help='Path to a csv file with a DDT: "word<TAB>sense-id<TAB>keyword<TAB>cluster"  w/o header by default. Here <cluster> is "word:sim<SPACE><SPACE>word:sim<SPACE><SPACE>..."')
+    parser = argparse.ArgumentParser(description='Postprocess sense clusters. Delete clusters smaller than minsize.')
+    parser.add_argument('ddt', help='Path to an input file with clusters. DDT format: "word<TAB>sense-id<TAB>keyword<TAB>cluster"  w/o header by default. Here <cluster> is "word:sim<SPACE><SPACE>word:sim<SPACE><SPACE>..."')
     parser.add_argument('-min_size', help='Minimum cluster size. Default -- 5.', default="5")
     args = parser.parse_args()
 
-    output_fpath = splitext(args.ddt)[0] + "_minsize" + args.min_size + ".csv"
-    filtered_fpath = splitext(args.ddt)[0] + "_minsize" + args.min_size + "_filtered.csv"
+    output_fpath = build_output_fpath(args.ddt, args.min_size) 
+    filtered_fpath = build_filtered_fpath(args.ddt, args.min_size)
 
     postprocess(args.ddt, output_fpath, filtered_fpath, args.min_size)
 
