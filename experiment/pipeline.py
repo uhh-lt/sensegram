@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """ file in progress
-    Execute all steps of the pipeline
+    Execute all steps of the pipeline.
+    Call of bash scripts is not always necessary, python modules can be imported and called through functions.
 """
 # help: 
 # In sys.path[0] you have the path of your currently running script.
@@ -61,17 +62,28 @@ def postprocess_clusters(prefix):
     return filter_clusters.run("intermediate/" + prefix + "_clusters.txt")
     # time dt/postprocess.py -min_size 5 dt/clusters.txt
 
+###### Create sense vectors ######
 def pool_vectors():
     bash_command = "time ./pooling.py intermediate/test_clusters_minsize5.csv 3999 model/test_word_vectors.bin model/test_sense_vectors.bin -lowercase -inventory intermediate/test_inventory.csv"
     p = Popen(bash_command.split())
     p.wait()
 
+#######################                      ###########################
+####################### Tests and evaluation ###########################
 
-###### Run pipeline ######
+###### Sanity check: disambiguate occurences of words in initial corpora. Observe different parameters. ######
+def put_back():
+    bash_command = "time ./put_back.py model/test_sense_vectors.bin model/test_context_vectors.bin corpora/test.txt eval/test_put_back.txt -lowercase -words anarchism,estate"
+    p = Popen(bash_command.split())
+    p.wait()
+
+#######################                     ###########################
+#######################    Run pipeline     ###########################
 
 #train_word_vectors("test")
 #collect_word_neighbours("test")
 #cluster_word_neighbours("test")
 #left_clusters, avg_number_senses = postprocess_clusters("test")
-pool_vectors()
+#pool_vectors()
+put_back()
 

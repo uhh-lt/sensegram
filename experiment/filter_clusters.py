@@ -89,7 +89,7 @@ def run(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5"):
         for i, chunk in enumerate(reader):
             # print header
             if i == 0: output.write(HEADER_OUT + "\n")
-            chunk.fillna('')
+            chunkk = chunk.fillna('')
             
             # rows
             for j, row in chunk.iterrows():
