@@ -6,9 +6,8 @@ import cython_knn as knn
 path = '/home/kurse/jm18magi/sensegram/resrc/GoogleNews-vectors-negative300.bin'
 logger.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',level=logger.INFO)
 
-model = Word2Vec.load_word2vec_format(path, binary=True,encoding='utf8')
 result = np.zeros([3000000],dtype=np.float32)
-
+model = Word2Vec.load_word2vec_format(path, binary=True,encoding='utf8')
 #start = time.time()
 #knn.compute_knn(vectors = model.syn0,result = result,x=100,y=100)
 #end = time.time()

@@ -156,7 +156,7 @@ if __name__ == "__main__":
 	parser.add_argument('start', type=int, help='Start index of computation.')
 	parser.add_argument('end', type=int, help='End index of computation')
 	parser.add_argument('sub_dir',type=str,default='tmp',help='Specify the directory in which the ouput will be stored.')
-	parser.add_argument('no_of_files',type=int,help='The number of files into which the result should be written, e.g. 60 will create 6 csv files.')
+	parser.add_argument('no_of_files',type=int,help='The number of files into which the result should be written, e.g. 60 will create 60 csv files.')
 	args = parser.parse_args()
 	start = args.start
 	end = args.end

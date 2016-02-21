@@ -4,6 +4,7 @@ import numpy as np
 cimport numpy as np
 cimport cython.parallel
 cimport cython
+from cython.parallel cimport prange
 cimport openmp as omp
 from gensim.models import Word2Vec
 import logging as logger
@@ -11,15 +12,8 @@ import time
 
 
 cdef public api double __pyx_v_x = float(0.0)
-cpdef void compute_knn(float [:,:] vectors,float [:] result, int x = 100,int y  = 100, int knn=200,str schedule='static',int num_threads=4):
-	cdef omp.omp_lock_t  lock_0
-	cdef omp.omp_lock_t  lock_1
-	cdef omp.omp_lock_t  lock_2
-	cdef omp.omp_lock_t  lock_3
-	omp.omp_init_lock(&lock_0)
-	omp.omp_init_lock(&lock_1)
-	omp.omp_init_lock(&lock_2)
-	omp.omp_init_lock(&lock_3)
+
+cpdef void compute_knn(float [:,:] vectors,float [:] result, int x = 100,int y  = 100, int knn=200):
 	cdef int i,j, id
 	cdef int vectors_x = vectors.shape[0]
 	cdef int vectors_y = vectors.shape[1]
@@ -27,44 +21,55 @@ cpdef void compute_knn(float [:,:] vectors,float [:] result, int x = 100,int y  
 	logger.info("max threads: " + str(omp.omp_get_max_threads()))
 	#with nogil,cython.parallel.parallel(num_threads=10):
 	#with nogil,cython.boundscheck(False),cython.wraparound(False):
-		
+#	with nogil:	
 	for i in range(0,x):
-		#for i in cython.parallel.prange(x,schedule='static',num_threads=4):
-		#with nogil,cython.parallel.parallel(num_threads=10):
-		for j in range(0,y):
-			with nogil,cython.parallel.parallel(num_threads=4):
-				if(i != j):
-					store_dot_product(a=vectors[i],b=vectors[j],result=result,result_index=i,lock=&lock_3)
-	
-				#	if( i % 4 == 0):
-				#		store_dot_product(a=vectors[i],b=vectors[j],result=result,result_index=i,lock=&lock_0)
-				#	elif(i % 4 == 1):
-				#		store_dot_product(a=vectors[i],b=vectors[j],result=result,result_index=i,lock=&lock_1)
-					#elif(i % 4 == 2):
-					#	store_dot_product(a=vectors[i],b=vectors[j],result=result,result_index=i,lock=&lock_2)
-					#elif(i % 4 == 3):
-					#	store_dot_product(a=vectors[i],b=vectors[j],result=result,result_index=i,lock=&lock_3)
-	omp.omp_destroy_lock(&lock_0)
-	omp.omp_destroy_lock(&lock_1)
-	omp.omp_destroy_lock(&lock_2)
-	omp.omp_destroy_lock(&lock_3)
+			iter_neighbours(vectors=vectors,result=result,i=i,no_of_vectors=vectors_x)
+
+cpdef void test(float[:,:] vectors,int i, int no_of_vectors):
+	cdef np.ndarray result = np.zeros([3000000],dtype=np.float32)
+	iter_neighbours(vectors,result,i,no_of_vectors)
 	
 
+cpdef void iter_neighbours(float[:,:] vectors, float[:] result, int i,int no_of_vectors):
+	if( no_of_vectors <=i):
+		return
+	cdef int index, j,length
+	cdef np.float32_t tmp
+	length = vectors.shape[1]
+	#with nogil,cython.parallel.parallel(num_threads=4):
+	# compute only a triangular matrix
+	for j in range(i,no_of_vectors):
+		tmp = dot_product(a=vectors[i],b=vectors[j],length=length)
+		tmp = tmp / (norm(vectors[i],length) * norm(vectors[j],length))
+		result[j] = result[j] + tmp
 
-
-
-cdef void store_dot_product(float [:] a, float [:] b, float [:] result, int result_index, omp.omp_lock_t * lock) nogil:	
-#	if(a.shape[0] != b.shape[0]):
-#		return
+	return
+	
+#Parameter:
+# result_index: cell index of result where the result should be stored
+#
+#
+cpdef float dot_product(float [:] a, float [:] b,int length) nogil:	
 	cdef float tmp = 0.0
-	cdef int i,x
-	x = a.shape[0]
-	for i in range(0,x):
+	cdef int i
+	for i in range(0,length):
 		tmp = tmp + a[i]*b[i]
 	#omp.omp_set_lock(lock)
-	result[result_index] += tmp
+	return tmp
 	#omp.omp_unset_lock(lock)
-	
+
+import math
+cdef extern from "math.h":
+	double sqrt(double m)
+
+cpdef double norm(float[:] a,int length):
+	cdef tmp = 0.0
+	cdef int i
+	for i in range(0,length):
+		tmp = tmp + a[i]*a[i]
+	return sqrt(tmp)
+
+		
 """
 path = '/home/kurse/jm18magi/sensegram/resrc/GoogleNews-vectors-negative300.bin'
 logger.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',level=logger.INFO)
