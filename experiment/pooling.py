@@ -15,7 +15,7 @@ If -inventory path is set, also creates an inventory for this sense vector model
 # into the inventory. It's not an error, but it doesn't make sense. It shouldn't be relevant if clusters are build 
 # from neighbours in the model -> it guaranties that cluster operate over model vocabulary.
 # TODO: duplicates check not necessary?
-# TODO: does it make sense to lowercase the center word of a cluster, or only the cluster? (when the model is lowecased)?
+# TODO: does it make sense to lowercase the center word of a cluster, or only the cluster? (when the word model is lowecased)?
 # TODO: pooling method "weighted average"
 
 

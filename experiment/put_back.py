@@ -10,7 +10,7 @@ from gensim.models import word2vec
 import wsd, pbar
 
 TEST_WORDS = ['mouse', 'ruby', 'jaguar', 'oracle', 'java']
-OUTPUT_HEADER = "word\tsense_id\trelated_terms\tdistr\te_conf\tdiff_conf\tctx_len\tcontext\n"
+OUTPUT_HEADER = u"word\tsense_id\trelated_terms\tdistr\te_conf\tdiff_conf\tctx_len\tcontext\n"
 N_REL_TERMS = 20
 
 def window_it(word, file, lowercase, winsize=10):
@@ -61,12 +61,12 @@ def run(sense_path, context_path, text_path, output_path, lowercase=False,
                             output.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (word, sense_id, terms, distrib, e_conf, diff_conf, ctx_len, context))
 
 def main():
-    parser = argparse.ArgumentParser(description='Evaluate sense vector model on training set')
+    parser = argparse.ArgumentParser(description='Evaluate sense vector model on training set.')
     parser.add_argument("sense", help="path to a sense vector model")
     parser.add_argument("context", help="path to a context vector model") 
     parser.add_argument("text", help="text on which to evaluate")
     parser.add_argument("output", help="output text file")
-    parser.add_argument("-lowercase", help="Lowercase all words in context (necessary if sense vector model only has lowercased words). Default False", action="store_true")
+    parser.add_argument("-lowercase", help="Lowercase all words in context (necessary if context vector model only has lowercased words). Default False", action="store_true")
     parser.add_argument("-words", help="Words to be disambiguated. Use ',' as separator. Default = 'mouse,ruby,jaguar,oracle,java'", default=TEST_WORDS)
 
     args = parser.parse_args()

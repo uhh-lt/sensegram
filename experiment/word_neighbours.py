@@ -12,7 +12,7 @@ from gensim.models import word2vec
 import pbar
 
 
-def collect_neighbours(model_path, output_path, n=200, 
+def run(model_path, output_path, n=200, 
                        model_format='word2vec', binary=True):
     """Collect nearest words for every item in the word vector model
 
@@ -69,7 +69,7 @@ def main():
     parser.add_argument("-format", help="model type:'word2vec' or 'gensim'. Default 'word2vec'.", default="word2vec")
     parser.add_argument("-binary", help="1 for binary model, 0 for text model. Applies to word2vec only. Default 1", default=1, type=int)
     args = parser.parse_args()
-    collect_neighbours(args.model, args.output, args.n, args.format, args.binary)
+    run(args.model, args.output, args.n, args.format, args.binary)
 
 if __name__ == '__main__':
     main()

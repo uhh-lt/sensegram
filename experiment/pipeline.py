@@ -1,9 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" file in progress
-    Execute all steps of the pipeline.
-    Call of bash scripts is not always necessary, python modules can be imported and called through functions.
+""" Execute all steps of the pipeline for a test model.
+    You can use python modules either as executable scripts or as modules to import.
 """
 # help: 
 # In sys.path[0] you have the path of your currently running script.
@@ -14,12 +13,10 @@
 from subprocess import Popen, PIPE, call, check_output
 import word_neighbours, filter_clusters
 
-###### Train word vector model from corpora file <name>.txt ###### 
-def train_word_vectors(prefix):
-    name = prefix
-    bash_command = ("word2vec_c/word2vec -train corpora/" + name + ".txt " + 
-                   "-save-ctx model/" + name + "_context_vectors.bin -output model/" + name + "_word_vectors.bin " + 
-                   "-cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 12 -binary 1 -iter 15")
+#######################                                 ###########################
+####################### Train word/context vector model ###########################
+def train_word_vectors():
+    bash_command = ("word2vec_c/word2vec -train corpora/test.txt -save-ctx model/test_context_vectors.bin -output model/test_word_vectors.bin -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 12 -binary 1 -iter 15")
     #p = call(bash_command.split())
     #p = check_output(bash_command.split()) # p has stdout, waits until process finished
     #print p
@@ -31,16 +28,18 @@ def train_word_vectors(prefix):
 
     # don't use wait() and PIPE together
 
-###### Collect word neighbours for model <name>_word_vectors.bin ######
-def collect_word_neighbours(prefix):
-    name = prefix
-    word_neighbours.collect_neighbours("model/" + name + "_word_vectors.bin", 
-                                        #"model/text8_vectors.bin",
-                                       "intermediate/" + name + "_neighbours.txt")
+#######################                      ###########################
+####################### Induce sense vectors ###########################
+
+###### Collect word neighbours ######
+def collect_word_neighbours():
+    word_neighbours.run("model/test_word_vectors.bin", 
+                                       "intermediate/test_neighbours.txt")
+    # ./word_neighbours.py model/test_word_vectors.bin intermediate/test_neighbours.txt -n 200
 
 ###### Cluster word neighbours. The algorithm performs local clustering for each word. ######
 ###### Each cluster thus represents one sense of a word. ###### 
-def cluster_word_neighbours(prefix):
+def cluster_word_neighbours():
     """
         -Xms    min (start) heap size
         -Xmx    max heap size 
@@ -51,16 +50,14 @@ def cluster_word_neighbours(prefix):
         -clustering     clustering algorithm to use: 'cw' or 'mcl'
         -e      min. edge weight
     """
-    bash_command = ("time java -Xms2G -Xmx2G -cp chinese-whispers/target/chinese-whispers.jar " +
-                    "de.tudarmstadt.lt.wsi.WSI -in intermediate/" + prefix + "_neighbours.txt -n 200 -N 200 " +
-                    "-out intermediate/" + prefix + "_clusters.txt -clustering cw")
+    bash_command = ("time java -Xms2G -Xmx2G -cp chinese-whispers/target/chinese-whispers.jar de.tudarmstadt.lt.wsi.WSI -in intermediate/test_neighbours.txt -n 200 -N 200 -out intermediate/test_clusters.txt -clustering cw")
     p = Popen(bash_command.split())
     p.wait()
 
 ###### Filter out small clusters (might represent noise) ######
-def postprocess_clusters(prefix):
-    return filter_clusters.run("intermediate/" + prefix + "_clusters.txt")
-    # time dt/postprocess.py -min_size 5 dt/clusters.txt
+def postprocess_clusters():
+    return filter_clusters.run("intermediate/test_clusters.txt")
+    # time ./filter_clusters.py intermediate/test_clusters.txt -min_size 5
 
 ###### Create sense vectors ######
 def pool_vectors():
@@ -71,19 +68,38 @@ def pool_vectors():
 #######################                      ###########################
 ####################### Tests and evaluation ###########################
 
-###### Sanity check: disambiguate occurences of words in initial corpora. Observe different parameters. ######
+###### Sanity check: disambiguate occurences of words in the initial corporus. Observe different parameters. ######
 def put_back():
     bash_command = "time ./put_back.py model/test_sense_vectors.bin model/test_context_vectors.bin corpora/test.txt eval/test_put_back.txt -lowercase -words anarchism,estate"
     p = Popen(bash_command.split())
     p.wait()
 
+###### Fill in a test set for WSD ######
+def predict():
+
+    # SemEval dataset 
+    bash_command = "time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/test_sense_vectors.bin model/test_context_vectors.bin eval/test_SemEval-2013-13_predictions_nothr.csv -lowercase"
+    p = Popen(bash_command.split())
+    p.wait()
+
+    # TWSI dataset
+    bash_command = "time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/test_sense_vectors.bin model/test_context_vectors.bin eval/test_TWSI-2_predictions_nothr.csv -lowercase"
+    p = Popen(bash_command.split())
+    p.wait()
+
+###### Evaluate testsets ######
+    # TODO: write correctly
+    #(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/test_SemEval-2013-13_predictions_nothr.csv > ../eval/corpus_en.norm-sz100-w1-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv.eval)
+    #(cd context-eval/ && exec time ./twsi_evaluation.py ../intermediate/test_inventory.csv ../eval/test_TWSI-2_predictions_nothr.csv)
+
 #######################                     ###########################
 #######################    Run pipeline     ###########################
 
-#train_word_vectors("test")
-#collect_word_neighbours("test")
-#cluster_word_neighbours("test")
-#left_clusters, avg_number_senses = postprocess_clusters("test")
+#train_word_vectors()
+#collect_word_neighbours()
+#cluster_word_neighbours()
+#left_clusters, avg_number_senses = postprocess_clusters()
 #pool_vectors()
-put_back()
+#put_back()
+predict()
 
