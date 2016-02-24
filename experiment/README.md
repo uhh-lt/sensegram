@@ -56,9 +56,8 @@ Apart from python files mentioned above the project contains the following:
 * wsd.py -- implementation of WSD class which represents a disambiguation model. It is initialized with sense and context vectors and provides functions to disambiguate a word in given context.
 * put_back.py -- a sanity check. Finds occurences of specified words in the original corpus and disambiguates them. Example call:
 
-        ```sh
         ./put_back.py model/test_sense_vectors.bin model/test_context_vectors.bin corpora/test.txt eval/test_put_back.txt -lowercase -words anarchism,estate
-        ```
+        
 * pbar.py -- custom implementation of a progress bar for loops.
 * runs/ -- further usage examples & definitions of jobs to be run on [cluster]
 * corpora/ -- by convention use this folder to store initial corpora used to train word/context vectors.
