@@ -49,7 +49,8 @@ cd ..
 Results of evaluation are printed to stdout.
 
 **Note:** This example assumes that implementations of word2vec_c, chinese-whispers and context-eval reside in the root of this project in directories of the same names.
-**Note:** on frink:/home/pelevina/experiment you can find further model and evaluation results
+
+**Note:** on frink:/home/pelevina/experiment you can find further models and evaluation results
 
 ## Description of files and folders
 Apart from python files mentioned above the project contains the following:
