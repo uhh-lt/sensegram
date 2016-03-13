@@ -1,0 +1,191 @@
+### Create sense vectors  ###
+
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.senses -lowercase -inventory intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv
+
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.senses -lowercase 
+
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.senses -lowercase 
+
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.senses -lowercase 
+
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.senses -lowercase
+
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.senses -lowercase -inventory intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory-test.csv
+
+###### Tuning of threshold of confidence ######
+time ./put_back.py model/test_sense_vectors.bin model/test_context_vectors.bin corpora/test.txt eval/test_put_back.txt -lowercase -words anarchism,estate
+
+time ./put_back.py model/1.5wiki_sense_vectors.bin model/1.5wiki_context_vectors.bin corpora/1.5wiki.txt eval/1.5wiki_put_back.txt -lowercase -words mouse,ruby,jaguar,oracle,java,anarchism,accident
+
+time ./put_back.py model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.contexts corpora/1.5wiki.txt eval/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v_put_back.txt -lowercase -words mouse,ruby,jaguar,oracle,java,anarchism,accident
+
+######  SemEval Prediction  #######
+
+# No threshold
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv -lowercase
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb1-it1-min20_SemEval-2013-13_predictions_nothr.csv -lowercase
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv -lowercase
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb1-it1-min20_SemEval-2013-13_predictions_nothr.csv -lowercase
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv -lowercase
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb1-it1-min20_SemEval-2013-13_predictions_nothr.csv -lowercase
+
+# 9th entropy decile
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb0-it1-min20_SemEval-2013-13_predictions_e9dec.csv -lowercase -entropy_thr 0.498033799
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb1-it1-min20_SemEval-2013-13_predictions_e9dec.csv -lowercase -entropy_thr 0.522904763
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb0-it1-min20_SemEval-2013-13_predictions_e9dec.csv -lowercase -entropy_thr 0.488859956
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb1-it1-min20_SemEval-2013-13_predictions_e9dec.csv -lowercase -entropy_thr 0.526866306
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb0-it1-min20_SemEval-2013-13_predictions_e9dec.csv -lowercase -entropy_thr 0.500430456
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb1-it1-min20_SemEval-2013-13_predictions_e9dec.csv -lowercase -entropy_thr 0.527400977
+
+# 1st difference decile
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb0-it1-min20_SemEval-2013-13_predictions_d1dec.csv -lowercase -diff_thr 0.213929853
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb1-it1-min20_SemEval-2013-13_predictions_d1dec.csv -lowercase -diff_thr 0.100403727
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb0-it1-min20_SemEval-2013-13_predictions_d1dec.csv -lowercase -diff_thr 0.263945354
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb1-it1-min20_SemEval-2013-13_predictions_d1dec.csv -lowercase -diff_thr 0.056566406
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb0-it1-min20_SemEval-2013-13_predictions_d1dec.csv -lowercase -diff_thr 0.195285729
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb1-it1-min20_SemEval-2013-13_predictions_d1dec.csv -lowercase -diff_thr 0.045232997
+
+######  SemEval Evaluation  #######
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w1-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv > ../eval/corpus_en.norm-sz100-w1-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w1-cb1-it1-min20_SemEval-2013-13_predictions_nothr.csv > ../eval/corpus_en.norm-sz100-w1-cb1-it1-min20_SemEval-2013-13_predictions_nothr.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w3-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv > ../eval/corpus_en.norm-sz100-w3-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w3-cb1-it1-min20_SemEval-2013-13_predictions_nothr.csv > ../eval/corpus_en.norm-sz100-w3-cb1-it1-min20_SemEval-2013-13_predictions_nothr.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w8-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv > ../eval/corpus_en.norm-sz100-w8-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w8-cb1-it1-min20_SemEval-2013-13_predictions_nothr.csv > ../eval/corpus_en.norm-sz100-w8-cb1-it1-min20_SemEval-2013-13_predictions_nothr.csv.eval)
+
+# 9th entropy
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w1-cb0-it1-min20_SemEval-2013-13_predictions_e9dec.csv > ../eval/corpus_en.norm-sz100-w1-cb0-it1-min20_SemEval-2013-13_predictions_e9dec.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w1-cb1-it1-min20_SemEval-2013-13_predictions_e9dec.csv > ../eval/corpus_en.norm-sz100-w1-cb1-it1-min20_SemEval-2013-13_predictions_e9dec.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w3-cb0-it1-min20_SemEval-2013-13_predictions_e9dec.csv > ../eval/corpus_en.norm-sz100-w3-cb0-it1-min20_SemEval-2013-13_predictions_e9dec.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w3-cb1-it1-min20_SemEval-2013-13_predictions_e9dec.csv > ../eval/corpus_en.norm-sz100-w3-cb1-it1-min20_SemEval-2013-13_predictions_e9dec.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w8-cb0-it1-min20_SemEval-2013-13_predictions_e9dec.csv > ../eval/corpus_en.norm-sz100-w8-cb0-it1-min20_SemEval-2013-13_predictions_e9dec.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w8-cb1-it1-min20_SemEval-2013-13_predictions_e9dec.csv > ../eval/corpus_en.norm-sz100-w8-cb1-it1-min20_SemEval-2013-13_predictions_e9dec.csv.eval)
+
+# 1st difference
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w1-cb0-it1-min20_SemEval-2013-13_predictions_d1dec.csv > ../eval/corpus_en.norm-sz100-w1-cb0-it1-min20_SemEval-2013-13_predictions_d1dec.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w1-cb1-it1-min20_SemEval-2013-13_predictions_d1dec.csv > ../eval/corpus_en.norm-sz100-w1-cb1-it1-min20_SemEval-2013-13_predictions_d1dec.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w3-cb0-it1-min20_SemEval-2013-13_predictions_d1dec.csv > ../eval/corpus_en.norm-sz100-w3-cb0-it1-min20_SemEval-2013-13_predictions_d1dec.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w3-cb1-it1-min20_SemEval-2013-13_predictions_d1dec.csv > ../eval/corpus_en.norm-sz100-w3-cb1-it1-min20_SemEval-2013-13_predictions_d1dec.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w8-cb0-it1-min20_SemEval-2013-13_predictions_d1dec.csv > ../eval/corpus_en.norm-sz100-w8-cb0-it1-min20_SemEval-2013-13_predictions_d1dec.csv.eval)
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/corpus_en.norm-sz100-w8-cb1-it1-min20_SemEval-2013-13_predictions_d1dec.csv > ../eval/corpus_en.norm-sz100-w8-cb1-it1-min20_SemEval-2013-13_predictions_d1dec.csv.eval)
+
+#######  TWSI prediction ########
+
+# No threshold
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb0-it1-min20_TWSI-2_predictions_nothr.csv -lowercase
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb1-it1-min20_TWSI-2_predictions_nothr.csv -lowercase
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb0-it1-min20_TWSI-2_predictions_nothr.csv -lowercase
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb1-it1-min20_TWSI-2_predictions_nothr.csv -lowercase
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb0-it1-min20_TWSI-2_predictions_nothr.csv -lowercase
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb1-it1-min20_TWSI-2_predictions_nothr.csv -lowercase
+
+# 9th entropy decile
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb0-it1-min20_TWSI-2_predictions_e9dec.csv -lowercase -entropy_thr 0.49737637
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb1-it1-min20_TWSI-2_predictions_e9dec.csv -lowercase -entropy_thr 0.522209226
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb0-it1-min20_TWSI-2_predictions_e9dec.csv -lowercase -entropy_thr 0.486088909
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb1-it1-min20_TWSI-2_predictions_e9dec.csv -lowercase -entropy_thr 0.525557525
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb0-it1-min20_TWSI-2_predictions_e9dec.csv -lowercase -entropy_thr 0.493141788
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb1-it1-min20_TWSI-2_predictions_e9dec.csv -lowercase -entropy_thr 0.526462192
+
+# 1st difference decile
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb0-it1-min20_TWSI-2_predictions_d1dec.csv -lowercase -diff_thr 0.208280985
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w1-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w1-cb1-it1-min20_TWSI-2_predictions_d1dec.csv -lowercase -diff_thr 0.109675991
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb0-it1-min20_TWSI-2_predictions_d1dec.csv -lowercase -diff_thr 0.252784275
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w3-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w3-cb1-it1-min20_TWSI-2_predictions_d1dec.csv -lowercase -diff_thr 0.072726241
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb0-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb0-it1-min20_TWSI-2_predictions_d1dec.csv -lowercase -diff_thr 0.232497553
+
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.senses model/corpus_en.norm-sz100-w8-cb1-it1-min20.w2v.contexts eval/corpus_en.norm-sz100-w8-cb1-it1-min20_TWSI-2_predictions_d1dec.csv -lowercase -diff_thr 0.057819167
+
+#######  TWSI evaluation ########
+(cd context-eval/ && exec time ./twsi_evaluation.py ../intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv ../eval/corpus_en.norm-sz100-w1-cb0-it1-min20_TWSI-2_predictions_nothr.csv > corpus_en.norm-sz100-w1-cb0-it1-min20_TWSI-2_predictions_nothr.csv.stat)
+
+(cd context-eval/ && exec time ./twsi_evaluation.py ../intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv ../eval/corpus_en.norm-sz100-w1-cb1-it1-min20_TWSI-2_predictions_nothr.csv > corpus_en.norm-sz100-w1-cb1-it1-min20_TWSI-2_predictions_nothr.csv.stat)
+
+(cd context-eval/ && exec time ./twsi_evaluation.py ../intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv ../eval/corpus_en.norm-sz100-w3-cb0-it1-min20_TWSI-2_predictions_nothr.csv > corpus_en.norm-sz100-w3-cb0-it1-min20_TWSI-2_predictions_nothr.csv.stat)
+
+(cd context-eval/ && exec time ./twsi_evaluation.py ../intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv ../eval/corpus_en.norm-sz100-w3-cb1-it1-min20_TWSI-2_predictions_nothr.csv > corpus_en.norm-sz100-w3-cb1-it1-min20_TWSI-2_predictions_nothr.csv.stat)
+
+(cd context-eval/ && exec time ./twsi_evaluation.py ../intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv ../eval/corpus_en.norm-sz100-w8-cb0-it1-min20_TWSI-2_predictions_nothr.csv > corpus_en.norm-sz100-w8-cb0-it1-min20_TWSI-2_predictions_nothr.csv.stat)
+
+(cd context-eval/ && exec time ./twsi_evaluation.py ../intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv ../eval/corpus_en.norm-sz100-w8-cb1-it1-min20_TWSI-2_predictions_nothr.csv > corpus_en.norm-sz100-w8-cb1-it1-min20_TWSI-2_predictions_nothr.csv.stat)
+
+#######  JoBim clusters (ukwac) & 1.5wiki vectors experiment #######
+# create sense vectors
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/1.5wiki_word_vectors.bin model/1.5wiki_sense_vectors_ukwac.bin -lowercase 
+
+Loading original word model...
+Initializing Word2Vec object for sense vectors...
+Pooling cluster vectors...
+Progress: 100%
+Shrinking matrix size from 3488990 to 3030955
+Sense vectors: 3030955, duplicates: 0, small: 458035, clusters: 3488990
+Saving sense vectors...
+
+real    20m13.668s
+user    19m58.940s
+sys 0m10.060s
+
+# TWSI prediction
+time ./prediction.py context-eval/data/Dataset-TWSI-2.csv model/1.5wiki_sense_vectors_ukwac.bin model/1.5wiki_context_vectors.bin eval/1.5wiki_ukwac_TWSI-2_predictions_nothr.csv -lowercase
+
+real    270m18.531s
+user    4222m51.915s
+sys     61m31.531s
+
+time ./twsi_evaluation.py ../intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv ../eval/1.5wiki_ukwac_TWSI-2_predictions_nothr.csv
+
+Evaluation Results:
+Correct, retrieved, nr_sentences
+62722   144312  145140
+Precision: 0.434627750984       Recall: 0.432148270635  F1: 0.433384464436
+Coverage:  0.994295163291
+
+real    6m36.993s
+user    6m35.172s
+sys     0m1.960s
+
