@@ -1,0 +1,16 @@
+%%%%%%%% Filtering %%%%%%%%%
+
+pelevina@frink:~/experiment/corpora$ time ./preprocess.py wikipedia.txt.gz wiki.txt
+
+real    660m39.575s
+user    647m50.756s
+sys     12m23.496s
+
+time word2vec_c/word2vec -train corpora/wiki.txt -save-ctx model/wiki-sz300-w3-cb1-it3-min20.w2v.contexts -output model/wiki-sz300-w3-cb1-it3-min20.w2v -cbow 1 -size 300 -window 3 -negative 25 -hs 0 -sample 1e-4 -threads 12 -binary 1 -iter 3
+Starting training using file corpora/wiki.txt
+Vocab size: 2762633
+Words in train file: 2305403150
+Alpha: 0.000005  Progress: 100.00%  Words/thread/sec: 33.34k
+real    322m40.334s
+user    3463m30.164s
+sys     4m15.788s
