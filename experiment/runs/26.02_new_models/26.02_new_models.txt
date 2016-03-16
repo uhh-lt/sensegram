@@ -1,0 +1,28 @@
+# Longer vector
+time ./pooling.py intermediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/res2/corpus_en.norm-sz300-w1-cb0-it1-min20.w2v model/res2/corpus_en.norm-sz300-w1-cb0-it1-min20.w2v.senses -lowercase -inventory intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv
+
+Loading original word model...
+Initializing Word2Vec object for sense vectors...termediate/ukwac-clusters-dep-cw-e0-N200-n200-minsize5-count3488990.csv 3488990 model/res2/corpus_en.norm-sz300-w1-cb0-it1-min2Pooling cluster vectors...
+Progress: 100%
+Shrinking matrix size from 3488990 to 3079391
+Sense vectors: 3079391, duplicates: 0, small: 409599, clusters: 3488990
+Saving sense vectors...
+
+real    44m8.738s
+user    36m57.632s
+sys     1m3.464s
+
+
+time ./prediction.py context-eval/data/Dataset-SemEval-2013-13.csv model/res2/corpus_en.norm-sz300-w1-cb0-it1-min20.w2v.senses model/res2/corpus_en.norm-sz300-w1-cb0-it1-min20.w2v.contexts eval/res2/corpus_en.norm-sz300-w1-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv -lowercase
+
+Loading models...
+Loading test set...
+4664 test instances
+Start prediction over context-eval/data/Dataset-SemEval-2013-13.csv
+Progress: 100%
+Saved predictions to eval/res2/corpus_en.norm-sz300-w1-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv
+Saved statistics to eval/res2/corpus_en.norm-sz300-w1-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv.stat
+
+(cd context-eval/ && exec time ./semeval_2013_13.sh semeval_2013_13/keys/gold/all.key ../eval/res2/corpus_en.norm-sz300-w1-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv > ../eval/res2/corpus_en.norm-sz300-w1-cb0-it1-min20_SemEval-2013-13_predictions_nothr.csv.eval)
+
+

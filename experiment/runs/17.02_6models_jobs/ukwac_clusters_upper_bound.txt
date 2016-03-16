@@ -1,0 +1,168 @@
+Warning: skipping word not present in TWSI vocabulary: highlight    0   alternative:0.001,first:0.001,multiple:0.001,opening:0.001,editorial:0.001,technical:0.001,operational:0.001,short:0.001,chain:0.001,financial:0.001,opening:0.001,external:0.001,relevant:0.001,new:0.001,empty:0.001,modernisation:0.001,original:0.001
+highlight
+
+Warning: skipping word not present in TWSI vocabulary: heading 0   /td:0.002,tr:0.002,@*:0.001,=book:0.001,select:0.001,template:0.001,#fixed:0.001,:attribute:0.001,//load:0.001,//dp:0.001,:choose:0.001,@name:0.001,="para:0.001,/xsl:0.001,re-use:0.001,/items:0.001,@rating:0.001,@language:0.001,//td:0.001,)[:0.001,:template:0.001,delimiter:0.001,{$:0.001,fo:0.001,@itemid:0.001,="node:0.001,/head:0.001,@value:0.001,@id:0.001,xsl:0.001,/h3:0.001,td:0.001,match:0.001,=$:0.001,h2:0.001,br/xsl:0.001,//xsl:0.001
+
+Mapping: data/Mapping_Inventory-TWSI-2.csv_corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv
+twsi #words: 1010
+twsi #senses: 2285.0
+twsi average #senses per word: 2.26
+user #words: 1009
+user #senses: 5781.0
+user average #senses per word: 5.73
+# user unmapped senses: 27.97% (1617 of 1009)
+user unmapped words: []
+twsi unmapped senses:
+# twsi unmapped senses: 26.43% (604 of 2285)
+Estimating upper bound performance:  data/Dataset-TWSI-2.csv
+
+Upper Bound Results:
+Correct, retrieved, nr_sentences
+126410  145140
+Precision: 1.0  Recall: 0.870952184098  F1: 0.931025593813
+
+
+Example:
+==================================================
+User: club#1: party:0.058,company:0.058,association:0.047,institution:0.047,union:0.045,organisation:0.044,group:0.043,federation:0.041,counci
+l:0.041,industry:0.04,firm:0.038,society:0.037,business:0.037,community:0.034,dealer:0.033,charity:0.032,retailer:0.031,agency:0.029,departmen
+t:0.029,operator:0.029,country:0.028,organization:0.028
+
+TWSI: club#1 (0.307):   association:64, club:42, organization:38, league:35, alliance:30, group:28, society:28, bar:22, establishment:22, gang
+:18, team:18, membership:18, lodge:17, crew:16, affiliation:16, nightclub:14, sport:12, entertainment:12, squad:12, lounge:11, membership club
+:11, entertainment establishment:11, franchise:10, company:9, night:7, dance:6, dance club:6, venue:6, sports:6, sport franchise:6, night club
+:6, facility:5, faction:5, members:4, member:4, pub:3, card:3, place:3, club facility:3, sports team:3, coalition:3, membership group:3, drink
+ing establishment:2, athletic:2, membership establishment:2, drinking:2, clubs:2, gentleman:2, sports club:2, assembly:2, fraternal organizati
+on:2, athletic club:2, country:2, nightspot:2, fraternity:2, community:2, resort:2, union:2, gym:2, country club:2, gentleman club:2, gatherin
+g:2, fraternal:2, drink:2, order:2, entertainment venue:1, night spot:1, bunch:1, (house):1, establishment for members only:1, charge:1, resor
+t club (house):1, dancehall:1, coop:1, game:1, hall:1, club venue:1, disco:1, affiliate:1, common:1, people:1, list:1, hang out:1, card clubs:
+1, nigthclub:1, health:1, officer:1, spot:1, clique:1, training:1, music club:1, association of members:1, team franchise:1, organizaion:1, gr
+oup of people:1, fee:1, music:1, team organization:1, interest:1, suit:1, meeting:1, hangout:1, institution:1, suit of cards:1, sports franchi
+se:1, guild:1, meeting place:1, nightlife:1, cards:1, meet:1, health club:1, student club:1, training place:1, entry fee:1, team of members:1,
+ membership organization:1, cover charge:1, officer club:1, hang:1, student:1, common interest group:1, cover:1, card game clubs:1, group of m
+embers:1, entry:1, 
+
+TWSI: club#3 (0.069):   bar:12, pub:11, night:9, lodge:8, night club:7, hangout:7, club:7, spot:4, league:4, stamping:3, disco:3, ground:3, gu
+ild:3, stamping ground:3, night spot:2, society:2, dancehall:2, company:2, association:2, nightclub:2, facility:1, dance:1, cafe:1, union:1, d
+ance hall:1, hall:1, nightlife place:1, place:1, nightlife:1, order:1, 
+
+TWSI: club#2 (0.000):   bat:2, baton:2, blunt weapon:1, club:1, weapon:1, billy club:1, bludgeon:1, billy:1, stick:1, blunt:1, staff:1, 
+
+Assigned TWSI: club#1
+==================================================
+User: club#2: venue:0.084,school:0.078,centre:0.071,nightclub:0.067,theatre:0.064,pub:0.062,cinema:0.061,festival:0.061,hall:0.061,academy:0.0
+58,restaurant:0.057,gym:0.056,college:0.056,instructor:0.056,stadium:0.054,disco:0.053,bar:0.051,shop:0.05,fraternity:0.049,facility:0.044,hot
+el:0.044,cafe:0.043,activity:0.043,event:0.043,caf�:0.042,band:0.042,university:0.041,gig:0.041,museum:0.04,hospital:0.039,court:0.038,enterta
+inment:0.038,attraction:0.037,lesson:0.037,concert:0.037,clinic:0.036,room:0.036,equipment:0.036,scene:0.036,studio:0.036,resort:0.035,salon:0
+.035,spa:0.034,session:0.034,gallery:0.034,rally:0.034,buddy:0.034,gear:0.034,class:0.034,trip:0.034,outlet:0.034,pavilion:0.033,holiday:0.033
+,outing:0.033,skill:0.033,home:0.033,nursery:0.033,pool:0.033,playground:0.033,arena:0.033,lounge:0.032,hostel:0.032,office:0.031,church:0.03,
+brewery:0.03,arcade:0.03,choir:0.03,zoo:0.029,bookshop:0.029,park:0.029,mall:0.029,clubhouse:0.029,tuition:0.029,tour:0.029,establishment:0.02
+9,camp:0.029,premise:0.029,circuit:0.028,marina:0.028,branch:0.028
+
+TWSI: club#1 (0.102):   association:64, club:42, organization:38, league:35, alliance:30, group:28, society:28, bar:22, establishment:22, gang
+:18, team:18, membership:18, lodge:17, crew:16, affiliation:16, nightclub:14, sport:12, entertainment:12, squad:12, lounge:11, membership club
+:11, entertainment establishment:11, franchise:10, company:9, night:7, dance:6, dance club:6, venue:6, sports:6, sport franchise:6, night club
+:6, facility:5, faction:5, members:4, member:4, pub:3, card:3, place:3, club facility:3, sports team:3, coalition:3, membership group:3, drink
+ing establishment:2, athletic:2, membership establishment:2, drinking:2, clubs:2, gentleman:2, sports club:2, assembly:2, fraternal organizati
+on:2, athletic club:2, country:2, nightspot:2, fraternity:2, community:2, resort:2, union:2, gym:2, country club:2, gentleman club:2, gatherin
+g:2, fraternal:2, drink:2, order:2, entertainment venue:1, night spot:1, bunch:1, (house):1, establishment for members only:1, charge:1, resor
+t club (house):1, dancehall:1, coop:1, game:1, hall:1, club venue:1, disco:1, affiliate:1, common:1, people:1, list:1, hang out:1, card clubs:
+1, nigthclub:1, health:1, officer:1, spot:1, clique:1, training:1, music club:1, association of members:1, team franchise:1, organizaion:1, gr
+oup of people:1, fee:1, music:1, team organization:1, interest:1, suit:1, meeting:1, hangout:1, institution:1, suit of cards:1, sports franchi
+se:1, guild:1, meeting place:1, nightlife:1, cards:1, meet:1, health club:1, student club:1, training place:1, entry fee:1, team of members:1,
+ membership organization:1, cover charge:1, officer club:1, hang:1, student:1, common interest group:1, cover:1, card game clubs:1, group of m
+embers:1, entry:1, 
+
+TWSI: club#3 (0.177):   bar:12, pub:11, night:9, lodge:8, night club:7, hangout:7, club:7, spot:4, league:4, stamping:3, disco:3, ground:3, gu
+ild:3, stamping ground:3, night spot:2, society:2, dancehall:2, company:2, association:2, nightclub:2, facility:1, dance:1, cafe:1, union:1, d
+ance hall:1, hall:1, nightlife place:1, place:1, nightlife:1, order:1, 
+
+TWSI: club#2 (0.000):   bat:2, baton:2, blunt weapon:1, club:1, weapon:1, billy club:1, bludgeon:1, billy:1, stick:1, blunt:1, staff:1, 
+
+Assigned TWSI: club#3 
+==================================================
+User: club#3: football:0.074,sport:0.057,tennis:0.056,coaching:0.053,golf:0.052,cricket:0.051,hockey:0.05,rugby:0.05,racing:0.046,swimming:0.0
+42,bowling:0.04,athletics:0.039,basketball:0.039,riding:0.039,soccer:0.038,baseball:0.036,touring:0.033,boxing:0.033,tennis:0.03,dance:0.029,d
+ancing:0.029
+
+TWSI: club#1 (0.032):   association:64, club:42, organization:38, league:35, alliance:30, group:28, society:28, bar:22, establishment:22, gang
+:18, team:18, membership:18, lodge:17, crew:16, affiliation:16, nightclub:14, sport:12, entertainment:12, squad:12, lounge:11, membership club
+:11, entertainment establishment:11, franchise:10, company:9, night:7, dance:6, dance club:6, venue:6, sports:6, sport franchise:6, night club
+:6, facility:5, faction:5, members:4, member:4, pub:3, card:3, place:3, club facility:3, sports team:3, coalition:3, membership group:3, drink
+ing establishment:2, athletic:2, membership establishment:2, drinking:2, clubs:2, gentleman:2, sports club:2, assembly:2, fraternal organizati
+on:2, athletic club:2, country:2, nightspot:2, fraternity:2, community:2, resort:2, union:2, gym:2, country club:2, gentleman club:2, gatherin
+g:2, fraternal:2, drink:2, order:2, entertainment venue:1, night spot:1, bunch:1, (house):1, establishment for members only:1, charge:1, resor
+t club (house):1, dancehall:1, coop:1, game:1, hall:1, club venue:1, disco:1, affiliate:1, common:1, people:1, list:1, hang out:1, card clubs:
+1, nigthclub:1, health:1, officer:1, spot:1, clique:1, training:1, music club:1, association of members:1, team franchise:1, organizaion:1, gr
+oup of people:1, fee:1, music:1, team organization:1, interest:1, suit:1, meeting:1, hangout:1, institution:1, suit of cards:1, sports franchi
+se:1, guild:1, meeting place:1, nightlife:1, cards:1, meet:1, health club:1, student club:1, training place:1, entry fee:1, team of members:1,
+ membership organization:1, cover charge:1, officer club:1, hang:1, student:1, common interest group:1, cover:1, card game clubs:1, group of m
+embers:1, entry:1, 
+
+TWSI: club#3 (0.005):   bar:12, pub:11, night:9, lodge:8, night club:7, hangout:7, club:7, spot:4, league:4, stamping:3, disco:3, ground:3, gu
+ild:3, stamping ground:3, night spot:2, society:2, dancehall:2, company:2, association:2, nightclub:2, facility:1, dance:1, cafe:1, union:1, d
+ance hall:1, hall:1, nightlife place:1, place:1, nightlife:1, order:1, 
+
+TWSI: club#2 (0.000):   bat:2, baton:2, blunt weapon:1, club:1, weapon:1, billy club:1, bludgeon:1, billy:1, stick:1, blunt:1, staff:1, 
+
+Assigned TWSI: club#1
+==================================================
+User: club#4: rovers:0.061,burnley:0.058,wolves:0.056,arsenal:0.05,rangers:0.05,united:0.049,athletic:0.048,rugby:0.048,charlton:0.046,everton
+:0.046,millwall:0.046,swansea:0.045,swans:0.044,xi:0.043,albion:0.043,wimbledon:0.042,premiership:0.041,wigan:0.041,harriers:0.04,lions:0.038,
+chelsea:0.037,fc:0.036,tigers:0.036,wanderers:0.034,crewe:0.034,ham:0.034,stadium:0.033,fulham:0.033,trafford:0.033,dons:0.03,claret:0.03,sain
+ts:0.03,sunderland:0.029,swindon:0.029,qpr:0.028
+
+TWSI: club#1 (0.003):   association:64, club:42, organization:38, league:35, alliance:30, group:28, society:28, bar:22, establishment:22, gang
+:18, team:18, membership:18, lodge:17, crew:16, affiliation:16, nightclub:14, sport:12, entertainment:12, squad:12, lounge:11, membership club
+:11, entertainment establishment:11, franchise:10, company:9, night:7, dance:6, dance club:6, venue:6, sports:6, sport franchise:6, night club
+:6, facility:5, faction:5, members:4, member:4, pub:3, card:3, place:3, club facility:3, sports team:3, coalition:3, membership group:3, drink
+ing establishment:2, athletic:2, membership establishment:2, drinking:2, clubs:2, gentleman:2, sports club:2, assembly:2, fraternal organizati
+on:2, athletic club:2, country:2, nightspot:2, fraternity:2, community:2, resort:2, union:2, gym:2, country club:2, gentleman club:2, gatherin
+g:2, fraternal:2, drink:2, order:2, entertainment venue:1, night spot:1, bunch:1, (house):1, establishment for members only:1, charge:1, resor
+t club (house):1, dancehall:1, coop:1, game:1, hall:1, club venue:1, disco:1, affiliate:1, common:1, people:1, list:1, hang out:1, card clubs:
+1, nigthclub:1, health:1, officer:1, spot:1, clique:1, training:1, music club:1, association of members:1, team franchise:1, organizaion:1, gr
+oup of people:1, fee:1, music:1, team organization:1, interest:1, suit:1, meeting:1, hangout:1, institution:1, suit of cards:1, sports franchi
+se:1, guild:1, meeting place:1, nightlife:1, cards:1, meet:1, health club:1, student club:1, training place:1, entry fee:1, team of members:1,
+ membership organization:1, cover charge:1, officer club:1, hang:1, student:1, common interest group:1, cover:1, card game clubs:1, group of m
+embers:1, entry:1, 
+
+TWSI: club#3 (0.000):   bar:12, pub:11, night:9, lodge:8, night club:7, hangout:7, club:7, spot:4, league:4, stamping:3, disco:3, ground:3, gu
+ild:3, stamping ground:3, night spot:2, society:2, dancehall:2, company:2, association:2, nightclub:2, facility:1, dance:1, cafe:1, union:1, d
+ance hall:1, hall:1, nightlife place:1, place:1, nightlife:1, order:1, 
+
+TWSI: club#2 (0.000):   bat:2, baton:2, blunt weapon:1, club:1, weapon:1, billy club:1, bludgeon:1, billy:1, stick:1, blunt:1, staff:1, 
+
+Assigned TWSI: club#1
+==================================================
+User: club#5: team:0.105,league:0.099,championship:0.081,tournament:0.076,player:0.076,enthusiast:0.075,club:0.074,clubs:0.069,squad:0.065,com
+petition:0.064,champion:0.058,game:0.057,coach:0.053,league:0.049,outfit:0.048,fixture:0.047,season:0.046,cup:0.043,match:0.042,trophy:0.041,f
+an:0.038,marathon:0.037,championship:0.036,race:0.035,shoe:0.035,squad:0.035,athlete:0.035,trainer:0.034,footballer:0.034,shirt:0.031,ball:0.0
+31,legend:0.031,championships:0.03,tournament:0.029,novice:0.029,contest:0.028
+
+TWSI: club#1 (0.259):   association:64, club:42, organization:38, league:35, alliance:30, group:28, society:28, bar:22, establishment:22, gang
+:18, team:18, membership:18, lodge:17, crew:16, affiliation:16, nightclub:14, sport:12, entertainment:12, squad:12, lounge:11, membership club
+:11, entertainment establishment:11, franchise:10, company:9, night:7, dance:6, dance club:6, venue:6, sports:6, sport franchise:6, night club
+:6, facility:5, faction:5, members:4, member:4, pub:3, card:3, place:3, club facility:3, sports team:3, coalition:3, membership group:3, drink
+ing establishment:2, athletic:2, membership establishment:2, drinking:2, clubs:2, gentleman:2, sports club:2, assembly:2, fraternal organizati
+on:2, athletic club:2, country:2, nightspot:2, fraternity:2, community:2, resort:2, union:2, gym:2, country club:2, gentleman club:2, gatherin
+g:2, fraternal:2, drink:2, order:2, entertainment venue:1, night spot:1, bunch:1, (house):1, establishment for members only:1, charge:1, resort club (house):1, dancehall:1, coop:1, game:1, hall:1, club venue:1, disco:1, affiliate:1, common:1, people:1, list:1, hang out:1, card clubs:1, nigthclub:1, health:1, officer:1, spot:1, clique:1, training:1, music club:1, association of members:1, team franchise:1, organizaion:1, group of people:1, fee:1, music:1, team organization:1, interest:1, suit:1, meeting:1, hangout:1, institution:1, suit of cards:1, sports franchise:1, guild:1, meeting place:1, nightlife:1, cards:1, meet:1, health club:1, student club:1, training place:1, entry fee:1, team of members:1, membership organization:1, cover charge:1, officer club:1, hang:1, student:1, common interest group:1, cover:1, card game clubs:1, group of members:1, entry:1, 
+
+TWSI: club#3 (0.120):   bar:12, pub:11, night:9, lodge:8, night club:7, hangout:7, club:7, spot:4, league:4, stamping:3, disco:3, ground:3, guild:3, stamping ground:3, night spot:2, society:2, dancehall:2, company:2, association:2, nightclub:2, facility:1, dance:1, cafe:1, union:1, dance hall:1, hall:1, nightlife place:1, place:1, nightlife:1, order:1, 
+
+TWSI: club#2 (0.050):   bat:2, baton:2, blunt weapon:1, club:1, weapon:1, billy club:1, bludgeon:1, billy:1, stick:1, blunt:1, staff:1, 
+
+Assigned TWSI: club#1
+
+Evaluation
+
+time ./twsi_evaluation.py ../intermediate/corpus_en.norm-sz100-w1-cb0-it1-min20_inventory.csv ../eval/res1/corpus_en.norm-sz100-w1-cb1-it1-min20_TWSI-2_predictions_nothr.csv
+
+Evaluation Results:
+Correct, retrieved, nr_sentences
+74335   144312  145140
+Precision: 0.515099229447   Recall: 0.512160672454  F1: 0.513625747965
+Coverage:  0.994295163291
+
+real    10m24.081s
+user    9m33.816s
+sys 0m27.692s
