@@ -11,13 +11,14 @@ If -inventory path is set, also creates an inventory for this sense vector model
 # What if: 1. A word from original model doesn't have a cluster left after postprocessing 
 # (all cluster were too small)
 # 2. A word has only one cluster. Use the average of cluster (as currently) or the original word vector?
-# TODO: Don't include cluster words which where not used for pooling (for example because they are not in word vector model)
-# into the inventory. It's not an error, but it doesn't make sense. It shouldn't be relevant if clusters are build 
-# from neighbours in the model -> it guaranties that cluster operate over model vocabulary.
 # TODO: duplicates check not necessary?
-# TODO: does it make sense to lowercase the center word of a cluster, or only the cluster? (when the word model is lowecased)?
 # TODO: pooling method "weighted average"
-
+"""
+1. Throw words out of cluster, if they cannot be parsed correctly 
+2. Cluster center word isn't lowercased
+3. Cluster words are lowercased only if the word vector model (which provides vectors for averaging) is universally lowercase
+4. 
+"""
 
 # wc -l <filename> number of lines in a file
 
@@ -30,14 +31,18 @@ from gensim.models import word2vec
 import pbar
 
 CHUNK_LINES = 500000
-debug = False
+debug = True
 default_count = 100 # arbitrary, should be larger than min_count of vec object, which is 5 by default
 sen_delimiter = u"#" # python#0, python#1, etc
 inventory_header = u"word\tsense_id\trel_terms\n"
 
-def pool_vectors(vectors, method):
+def pool_vectors(vectors, similarities, method):
     if method == 'mean':
         return np.mean(vectors, axis=0)
+    if method == 'weighted_mean':
+        s = sum(similarities)
+        sim_weights = [sim/s for sim in similarities]
+        return np.average(vectors, axis=0, weights=sim_weights)
     else:
         raise ValueError("Unknown pooling method '%s'" % method)
 
@@ -94,16 +99,16 @@ def run(clusters, nclusters, model, output, method='mean', format='word2vec', bi
                 row_word = row.word
                 row_cluster = row.cluster
                 if lowercase:
-                    row_word = row_word.lower()
+                    # row_word = row_word.lower()
                     row_cluster = row_cluster.lower()
                 # enumerate word senses from 0
                 sen_word = unicode(row_word) + sen_delimiter + unicode(sen_count[row_word])
                 
-                # only pool cluster words which are in the word vector model
-                split_cluster = [pair for pair in map(methodcaller('split', ':'), row_cluster.split(",")) if len(pair) == 2]
-                cluster_words = [word for word, sim in split_cluster 
-                                if word in wordvec.vocab]
-
+                # skip words in clusters that cannot be split correctly 
+                # only pool cluster words which are in the word vector model 
+                # pair is ['word', 'similarity']
+                cluster_words = [pair for pair in map(methodcaller('split', ':'), row_cluster.split(",")) 
+                                if len(pair) == 2 and pair[0] in wordvec.vocab]
                 
                 # copied from word2vec, modified
                 def add_word(word, vector):
@@ -119,17 +124,20 @@ def run(clusters, nclusters, model, output, method='mean', format='word2vec', bi
                     assert word == senvec.index2word[senvec.vocab[word].index]
 
                 if len(cluster_words) >= 5:
-                    cluster_vectors = np.array([wordvec[word] for word in cluster_words])
-                    sen_vector = pool_vectors(cluster_vectors, method)
+                    cluster_vectors = np.array([wordvec[word] for word, sim in cluster_words])
+                    cluster_sim = np.array([float(sim) for word, sim in cluster_words])
+                    sen_vector = pool_vectors(cluster_vectors, cluster_sim, method)
                     add_word(sen_word, sen_vector)
                     if inventory:
+                        # join back cluster words (only those that were actually used for sense vector)
+                        cluster = ",".join([word + ":" + sim for word, sim in cluster_words])
                         inv_output.write(u"%s\t%s\t%s\n" % (sen_word.split(sen_delimiter)[0], 
-                                                            sen_word.split(sen_delimiter)[1], row_cluster))
+                                                            sen_word.split(sen_delimiter)[1], cluster))
                     sen_count[row_word] += 1
                 else: 
                     small_clusters += 1
                     if debug:
-                        print row_cluster
+                        print row_word, "\t", row.cid
                         print cluster_words
                 pb.update(i)
                 i += 1 
@@ -156,7 +164,7 @@ def main():
     parser.add_argument('nclusters', help='number of clusters in the input file.', type=int)
     parser.add_argument('model', help='A path to an initial word vector model')
     parser.add_argument('output', help='A path to the output sense vector model')
-    parser.add_argument('-method', help="A method used to pool word vectors into a sense vector. Default 'mean'", default='mean')
+    parser.add_argument('-method', help="A method used to pool word vectors into a sense vector ('mean' or 'weighted_mean'). Default 'mean'", default='mean')
     parser.add_argument("-format", help="model type:'word2vec' or 'gensim'. Default 'word2vec'.", default="word2vec")
     parser.add_argument("-binary", help="1 for binary model, 0 for text model. Applies to word2vec only. Default 1", default=1, type=int)
     parser.add_argument("-lowercase", help="Lowercase all words in clusters (necessary if word model only has lowercased words). Default False", action="store_true")
