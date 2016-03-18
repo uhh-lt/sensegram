@@ -2,13 +2,13 @@
 import argparse
 import gzip
 from sys import stderr, stdin, stdout
-from russe.w2v.utils import load_vectors
+from word2vec_utils.utils import load_vectors
 import re
 from time import time
 import numpy as np
 from collections import OrderedDict
 import sys, traceback
-from russe.parallel import parallel_map
+from word2vec_utils.parallel import parallel_map
 
 from math import ceil
 from sys import stderr
