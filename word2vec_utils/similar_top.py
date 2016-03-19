@@ -2,13 +2,13 @@
 import argparse
 import gzip
 from sys import stderr, stdin, stdout
-from word2vec_utils.utils import load_vectors
+from utils import load_vectors
 import re
 from time import time
 import numpy as np
 from collections import OrderedDict
 import sys, traceback
-from word2vec_utils.parallel import parallel_map
+from parallel import parallel_map
 
 from math import ceil
 from sys import stderr
@@ -92,15 +92,15 @@ def print_similar(out, vectors, batch, mindist=None, only_letters=False, pairs=F
             else:
                 print >> out, "%s\t%s" % (word.encode('utf8'), ','.join(("%s:%f" % (w.encode('utf8'), d) for w, d in sims)))
 
-            print >> stderr, "%s: %d similar words found" % (word.encode('utf8'), len(sims))
+            #print >> stderr, "%s: %d similar words found" % (word.encode('utf8'), len(sims))
     except:
         print >> stderr, "ERROR in print_similar()"
         traceback.print_exc(file=sys.stderr)
 
 
-def process(out, vectors, only_letters, batch_size=1000, pairs=False):
+def process(out, vectors, only_letters, vocab_size, batch_size=1000, pairs=False):
     batch = []
-    for word in stdin:
+    for word in vectors.index2word[:vocab_size]:
         try:
             word = word.decode('utf8').rstrip('\n')
         except UnicodeDecodeError:
@@ -122,12 +122,14 @@ def process(out, vectors, only_letters, batch_size=1000, pairs=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Reads words from stdin, one word per line. Writes to stdout original word + similar words and their distances to the original word.')
+        description='Reads words from vector model. Writes to stdout word + similar words and their distances to the original word.')
     parser.add_argument('vectors', help='word2vec word vectors file.', default='')
     parser.add_argument('-output', help='Output file in on-pair-per-line format, gziped', default='')
     parser.add_argument('-only_letters', help='Skip words containing non-letter symbols from stding / similar words.', action="store_true")
+    parser.add_argument("-vocab_limit", help="Collect neighbours only for specified number of most frequent words. By default use all words.", default=None, type=int)
     parser.add_argument('-pairs', help="Use pairs format: 2 words and distance in each line. Otherwise echo line is a word and all it's neighbours with distances." , action="store_true")
     parser.add_argument('-batch-size', help='Batch size for finding neighbours.', default="1000")
+
     args = parser.parse_args()
 
     fvec = args.vectors
@@ -138,9 +140,19 @@ def main():
     tic = time()
     vectors = load_vectors(fvec)
     print >> stderr, "Vectors loaded in %d sec." % (time()-tic)
+    print >> stderr, "Vectors shape is: ", vectors.syn0norm.shape
+
+    vocab_size = len(vectors.vocab)
+    print("Vocabulary size: %i" % vocab_size)
+    
+    # Limit the number of words for which to collect neighbours
+    if args.vocab_limit and args.vocab_limit < vocab_size:
+        vocab_size = vocab_limit
+        
+    print("Collect neighbours for %i most frequent words" % vocab_size)
 
     with gzip.open(args.output, 'wb') if args.output else stdout as out:
-        process(out, vectors, only_letters=args.only_letters, batch_size=batch_size, pairs=args.pairs)
+        process(out, vectors, only_letters=args.only_letters, vocab_size=vocab_size, batch_size=batch_size, pairs=args.pairs)
 
 
 if __name__ == '__main__':
