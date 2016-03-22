@@ -4,6 +4,7 @@
 
 import argparse, codecs
 from pandas import read_csv
+from csv import QUOTE_NONE
 from wsd import WSD
 import pbar
 
@@ -64,7 +65,7 @@ def run(test_file, sense, context, output, entropy_thr=None, diff_thr=None, lowe
         pb.update(i)
     pb.finish()
 
-    reader.to_csv(sep='\t', path_or_buf=output, encoding="utf-8", index=False)
+    reader.to_csv(sep='\t', path_or_buf=output, encoding="utf-8", index=False, quoting=QUOTE_NONE)
     print("Saved predictions to " + output)
 
     if debug:
