@@ -61,7 +61,7 @@ def write_inventory(filename):
     else:
         return Dummysink()
 
-def run(clusters, nclusters, model, output, method='mean', format='word2vec', binary=True, lowercase=False, inventory=None):
+def run(clusters, nclusters, model, output, method='mean', format='word2vec', binary=True, lowercase=False, inventory=None, has_header=True):
 
     duplicates = 0 
     small_clusters = 0 
@@ -83,8 +83,15 @@ def run(clusters, nclusters, model, output, method='mean', format='word2vec', bi
     # as corresponding strings, not replaced with float NaN.
     # doublequote=False, quotechar=u"\u0000" changes quotechar from default '"' to NUL
     # otherwise any delimiter inside quotes would be ignores
-    reader = read_csv(clusters, encoding="utf-8", delimiter="\t", error_bad_lines=False, iterator=True, chunksize=CHUNK_LINES, 
-                      na_values=[""], keep_default_na=False, doublequote=False, quotechar=u"\u0000")
+    if has_header:
+        reader = read_csv(clusters, encoding="utf-8", delimiter="\t", error_bad_lines=False, iterator=True,
+                          chunksize=CHUNK_LINES, na_values=[""], keep_default_na=False, 
+                          doublequote=False, quotechar=u"\u0000")
+    else:
+        reader = read_csv(clusters, encoding="utf-8", delimiter="\t", error_bad_lines=False, iterator=True,
+                          chunksize=CHUNK_LINES, na_values=[""], keep_default_na=False, 
+                          doublequote=False, quotechar=u"\u0000",
+                          header=None, names=["word","cid","cluster"])
     sen_count = defaultdict(int)
     pb = pbar.Pbar(nclusters, 100)
     pb.start()
@@ -109,8 +116,9 @@ def run(clusters, nclusters, model, output, method='mean', format='word2vec', bi
                 for cluster_word_entry in row_cluster.split(','):
                     try:
                         word, sim = cluster_word_entry.strip().rsplit(':', 1)
+                        float(sim) # assert sim string represents a float
                         if word in wordvec.vocab:
-                            cluster_words.append((word, float(sim)))
+                            cluster_words.append((word, sim))
                     except:
                         print "Warning: wrong cluster word", cluster_word_entry
                 
@@ -129,7 +137,7 @@ def run(clusters, nclusters, model, output, method='mean', format='word2vec', bi
 
                 if len(cluster_words) >= 5:
                     cluster_vectors = np.array([wordvec[word] for word, sim in cluster_words])
-                    cluster_sim = np.array([sim for word, sim in cluster_words])
+                    cluster_sim = np.array([float(sim) for word, sim in cluster_words])
                     sen_vector = pool_vectors(cluster_vectors, cluster_sim, method)
                     add_word(sen_word, sen_vector)
                     if inventory:
@@ -173,9 +181,10 @@ def main():
     parser.add_argument("-binary", help="1 for binary model, 0 for text model. Applies to word2vec only. Default 1", default=1, type=int)
     parser.add_argument("-lowercase", help="Lowercase all words in clusters (necessary if word model only has lowercased words). Default False", action="store_true")
     parser.add_argument("-inventory", help='A path to the output inventory file of computed sense vector model with a header. Format: "word<TAB>sense_id<TAB>rel_terms" where <rel_terms> is "word:sim,word:sim,...". If not given, inventory is not written. Default None', default=None)
+    parser.add_argument('--no_header', action='store_true', help='No headers in cluster file. Default -- false.')
     args = parser.parse_args()
 
-    run(args.clusters, int(args.nclusters), args.model, args.output, args.method, args.format, args.binary, args.lowercase, args.inventory) 
+    run(args.clusters, int(args.nclusters), args.model, args.output, args.method, args.format, args.binary, args.lowercase, args.inventory, has_header=(not args.no_header)) 
     
 if __name__ == '__main__':
     main()
