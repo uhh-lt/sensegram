@@ -129,7 +129,7 @@ def run(clusters, nclusters, model, output, method='mean', format='word2vec', bi
 
                 if len(cluster_words) >= 5:
                     cluster_vectors = np.array([wordvec[word] for word, sim in cluster_words])
-                    cluster_sim = np.array(sim for word, sim in cluster_words])
+                    cluster_sim = np.array([sim for word, sim in cluster_words])
                     sen_vector = pool_vectors(cluster_vectors, cluster_sim, method)
                     add_word(sen_word, sen_vector)
                     if inventory:
