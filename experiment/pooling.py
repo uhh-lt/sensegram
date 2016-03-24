@@ -12,9 +12,8 @@ If -inventory path is set, also creates an inventory for this sense vector model
 # (all cluster were too small)
 # 2. A word has only one cluster. Use the average of cluster (as currently) or the original word vector?
 # TODO: duplicates check not necessary?
-# TODO: pooling method "weighted average"
 """
-1. Throw words out of cluster, if they cannot be parsed correctly 
+1. Throw words out of cluster if they cannot be parsed correctly 
 2. Cluster center word isn't lowercased
 3. Cluster words are lowercased only if the word vector model (which provides vectors for averaging) is universally lowercase
 4. 
@@ -104,11 +103,16 @@ def run(clusters, nclusters, model, output, method='mean', format='word2vec', bi
                 # enumerate word senses from 0
                 sen_word = unicode(row_word) + sen_delimiter + unicode(sen_count[row_word])
                 
-                # skip words in clusters that cannot be split correctly 
-                # only pool cluster words which are in the word vector model 
-                # pair is ['word', 'similarity']
-                cluster_words = [pair for pair in map(methodcaller('split', ':'), row_cluster.split(",")) 
-                                if len(pair) == 2 and pair[0] in wordvec.vocab]
+                # only pool cluster words which are in the word vector model
+                # skip words in clusters that cannot be split correctly
+                cluster_words = []
+                for cluster_word_entry in row_cluster.split(','):
+                    try:
+                        word, sim = cluster_word_entry.strip().rsplit(':', 1)
+                        if word in wordvec.vocab:
+                            cluster_words.append((word, float(sim)))
+                    except:
+                        print "Warning: wrong cluster word", cluster_word_entry
                 
                 # copied from word2vec, modified
                 def add_word(word, vector):
@@ -125,7 +129,7 @@ def run(clusters, nclusters, model, output, method='mean', format='word2vec', bi
 
                 if len(cluster_words) >= 5:
                     cluster_vectors = np.array([wordvec[word] for word, sim in cluster_words])
-                    cluster_sim = np.array([float(sim) for word, sim in cluster_words])
+                    cluster_sim = np.array(sim for word, sim in cluster_words])
                     sen_vector = pool_vectors(cluster_vectors, cluster_sim, method)
                     add_word(sen_word, sen_vector)
                     if inventory:
