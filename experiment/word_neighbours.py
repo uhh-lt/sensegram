@@ -12,7 +12,7 @@ from gensim.models import word2vec
 import pbar
 
 
-def run(model_path, output_path, n=200, 
+def run(model_path, output_path, n=200, vocab_limit=None,
                        model_format='word2vec', binary=True):
     """Collect nearest words for every item in the word vector model
 
@@ -45,14 +45,19 @@ def run(model_path, output_path, n=200,
         model = word2vec.Word2Vec.load(model_path)
     vocab_size = len(model.vocab)
     print("Vocabulary size: %i" % vocab_size)
-
+    
+    # Limit the number of words for which to collect neighbours
+    if vocab_limit and vocab_limit < vocab_size:
+        vocab_size = vocab_limit
+        
+    print("Collect neighbours for %i most frequent words" % vocab_size)
     print("Saving word neighbours to " + output_path)
     
     with codecs.open(output_path, 'w', encoding='utf-8') as output:
         pb = pbar.Pbar(vocab_size, 100)
         pb.start()
         i = 0
-        for word in model.index2word: # preserves the order of words in the model
+        for word in model.index2word[:vocab_size]: # preserves the order of words in the model
             neighbours = model.most_similar(positive=[word],topn=n)
             for neighbour, sim in neighbours:
                 output.write("%s\t%s\t%.4f\n" % (word, neighbour, sim))
@@ -66,10 +71,11 @@ def main():
     parser.add_argument("model", help="path to a word vector model")
     parser.add_argument("output", help="path to a text file for neighbours. Format: word1<TAB>neighbour1<TAB>similarity")
     parser.add_argument("-n", help="number of nearest neighbours to be collected for each word. Default 200.", default=200, type=int)
+    parser.add_argument("-vocab_limit", help="collect neighbours only for specified number of most frequent words. By default use all words.", default=None, type=int)
     parser.add_argument("-format", help="model type:'word2vec' or 'gensim'. Default 'word2vec'.", default="word2vec")
     parser.add_argument("-binary", help="1 for binary model, 0 for text model. Applies to word2vec only. Default 1", default=1, type=int)
     args = parser.parse_args()
-    run(args.model, args.output, args.n, args.format, args.binary)
+    run(args.model, args.output, args.n, args.vocab_limit, args.format, args.binary)
 
 if __name__ == '__main__':
     main()
