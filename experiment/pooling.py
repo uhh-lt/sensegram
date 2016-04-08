@@ -30,6 +30,7 @@ from gensim.models import word2vec
 import pbar
 
 CHUNK_LINES = 500000
+SPLIT_MWE = True
 debug = True
 default_count = 100 # arbitrary, should be larger than min_count of vec object, which is 5 by default
 sen_delimiter = u"#" # python#0, python#1, etc
@@ -78,7 +79,7 @@ def run(clusters, nclusters, model, output, method='mean', format='word2vec', bi
     senvec = word2vec.Word2Vec(size=vector_size, sorted_vocab=0)
     senvec.syn0 = np.zeros((nclusters, vector_size), dtype=np.float32)
 
-    print("Pooling cluster vectors...")
+    print("Pooling cluster vectors (%s method)..." % method)
     # na_values=[""], keep_default_na=False means that strings 'NaN', 'nan', 'na' etc will be interpreted 
     # as corresponding strings, not replaced with float NaN.
     # doublequote=False, quotechar=u"\u0000" changes quotechar from default '"' to NUL
@@ -86,7 +87,7 @@ def run(clusters, nclusters, model, output, method='mean', format='word2vec', bi
     if has_header:
         reader = read_csv(clusters, encoding="utf-8", delimiter="\t", error_bad_lines=False, iterator=True,
                           chunksize=CHUNK_LINES, na_values=[""], keep_default_na=False, 
-                          doublequote=False, quotechar=u"\u0000")
+                          doublequote=False, quotechar=u"\u0000", index_col=False)
     else:
         reader = read_csv(clusters, encoding="utf-8", delimiter="\t", error_bad_lines=False, iterator=True,
                           chunksize=CHUNK_LINES, na_values=[""], keep_default_na=False, 
@@ -119,6 +120,12 @@ def run(clusters, nclusters, model, output, method='mean', format='word2vec', bi
                         float(sim) # assert sim string represents a float
                         if word in wordvec.vocab:
                             cluster_words.append((word, sim))
+                        if SPLIT_MWE:
+                            words = word.split(" ")
+                            if len(words) == 1: continue
+                            for w in words:
+                                if w in wordvec.vocab: 
+                                    cluster_words.append((w, sim))
                     except:
                         print "Warning: wrong cluster word", cluster_word_entry
                 

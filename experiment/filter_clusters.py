@@ -44,7 +44,7 @@ def build_filtered_fpath(clusters_fpath, minsize):
         return splitext(clusters_fpath)[0] + "_minsize" + minsize + "_filtered.csv"
 
 
-def run(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5"):
+def postprocess(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5"):
     """ 
     This function filters clusters produced by chinese-whispers clustering algorithm.
     It deletes clusters that are smaller than min_size.
@@ -52,7 +52,7 @@ def run(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5"):
     Args:
         ddt_fpath:  a path to an input file with clusters.
                     (output of chinese-whispers algorithm).
-                    Format: word<TAB>cid<TAB>keyword<TAB>cluster where cluster is word:sim<SPACE><SPACE>word:sim<SPACE><SPACE>...
+                    Format: word<TAB>sense_id<TAB>keyword<TAB>cluster where cluster is word:sim<SPACE><SPACE>word:sim<SPACE><SPACE>...
                     The file is without header.
         output_fpath:   a path to an output file with clusters.
                         Changed format:
@@ -119,7 +119,7 @@ def main():
     output_fpath = build_output_fpath(args.ddt, args.min_size) 
     filtered_fpath = build_filtered_fpath(args.ddt, args.min_size)
 
-    run(args.ddt, output_fpath, filtered_fpath, args.min_size)
+    postprocess(args.ddt, output_fpath, filtered_fpath, args.min_size)
 
 if __name__ == '__main__':
     main()
