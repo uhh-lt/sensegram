@@ -27,10 +27,15 @@ def use_prediction(pr, entropy_thr, diff_thr):
         return True if entr <= float(entropy_thr) else False
     if diff_thr:
         return True if diff >= float(diff_thr) else False 
+    
+def confidence(distrib):
+    return max(distrib)/sum(distrib)
+    
 
-def run(test_file, sense, context, output, entropy_thr=None, diff_thr=None, lowercase=False):
+def run(test_file, sense, context, output, wsd_method='sep', filter_ctx=False, entropy_thr=None, diff_thr=None, lowercase=False):
+    
     print("Loading models...")
-    wsd_model = WSD(sense, context)
+    wsd_model = WSD(sense, context, method=wsd_method, filter_ctx=filter_ctx)
 
     print("Loading test set...")
     reader = read_csv(test_file, encoding="utf-8", delimiter="\t", dtype={'predict_related': object, 'gold_sense_ids':object, 'predict_sense_ids':object})
@@ -44,6 +49,7 @@ def run(test_file, sense, context, output, entropy_thr=None, diff_thr=None, lowe
     diffs = [] # all observed difference metric values, with corresponding number of senses, words in context and a probability of the chosen sense
 
     print("Start prediction over " + test_file)
+    print("Word\tconf\ttotal_senses")
     pb.start()
     for i, row in reader.iterrows():
         # Form of prediction: (sense, distrib, e_conf, diff_conf, ctx_len)
@@ -51,14 +57,16 @@ def run(test_file, sense, context, output, entropy_thr=None, diff_thr=None, lowe
         prediction = wsd_model.dis_text(ctx, row.target_position, row.target)
         if prediction:
             sense, distrib, entr, diff, ctx_len = prediction
+            # conf = confidence(distrib)
+            # print("%s\t%.3f\t%i" % (row.target, conf, len(distrib)))
             entropies.append((entr, len(distrib), ctx_len))
             diffs.append((diff, len(distrib), ctx_len, max(distrib)))
             
             if use_prediction(prediction, entropy_thr, diff_thr):
                 reader.set_value(i, 'predict_sense_ids', sense.split("#")[1])
-                neighbours = wsd_model.vs.most_similar(sense, topn=n_neighbours)
-                neighbours = ["%s:%.3f" % (n.split("#")[0], float(sim)) for n, sim in neighbours]
-                reader.set_value(i, 'predict_related', ",".join(neighbours))
+                #neighbours = wsd_model.vs.most_similar(sense, topn=n_neighbours)
+                #neighbours = ["%s:%.3f" % (n.split("#")[0], float(sim)) for n, sim in neighbours]
+                #reader.set_value(i, 'predict_related', ",".join(neighbours))
         else:
             uncovered_words.append(row.target)
             continue
@@ -99,13 +107,15 @@ def main():
     parser.add_argument("sense", help="A path to a sense vector model")
     parser.add_argument("context", help="A path to a context vector model")
     parser.add_argument("output", help="An output path to the filled dataset. Same format as test_file")
+    parser.add_argument("-wsd_method", help="WSD method 'sep' or 'avg'. Default='sep'", default="sep")
+    parser.add_argument("-filter_ctx", help="Filter context. Default False", action="store_true")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-entropy_thr", help="A threshold for an entropy metric (lower value -> higher confidence). Default=None", default=None)
     group.add_argument("-diff_thr", help="A threshold for a difference metric (lower value -> higher confidence). Default=None", default=None)
     parser.add_argument("-lowercase", help="Lowercase all words in context (necessary if context vector model only has lowercased words). Default False", action="store_true")
     args = parser.parse_args()
 
-    run(args.test_file, args.sense, args.context, args.output, args.entropy_thr, args.diff_thr, args.lowercase) 
+    run(args.test_file, args.sense, args.context, args.output, args.wsd_method, args.filter_ctx, args.entropy_thr, args.diff_thr, args.lowercase) 
     
 if __name__ == '__main__':
     main()

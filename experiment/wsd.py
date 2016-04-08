@@ -1,6 +1,12 @@
+""" There are two WSD methods to handle context:
+'sep'-- probability of a sense is computed for each single word in context. Then probabilities are multiplied.
+'avg'-- First all context words are pulled into a single vector, then a probability of sense vector with given context vector is caculated
+"""
+
 from operator import methodcaller, mul
 import math
 import numpy as np
+from scipy.spatial.distance import cosine
 from gensim.models import word2vec
 
 def get_senses(smodel, word):
@@ -27,10 +33,15 @@ def get_senses(smodel, word):
 #   return senses
 
 class WSD(object):
-    def __init__(self, path_to_sense_model, path_to_context_model, window=10):
+    def __init__(self, path_to_sense_model, path_to_context_model, window=10, method="sep", filter_ctx=False):
         self.vs = word2vec.Word2Vec.load_word2vec_format(path_to_sense_model, binary=True)
         self.vc = word2vec.Word2Vec.load_word2vec_format(path_to_context_model, binary=True)
         self.window = window
+        self.ctx_method = method
+        self.filter_ctx = filter_ctx
+        
+        print("Disambiguation method: " + self.ctx_method)
+        print("Filter context: %s" % (self.filter_ctx))
         
     def get_context(self, text, target_position):
         """ returns a list of words surrounding the target positioned at [start:end] in the text 
@@ -42,6 +53,15 @@ class WSD(object):
         # it only makes sense to use context for which we have vectors
         l = [ctx for ctx in l if ctx in self.vc.vocab]
         r = [ctx for ctx in r if ctx in self.vc.vocab]
+        
+        # filter polysemous words from context
+        if self.filter_ctx:
+            print ([ctx for ctx in l if not len(get_senses(self.vs, ctx)) < 2] 
+                + [ctx for ctx in r if not len(get_senses(self.vs, ctx)) < 2])
+            
+            l = [ctx for ctx in l if len(get_senses(self.vs, ctx)) < 2] 
+            r = [ctx for ctx in r if len(get_senses(self.vs, ctx)) < 2]
+            
         return l[-self.window:] + r[:self.window]
         
         # TODO: clear test example from stop words?
@@ -49,15 +69,13 @@ class WSD(object):
     # NOTE: if model is loaded with norm_only=True (that's default), then
     # both syn0 and syn0norm contain normalized vectors. 
     # In this case model['word'] shortcut also returns a normalized vector
-    def __logprob__(self, ctx, vsense):
-        """ returns P(vsense|ctx), where vsense is a vector, ctx is a word """
-        #vctx = vc.syn0norm[vc.vocab[ctx].index]
-        vctx = self.vc[ctx]
-        return 1.0 / (1.0 + np.exp(-np.dot(vctx,vsense)))
+    def __logprob__(self, cv, vsense):
+        """ returns P(vsense|cv), where vsense is a vector, cv is a context vector """
+        return 1.0 / (1.0 + np.exp(-np.dot(cv, vsense)))
         
-    def __prob__(self, ctx, vsense):
-        """ returns probability of a sense (vector) in a given context (list of words)"""
-        return reduce(mul, [self.__logprob__(c, vsense) for c in ctx if c in self.vc], 1)
+    def __prob_sep__(self, vctx, vsense):
+        """ returns probability of a sense (vector) in a given context (list of context word vectors) using 'sep' method"""
+        return reduce(mul, [self.__logprob__(cv, vsense) for cv in vctx], 1)
 
     def norm(self, a):
         s = sum(a)
@@ -77,7 +95,43 @@ class WSD(object):
         dist = [float(x)/m for x in dist]
         dist = [1 - x for x in dist]
         return sum(dist)/len(dist)
+    
+    def __dis_context__(self, context, word):
+        """ disambiguates the sense of a word for a given list of context words
+            context - a list of context words
+            word  - word to be disambiguated
+            returns None if word is not covered by the model"""
+        senses = get_senses(self.vs, word)
+        if len(senses) == 0: # means we don't know any sense for this word
+            return None 
         
+        # collect context vectors
+        vctx = [self.vc[c] for c in context]
+       
+        if len(vctx) == 0: # means we have no context to rely on
+            return None
+        # TODO: better return most frequent sense or make random choice
+        
+        if self.ctx_method == 'sep':
+            prob_dist = [self.__prob_sep__(vctx, self.vs[sense]) for sense in senses]
+        elif self.ctx_method == 'avg':
+            avg_context = np.mean(vctx, axis=0)
+            prob_dist = [self.__logprob__(avg_context, self.vs[sense]) for sense in senses]
+        elif self.ctx_method == 'sim':
+            avg_context = np.mean(vctx, axis=0)
+            prob_dist = [1 - cosine(avg_context, self.vs[sense]) for sense in senses]
+        else:
+            raise ValueError("Unknown context handling method '%s'" % self.ctx_method) 
+            
+        
+        try:
+            e_confidence = self.entropy(prob_dist)
+        except: 
+            print word, senses, vctx, prob_dist
+        diff_confidence = self.diff_confidence(prob_dist)
+        # return sense (word#id), probability, entropy confidence, differences confidence, prob_dist and length of context
+        return senses[np.argmax(prob_dist)], prob_dist, e_confidence, diff_confidence, len(context)
+    
     def dis_text(self, text, pos, word):
         """ disambiguates the sense of a word in given text
             text - a tokenized string ("Obviously , it was cold .")
@@ -85,22 +139,9 @@ class WSD(object):
             word  - word to be disambiguated ("it")
             returns None if word is not covered by the model"""
         ctx = self.get_context(text, pos)
-        return self.dis_context(ctx, word)
+        return self.__dis_context__(ctx, word)
 
-    def dis_context(self, context, word):
-        """ disambiguates the sense of a word in given context
-            context - a list of context words
-            word  - word to be disambiguated
-            returns None if word is not covered by the model"""
-        senses = get_senses(self.vs, word)
-        if len(senses)==0: # means we don't know any sense for this word
-            return None 
-        context = [ctx for ctx in context if ctx in self.vc] # this check happens in __prob__
-        prob_dist = [self.__prob__(context, self.vs[sense]) for sense in senses]
-        e_confidence = self.entropy(prob_dist)
-        diff_confidence = self.diff_confidence(prob_dist)
-        # return sense (word#id), probability, entropy confidence, differences confidence, prob_dist and length of context
-        return senses[np.argmax(prob_dist)], prob_dist, e_confidence, diff_confidence, len(context)
+
 # Example:
 # text = "However , the term mouse can also be applied to species outside of this genus . Mouse often refers to any small muroid rodent , while rat refers to larger muroid rodents"
 # pos = "80,85"
