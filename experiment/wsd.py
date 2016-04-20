@@ -1,9 +1,13 @@
-""" There are two WSD methods to handle context:
+""" There are three WSD methods to handle context:
 'sep'-- probability of a sense is computed for each single word in context. Then probabilities are multiplied.
 'avg'-- First all context words are pulled into a single vector, then a probability of sense vector with given context vector is caculated
+'sim'-- Same as avg, but calculates cosine similarity between sense vector and context vector.
+
+Context filtering:
+-filter_ctx option. Currently implemented only for sim method. Uses only (n) most informative words for disambiguation. "Informativeness" is measured as difference between most similar and least similar sense for a word. Large difference -> important word. Takes 2 most important words (best value as proven by evaluation)
 """
 
-from operator import methodcaller, mul
+from operator import methodcaller, mul, itemgetter
 import math
 import numpy as np
 from scipy.spatial.distance import cosine
@@ -55,12 +59,9 @@ class WSD(object):
         r = [ctx for ctx in r if ctx in self.vc.vocab]
         
         # filter polysemous words from context
-        if self.filter_ctx:
-            print ([ctx for ctx in l if not len(get_senses(self.vs, ctx)) < 2] 
-                + [ctx for ctx in r if not len(get_senses(self.vs, ctx)) < 2])
-            
-            l = [ctx for ctx in l if len(get_senses(self.vs, ctx)) < 2] 
-            r = [ctx for ctx in r if len(get_senses(self.vs, ctx)) < 2]
+        # if self.filter_ctx:
+        #    l = [ctx for ctx in l if len(get_senses(self.vs, ctx)) < 2] 
+        #    r = [ctx for ctx in r if len(get_senses(self.vs, ctx)) < 2]
             
         return l[-self.window:] + r[:self.window]
         
@@ -76,6 +77,25 @@ class WSD(object):
     def __prob_sep__(self, vctx, vsense):
         """ returns probability of a sense (vector) in a given context (list of context word vectors) using 'sep' method"""
         return reduce(mul, [self.__logprob__(cv, vsense) for cv in vctx], 1)
+    
+    def __cosine_sim__(self, v1, v2):
+        "compute cosine similarity of v1 to v2: (v1 dot v2)/{||v1||*||v2||)"
+        sumxx, sumxy, sumyy = 0, 0, 0
+        for i in range(len(v1)):
+            x = v1[i]; y = v2[i]
+            sumxx += x*x
+            sumyy += y*y
+            sumxy += x*y
+        return sumxy/math.sqrt(sumxx*sumyy)
+    
+    def __filter_sim__(self, vctx, senses, n=2):
+        """ returns n most relevant for WSD context vectors (for cosine similarity approach) """
+        prob_dist_per_cv = [[self.__cosine_sim__(cv, self.vs[sense]) for sense in senses] for cv in vctx]
+        significance = [abs(max(pd) - min(pd)) for pd in prob_dist_per_cv]
+        most_significant_cv = sorted(zip(vctx, significance), key = itemgetter(1), reverse=True)[:n]
+        
+        return [cv for cv, sign in most_significant_cv]
+        
 
     def norm(self, a):
         s = sum(a)
@@ -83,6 +103,7 @@ class WSD(object):
 
     def entropy(self, dist):
         # give some probability to zero elements
+        print "Distribution for senses: ", dist
         m = float(max(dist))
         dist = [m/1000 if p == 0 else p for p in dist]
         s = len(dist)
@@ -114,21 +135,25 @@ class WSD(object):
         
         if self.ctx_method == 'sep':
             prob_dist = [self.__prob_sep__(vctx, self.vs[sense]) for sense in senses]
+        
         elif self.ctx_method == 'avg':
             avg_context = np.mean(vctx, axis=0)
             prob_dist = [self.__logprob__(avg_context, self.vs[sense]) for sense in senses]
         elif self.ctx_method == 'sim':
+            if self.filter_ctx:
+                vctx = self.__filter_sim__(vctx, senses)
             avg_context = np.mean(vctx, axis=0)
-            prob_dist = [1 - cosine(avg_context, self.vs[sense]) for sense in senses]
+            prob_dist = [self.__cosine_sim__(avg_context, self.vs[sense]) for sense in senses]
         else:
             raise ValueError("Unknown context handling method '%s'" % self.ctx_method) 
             
         
-        try:
-            e_confidence = self.entropy(prob_dist)
-        except: 
-            print word, senses, vctx, prob_dist
-        diff_confidence = self.diff_confidence(prob_dist)
+        #try:
+        #    e_confidence = self.entropy(prob_dist)
+        #except: 
+        #    print word, senses, vctx, prob_dist
+        e_confidence = None# self.entropy(prob_dist)
+        diff_confidence = None #self.diff_confidence(prob_dist)
         # return sense (word#id), probability, entropy confidence, differences confidence, prob_dist and length of context
         return senses[np.argmax(prob_dist)], prob_dist, e_confidence, diff_confidence, len(context)
     

@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-""" """
+""" See WSD.py for detailed explanation of parameters"""
 
 import argparse, codecs
 from pandas import read_csv
@@ -59,8 +59,8 @@ def run(test_file, sense, context, output, wsd_method='sep', filter_ctx=False, e
             sense, distrib, entr, diff, ctx_len = prediction
             # conf = confidence(distrib)
             # print("%s\t%.3f\t%i" % (row.target, conf, len(distrib)))
-            entropies.append((entr, len(distrib), ctx_len))
-            diffs.append((diff, len(distrib), ctx_len, max(distrib)))
+            # entropies.append((entr, len(distrib), ctx_len))
+            # diffs.append((diff, len(distrib), ctx_len, max(distrib)))
             
             if use_prediction(prediction, entropy_thr, diff_thr):
                 reader.set_value(i, 'predict_sense_ids', sense.split("#")[1])
