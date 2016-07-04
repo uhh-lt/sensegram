@@ -55,19 +55,21 @@ def stage2(args):
     word2vec_utils.similar_top.init(word_vectors, neighbours, only_letters=args.only_letters, vocab_limit=args.vocab_limit, pairs=True, batch_size=1000, word_freqs=None)
 
 def stage3(args):
-    print "\nSTAGE 3"
-    print "\nStart clustering of word ego-networks."
-    
     bash_command = ("java -Xms1G -Xmx2G -cp chinese-whispers/target/chinese-whispers.jar de.tudarmstadt.lt.wsi.WSI " +
                     " -in " + neighbours + " -out " + clusters + 
                     " -N " + unicode(args.N) + " -n " + unicode(args.n) +
                     " -clustering cw")
+    
+    print "\nSTAGE 3"
+    print "\nStart clustering of word ego-networks with following parameters:"
+    print bash_command
     
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     for line in iter(process.stdout.readline, ''):
         sys.stdout.write(line)
     
     print "\nStart filtering of clusters."
+    
     filter_clusters.run(clusters, clusters_minsize, clusters_filtered, unicode(args.min_size))
     
 def stage4(args):
