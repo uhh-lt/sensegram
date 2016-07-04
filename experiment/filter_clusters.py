@@ -44,7 +44,7 @@ def build_filtered_fpath(clusters_fpath, minsize):
         return splitext(clusters_fpath)[0] + "_minsize" + minsize + "_filtered.csv"
 
 
-def postprocess(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5"):
+def run(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5"):
     """ 
     This function filters clusters produced by chinese-whispers clustering algorithm.
     It deletes clusters that are smaller than min_size.
@@ -69,9 +69,9 @@ def postprocess(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5")
     output_fpath = output_fpath or build_output_fpath(ddt_fpath, min_size) 
     filtered_fpath = filtered_fpath or build_filtered_fpath(ddt_fpath, min_size)
 
-    print "Input DDT:", ddt_fpath
-    print "Output DDT:", output_fpath
-    print "Filtered out DDT clusters:", filtered_fpath
+    print "Input:", ddt_fpath
+    print "Output:", output_fpath
+    print "Filtered out clusters:", filtered_fpath
     print "Min size:", min_size
 
     min_size = int(min_size)
@@ -104,22 +104,24 @@ def postprocess(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5")
                 selected_num += 1
                 senses_num[row.word] += 1
 
-        print "# output clusters: %d of %d (%.2f %%)" % (selected_num, num, float(selected_num)/num*100.)
+        print "output clusters: %d of %d (%.2f %%)" % (selected_num, num, float(selected_num)/num*100.)
         values = senses_num.values()
         print "average number of senses: %.2f +- %.3f, median: %.3f" % (mean(values), std(values), median(values))
     try_remove(ddt_tmp_fpath)
     return selected_num, mean(values)
 
+    
 def main():
     parser = argparse.ArgumentParser(description='Postprocess sense clusters. Delete clusters smaller than minsize.')
     parser.add_argument('ddt', help='Path to an input file with clusters. DDT format: "word<TAB>sense-id<TAB>keyword<TAB>cluster"  w/o header by default. Here <cluster> is "word:sim<SPACE><SPACE>word:sim<SPACE><SPACE>..."')
     parser.add_argument('-min_size', help='Minimum cluster size. Default -- 5.', default="5")
     args = parser.parse_args()
-
+    
     output_fpath = build_output_fpath(args.ddt, args.min_size) 
     filtered_fpath = build_filtered_fpath(args.ddt, args.min_size)
 
-    postprocess(args.ddt, output_fpath, filtered_fpath, args.min_size)
+    run(args.ddt, output_fpath, filtered_fpath, args.min_size)
+    
 
 if __name__ == '__main__':
     main()

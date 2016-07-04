@@ -7,13 +7,6 @@ Result - a sense2vec model, each sense in form word#sense_id.
 If -inventory path is set, also creates a new sense inventory for this sense vector model.
 """
 
-"""
-1. Throw words out of cluster if they cannot be parsed correctly 
-2. Cluster center word isn't lowercased
-3. Cluster words are lowercased only if the word vector model (which provides vectors for averaging) is universally lowercase
-4. 
-"""
-
 import argparse, codecs
 from operator import methodcaller
 from collections import defaultdict
@@ -110,7 +103,7 @@ def parse_cluster(row_cluster, wordvec):
                     if w in wordvec.vocab: 
                         cluster.append((w, sim))
         except:
-            print "Warning: wrong cluster word", cluster_word_entry
+            print "Warning: wrong cluster word", item
     return cluster
     
 def run(clusters, model, output, method='weighted', lowercase=False, inventory=None, has_header=True):
@@ -157,7 +150,7 @@ def run(clusters, model, output, method='weighted', lowercase=False, inventory=N
                     if sen_word not in senvec.vocab:
                         senvec.add_word(sen_word, sen_vector)
                         senvec.probs[sen_word] = len(sen_cluster) # number of cluster words per sense
-                        sen_count[row_word] += 1                  # number of sense per word
+                        sen_count[row_word] += 1                  # number of senses per word
                         cluster_sum[row_word] += len(sen_cluster) # number of cluster words per word
                     
                     # write new sense to sense inventory
@@ -180,7 +173,7 @@ def run(clusters, model, output, method='weighted', lowercase=False, inventory=N
     if senvec.syn0.shape[0] != len(senvec.vocab):
         print("Shrinking matrix size from %i to %i" % (senvec.syn0.shape[0], len(senvec.vocab)))
         senvec.syn0 = np.ascontiguousarray(senvec.syn0[:len(senvec.vocab)])
-    print("Saving sense vectors...")
+    print("Sense vectors saved to: " + output)
     senvec.save_word2vec_format(fname=output, binary=True)
 
     
@@ -192,10 +185,10 @@ def main():
     parser.add_argument('clusters', help='A path to an input file with postprocessed clusters and a header. Format: "word<TAB>cid<TAB>cluster" where <cluster> is "word:sim,word:sim,..."')
     parser.add_argument('model', help='A path to an initial word vector model')
     parser.add_argument('output', help='A path to the output sense vector model')
-    parser.add_argument('-method', help="A method used to pool word vectors into a sense vector ('mean', 'weighted_mean', ranked). Default 'weighted_mean'", default='weighted_mean')
+    parser.add_argument('-method', help="A method used to pool word vectors into a sense vector ('mean', 'weighted_mean', 'ranked'). Default 'weighted_mean'", default='weighted_mean')
     parser.add_argument("-lowercase", help="Lowercase all words in clusters (necessary if word model only has lowercased words). Default False", action="store_true")
     parser.add_argument("-inventory", help='A path to the output inventory file of computed sense vector model with a header. Format: "word<TAB>sense_id<TAB>rel_terms" where <rel_terms> is "word:sim,word:sim,...". If not given, inventory is not written. Default None', default=None)
-    parser.add_argument('--no_header', action='store_true', help='No headers in cluster file. Default -- false.')
+    parser.add_argument('-no_header', action='store_true', help='No headers in cluster file. Default -- false.')
     args = parser.parse_args()
 
     run(args.clusters, args.model, args.output, args.method, args.lowercase, args.inventory, has_header=(not args.no_header)) 

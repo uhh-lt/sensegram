@@ -1,7 +1,5 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-""" See WSD.py for detailed explanation of parameters"""
-
 import argparse, codecs
 from pandas import read_csv
 from csv import QUOTE_NONE
@@ -13,7 +11,9 @@ n_neighbours = 50
 def run(test_file, sense, context, output, wsd_method='sim', filter_ctx=2, lowercase=False, ignore_case=False):
     
     print("Loading models...")
-    wsd_model = sense2vec.WSD(sense, context, method=wsd_method, filter_ctx=filter_ctx, ignore_case=ignore_case)
+    vs = Sense2Vec.load_word2vec_format(sense, binary=True)
+    vc = word2vec.Word2Vec.load_word2vec_format(context, binary=True)
+    wsd_model = WSD(vs, vc, method=wsd_method, filter_ctx=filter_ctx, ignore_case=ignore_case)
 
     print("Loading test set...")
     reader = read_csv(test_file, encoding="utf-8", delimiter="\t", dtype={'predict_related': object, 'gold_sense_ids':object, 'predict_sense_ids':object})
