@@ -8,9 +8,9 @@ from gensim.models.word2vec import Word2Vec
 
 logger = logging.getLogger("gensim.models.word2vec")
 
-def load_vectors(fvec):
+def load_vectors(fvec, binary):
 #    return gs.models.Word2Vec.load_word2vec_format(fvec,binary=True)
-    return load_word2vec_format(fvec, binary=True)
+    return load_word2vec_format(fvec, binary=binary)
 
 
 def load_word2vec_format(fname, fvocab=None, binary=False, norm_only=True, encoding='utf8'):

@@ -1,12 +1,11 @@
 # coding=utf-8
-import argparse
-import gzip
+import argparse, codecs
 from sys import stderr, stdin, stdout
 from utils import load_vectors
 import re
 from time import time
 import numpy as np
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import sys, traceback
 from parallel import parallel_map
 
@@ -15,6 +14,15 @@ from sys import stderr
 __author__ = 'nvanva'
 
 re_only_letters = re.compile(u'^[a-zA-Z\.\-]+$')
+
+def load_freq(freq_file):
+    print "Loading frequencies"
+    d = defaultdict(int)
+    with codecs.open(freq_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            (key, val) = line.split()
+            d[key] = int(val)
+    return d
 
 def similar_top(vec, words, topn=250):
     res = OrderedDict()
@@ -36,30 +44,44 @@ def similar_top_opt(vec, words, topn=250):
 
     res = OrderedDict()
     for i in xrange(len(indices)):
-        sims = best[i,np.argsort(-dists[i, best[i]])]
+        sims = best[i,np.argsort(-dists[i, best[i]])] 
         ns = [(vec.index2word[sim], float(dists[i, sim])) for sim in sims if sim!=indices[i]]
         res[vec.index2word[indices[i]]] = ns
-
     return res
 
 
 def dists2neighbours(vec, dists, indices, topn):
+    # dist shape is (current_batch x vocabulary_size)
     best = argmax_k(dists,topn)
 
     res = OrderedDict()
     for i in xrange(len(indices)):
-        sims = best[i,np.argsort(-dists[i, best[i]])]
+        sims = best[i,np.argsort(-dists[i, best[i]])] # sims is a list of indices (in relation to syn0norm) of nearest neighbours
+                                                      # sorted(!) by similarity
         ns = [(vec.index2word[sim], float(dists[i, sim])) for sim in sims if sim!=indices[i]]
         res[vec.index2word[indices[i]]] = ns
     return res
 
+def order_freq(vec, freq):
+    "return frequencies of words as an array ordered excatly as words in vec.syn0norm"
+    l = []
+    for i in xrange(len(vec.syn0norm)):
+        if freq[vec.index2word[i]] > 0:
+            l.append(freq[vec.index2word[i]])
+        else: 
+            l.append(1) # neutral frequency for words with unknown frequency
 
-def similar_top_opt3(vec, words, topn=200, nthreads=4):
+    return np.array(l)
+    
+def similar_top_opt3(vec, words, topn=200, nthreads=4, freq=None):
     vec.init_sims()
 
     indices = [vec.vocab[w].index for w in words if w in vec.vocab]
     vecs = vec.syn0norm[indices]
     dists = np.dot(vecs, vec.syn0norm.T)
+    
+    if freq is not None:
+        dists = dists * np.log(freq)
 
     if nthreads==1:
         res = dists2neighbours(vec, dists, indices, topn)
@@ -76,9 +98,9 @@ def similar_top_opt3(vec, words, topn=200, nthreads=4):
     return res
 
 
-def print_similar(out, vectors, batch, mindist=None, only_letters=False, pairs=False):
+def print_similar(out, vectors, batch, mindist=None, only_letters=False, pairs=False, freq=None):
     try:
-        for word, ns in similar_top_opt3(vectors, batch).iteritems():
+        for word, ns in similar_top_opt3(vectors, batch, freq=freq).iteritems():
             sims = []
             for w, d in ns:
                 if (mindist is None or d >= mindist) and (not only_letters or re_only_letters.match(w) is not None):
@@ -98,9 +120,9 @@ def print_similar(out, vectors, batch, mindist=None, only_letters=False, pairs=F
         traceback.print_exc(file=sys.stderr)
 
 
-def process(out, vectors, only_letters, vocab_size, batch_size=1000, pairs=False):
+def process(out, vectors, words, only_letters, batch_size=1000, pairs=False, freq=None):
     batch = []
-    for word in vectors.index2word[:vocab_size]:
+    for word in words:#vectors.index2word[:vocab_size]:
         try:
             word = word.rstrip('\n')
         except UnicodeDecodeError:
@@ -113,32 +135,18 @@ def process(out, vectors, only_letters, vocab_size, batch_size=1000, pairs=False
         batch.append(word)
 
         if len(batch) >=  batch_size:
-            print_similar(out, vectors, batch, only_letters=only_letters, pairs=pairs)
+            print_similar(out, vectors, batch, only_letters=only_letters, pairs=pairs, freq=freq)
             batch = []
 
     if len(batch) > 0:
-        print_similar(out, vectors, batch, only_letters=only_letters, pairs=pairs)
+        print_similar(out, vectors, batch, only_letters=only_letters, pairs=pairs, freq=freq)
 
+def init(fvec, output="", only_letters=False, vocab_limit=None, pairs=False, batch_size=1000, word_freqs=None):
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='Reads words from vector model. Writes to stdout word + similar words and their distances to the original word.')
-    parser.add_argument('vectors', help='word2vec word vectors file.', default='')
-    parser.add_argument('-output', help='Output file in on-pair-per-line format, gziped', default='')
-    parser.add_argument('-only_letters', help='Skip words containing non-letter symbols from stding / similar words.', action="store_true")
-    parser.add_argument("-vocab_limit", help="Collect neighbours only for specified number of most frequent words. By default use all words.", default=None, type=int)
-    parser.add_argument('-pairs', help="Use pairs format: 2 words and distance in each line. Otherwise echo line is a word and all it's neighbours with distances." , action="store_true")
-    parser.add_argument('-batch-size', help='Batch size for finding neighbours.', default="1000")
-
-    args = parser.parse_args()
-
-    fvec = args.vectors
-    batch_size = int(args.batch_size)
-
-    print >> stderr, "Vectors: {}, only_letters: {}".format(args.vectors, args.only_letters)
+    print >> stderr, "Vectors: {}, only_letters: {}".format(fvec, only_letters)
     print >> stderr, "Loading vectors from {}".format(fvec)
     tic = time()
-    vectors = load_vectors(fvec)
+    vectors = load_vectors(fvec, binary=True)
     print >> stderr, "Vectors loaded in %d sec." % (time()-tic)
     print >> stderr, "Vectors shape is: ", vectors.syn0norm.shape
 
@@ -146,14 +154,36 @@ def main():
     print("Vocabulary size: %i" % vocab_size)
     
     # Limit the number of words for which to collect neighbours
-    if args.vocab_limit and args.vocab_limit < vocab_size:
-        vocab_size = args.vocab_limit
-        
+    if vocab_limit and vocab_limit < vocab_size:
+        vocab_size = vocab_limit
+    words = vectors.index2word[:vocab_size]
+    
     print("Collect neighbours for %i most frequent words" % vocab_size)
+    
+    freq=None
+    if word_freqs:
+        freq_dict = load_freq(word_freqs)
+        freq = order_freq(vectors, freq_dict)
+        print "freqs loaded. Length ", len(freq), freq[:10]
 
-    with gzip.open(args.output, 'wb') if args.output else stdout as out:
-        process(out, vectors, only_letters=args.only_letters, vocab_size=vocab_size, batch_size=batch_size, pairs=args.pairs)
+    with codecs.open(output, 'wb') if output else stdout as out:
+        process(out, vectors, words, only_letters=only_letters, batch_size=batch_size, pairs=pairs, freq=freq)
 
+def main():
+    parser = argparse.ArgumentParser(
+        description='Efficient computation of nearest word neighbours.')
+        #description='Reads words from vector model. Writes to output word + similar words and their distances to the original word.')
+    parser.add_argument('vectors', help='Word2vec word vectors file.', default='')
+    parser.add_argument('-output', help='Output file in on-pair-per-line format, gziped', default='')
+    parser.add_argument('-only_letters', help='Skip words containing non-letter symbols from stding / similar words.', action="store_true")
+    parser.add_argument("-vocab_limit", help="Collect neighbours only for specified number of most frequent words. By default use all words.", default=None, type=int)
+    parser.add_argument('-pairs', help="Use pairs format: 2 words and distance in each line. Otherwise echo line is a word and all it's neighbours with distances." , action="store_true")
+    parser.add_argument('-batch-size', help='Batch size for finding neighbours.', default="1000")
+    parser.add_argument('-word_freqs', help="Weight similar words by frequency. Pass frequency file as parameter", default=None)
+
+    args = parser.parse_args()
+     
+    init(args.vectors, output=args.output, only_letters=args.only_letters, vocab_limit=args.vocab_limit, pairs=args.pairs, batch_size=int(args.batch_size), word_freqs=args.word_freqs)
 
 if __name__ == '__main__':
     main()
