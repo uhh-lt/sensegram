@@ -55,6 +55,9 @@ class Sense2Vec(word2vec.Word2Vec):
                 for line in inp:
                     sense, prob = line.split()
                     result.probs[sense] = float(prob)
+        else:
+            for w in result.index2word:
+                result.probs[w] = 1.0
                     
         return result
         
@@ -72,21 +75,23 @@ class Sense2Vec(word2vec.Word2Vec):
         
     def __normalize_probs__(self, cluster_sum):
         for sense, cluster_size in self.probs.items():
-            word, sense_id = sense.split("#")
-            if word in cluster_sum and cluster_sum[word] > 0:
-                self.probs[sense] = float(cluster_size)/cluster_sum[word]
-            else:
-                self_probs[sense] = 1
+            if len(sense.split("#")) == 2:
+                word, sense_id = sense.split("#")
+                if word in cluster_sum and cluster_sum[word] > 0:
+                    self.probs[sense] = float(cluster_size)/cluster_sum[word]
+                else:
+                    self.probs[sense] = 1
 
 class WSD(object):
     
-    def __init__(self, path_to_sense_model, path_to_context_model, window=10, method="sim", filter_ctx=2, ignore_case=False):
-        self.vs = Sense2Vec.load_word2vec_format(path_to_sense_model, binary=True)
-        self.vc = word2vec.Word2Vec.load_word2vec_format(path_to_context_model, binary=True)
+    def __init__(self, vs, vc, window=10, method="sim", filter_ctx=2, ignore_case=False, verbose=False):
+        self.vs = vs
+        self.vc = vc
         self.window = window
         self.ctx_method = method
         self.filter_ctx = filter_ctx
         self.ignore_case = ignore_case
+        self.verbose = verbose
         
         print("Disambiguation method: " + self.ctx_method)
         print("Filter context: f = %s" % (self.filter_ctx))
@@ -129,6 +134,9 @@ class WSD(object):
             raise ValueError("Unknown context handling method '%s'" % self.ctx_method)
             
         significance = [abs(max(pd) - min(pd)) for pd in prob_dist_per_cv]
+        if self.verbose:
+            print "Significance scores of context words:"
+            print significance
         most_significant_cv = sorted(zip(vctx, significance), key = itemgetter(1), reverse=True)[:n]
         
         return [cv for cv, sign in most_significant_cv]
@@ -139,6 +147,10 @@ class WSD(object):
             word  - word to be disambiguated
             returns None if word is not covered by the model"""
         senses = self.vs.get_senses(word, self.ignore_case)
+        if self.verbose:
+            print "Senses of a target word:"
+            print senses
+            
         if len(senses) == 0: # means we don't know any sense for this word
             return None 
         
@@ -160,12 +172,15 @@ class WSD(object):
         elif self.ctx_method == 'sim':
             avg_context = np.mean(vctx, axis=0)
             scores = [self.__cosine_sim__(avg_context, self.vs[sense]) for sense, prob in senses]
+            if self.verbose:
+                print "Sense probabilities:"
+                print scores
             
         else:
             raise ValueError("Unknown context handling method '%s'" % self.ctx_method) 
         
         # return sense (word#id), scores for senses
-        return senses[np.argmax(scores)], scores
+        return senses[np.argmax(scores)][0], scores
     
     def dis_text(self, text, target, target_start, target_end):
         """ disambiguates the sense of a word in given text
@@ -177,4 +192,7 @@ class WSD(object):
             returns None if word is not covered by the model"""
         
         ctx = self.get_context(text, target_start, target_end)
+        if self.verbose:
+            print "Extracted context words:"
+            print ctx
         return self.__dis_context__(ctx, target)
