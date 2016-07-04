@@ -132,7 +132,7 @@ wget /home/pelevina/experiment/model/public/ukwac.senses.jbt.probs
 ## Training a model
 The best way to train your own sense model is with the `train.py` script. You will have to provide a tokenized corpus as input. For tokenization you can use the [preprocessing](corpora/preprocessing.py) script (it uses Treebank tokenizer and keeps numbers and punctuation in the text intact).
 
-If you run it with no parameters, it will print usage information:
+If you run `train.py` with no parameters, it will print usage information:
 
 ```
 [-h] [-cbow CBOW] [-size SIZE] [-window WINDOW]
@@ -155,7 +155,7 @@ For Stage 1 (training of word/context vectors)
 
 For Stage 2 (calculating word similarity graph)
 
-* `-only_letters` if set, word containg characters different from letters/dash/point will be ignored
+* `-only_letters` if set, words containg characters different from letters/dash/point will be ignored
 * `-vocab_limit` is the number of most frequent words for which to collect nearest neighbours
 
 For Stage 3 (clustering of ego-networks)
@@ -176,13 +176,13 @@ The training produces following output files:
 * `model/ + CORPUS_NAME + .senses.w2v` - sense vectors
 * `model/ + CORPUS_NAME + .senses.w2v.probs` - sense probabilities  
 
-In addition to these it produces several intermediary files that can be investigated for error analysis or deleted:
+In addition, it produces several intermediary files that can be investigated for error analysis or deleted:
 
 * `intermediate/ + CORPUS_NAME + .neighbours` - word similarity graph (distributional thesaurus) 
 * `intermediate/ + corpus_name + .clusters` - sense clusters produced by chinese-whispers
 * `intermediate/ + corpus_name + .minsize + MIN_SIZE` - clusters that remained after filtering out of small clusters 
-* `intermediate/ + corpus_name + .filtered` - clusters that were filtered out     * 
-* `intermediate/ + corpus_name + .inventory` - sense inventory exactly corresponding to produced sense vectors
+* `intermediate/ + corpus_name + .filtered` - clusters that were filtered out    
+* `intermediate/ + corpus_name + .inventory` - sense inventory that exactly corresponds to produced sense vectors
 
 In [demo_train.sh](demo_train.sh) we provide an example for usage of `train.py` script.
 
