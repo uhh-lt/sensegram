@@ -1,9 +1,82 @@
 # SenseGram
 A system for word sense induction and disambiguation based on sense embeddings. Sense inventory is induced from exhisting word embeddings via clustering of ego-networks of related words.
 
-## Requirements
+## Installation
 This project is implemented in Python 2.7. 
-It makes use of a modified implementation of word2vec toolkit that saves context vectors ([word2vec_c](word2vec_c/)) and a clustering algorithm [chinese-whispers](chinese-whispers/), both distributed with this package. In addition to this it requires an installation of [gensim](https://pypi.python.org/pypi/gensim) library that provides a python implementation of word2vec toolkit.
+It makes use of a modified implementation of word2vec toolkit that saves context vectors ([word2vec_c](word2vec_c/)) and a clustering algorithm [chinese-whispers](chinese-whispers/), both distributed with this package. 
+
+To install SenseGram run the following commands:
+
+```
+git clone https://github.com/tudarmstadt-lt/sensegram.git
+cd sensegram/experiment/
+chmod +x init.sh
+./init.sh
+```
+
+The `init.sh` script will create necessary subdirectories, compile word2vec and chinese-whispers (compilation of chinese-whispers requires maven).
+
+In addition to this it requires an installation of [gensim](https://pypi.python.org/pypi/gensim) library that provides a python implementation of word2vec toolkit.
+
+## Training a model
+The best way to train your own sense model is with the `train.py` script. You will have to provide a tokenized corpus as input. For tokenization you can use the [preprocessing](corpora/preprocessing.py) script (it uses Treebank tokenizer and keeps letter cases, numbers and punctuation intact).
+
+If you run `train.py` with no parameters, it will print usage information:
+
+```
+[-h] [-cbow CBOW] [-size SIZE] [-window WINDOW]
+                [-threads THREADS] [-iter ITER] [-min_count MIN_COUNT]
+                [-only_letters] [-vocab_limit VOCAB_LIMIT] [-N N] [-n N]
+                [-min_size MIN_SIZE] [-pooling_method POOLING_METHOD]
+                train_corpus
+```
+
+Here is the description of all parameters:
+
+For Stage 1 (training of word/context vectors with word2vec)
+
+* `train_corpus` is a path to a training corpus
+* `-cbow` set 1 to use the CBOW model; set 0 for Skip-gram model
+* `-size` is the dimensionality of learned vectors
+* `-window` is the max context window length
+* `-threads` is the number of threads
+* `-iter` is the number of training iterations
+* `-min_count` specifies the minimum word count below which word will be ignored.
+
+For Stage 2 (calculating word similarity graph)
+
+* `-only_letters` if set, words containg characters different from letters/dash/point will be ignored
+* `-vocab_limit` is the number of most frequent words for which to collect nearest neighbours
+
+For Stage 3 (clustering of ego-networks)
+
+* `-N` is the number of nodes in each ego-network. We suggest to use 200.
+* `-n` is the max number of edges for each node in the network. Regulatedcluster granularity (smaller n, more clusters).
+* `-min_size` is the minimum size of the sense cluster. Consider values between 5-15, depending on N.
+
+For Stage 4 (pooling of word vectors)
+
+* `-pooling_method` specifies which pooling method to use: 'mean' or 'weighted_mean'. Weighted mean is consistently better.
+
+
+The training produces following output files:
+
+* `model/ + CORPUS_NAME + .words` - word vectors
+* `model/ + CORPUS_NAME + .contexts` - context vectors
+* `model/ + CORPUS_NAME + .senses.w2v` - sense vectors
+* `model/ + CORPUS_NAME + .senses.w2v.probs` - sense probabilities  
+
+In addition, it produces several intermediary files that can be investigated for error analysis or removed after training:
+
+* `intermediate/ + CORPUS_NAME + .neighbours` - word similarity graph (distributional thesaurus) 
+* `intermediate/ + corpus_name + .clusters` - sense clusters produced by chinese-whispers
+* `intermediate/ + corpus_name + .minsize + MIN_SIZE` - clusters that remained after filtering out of small clusters 
+* `intermediate/ + corpus_name + .filtered` - clusters that were filtered out    
+* `intermediate/ + corpus_name + .inventory` - sense inventory that exactly corresponds to produced sense vectors
+
+In [demo_train.sh](demo_train.sh) we provide an example for usage of the `train.py` script.
+
+Note: This project implements the induction of word senses via clustering of ego-networks built with word2vec word similarities. To use JoBimText similarities you need a sense inventory produced by JoBimText, which you can pass as input to Stage 4 of the training pipeline.
 
 ## Playing with the model
 To play with word sense embeddings you can use a pretrained model (sense vectors and sense probabilities). These sense vectors were induced from English Wikipedia using word2vec similarities between words in ego-networks. Probabilities are stored in a separate file and are not strictly necessary (if absent, the model will assign equal probabilities for every sense). To download the model call:
@@ -50,8 +123,8 @@ For example, "table#1" represents the sense related to furniture.
 To use our word sense disambiguation mechanism you also need word vectors or context vectors, depending on the dismabiguation strategy. Those word and context vectors should be trained on the same corpus as sense vectors. You can download word and context vectors pretrained on English Wikipedia here:
 
 ```
-wget 130.83.164.196/home/pelevina/experiment/model/public/wiki.words
-wget 130.83.164.196/home/pelevina/experiment/model/public/wiki.contexts
+wget /home/pelevina/experiment/model/public/wiki.words
+wget /home/pelevina/experiment/model/public/wiki.contexts
 ```
 
 Our WSD mechanism supports two disambiguation strategies: one based on word similarities (`sim`) and another based on word probabilities (`prob`). The first one requires word vectors to represent context words and the second one requires context vectors for the same purpose. In following we provide a disambiguation example using similarity strategy.
@@ -128,61 +201,4 @@ Senses and probabilities induced using JoBimText similarities between words:
 wget /home/pelevina/experiment/model/public/ukwac.senses.jbt
 wget /home/pelevina/experiment/model/public/ukwac.senses.jbt.probs
 ```
-
-## Training a model
-The best way to train your own sense model is with the `train.py` script. You will have to provide a tokenized corpus as input. For tokenization you can use the [preprocessing](corpora/preprocessing.py) script (it uses Treebank tokenizer and keeps numbers and punctuation in the text intact).
-
-If you run `train.py` with no parameters, it will print usage information:
-
-```
-[-h] [-cbow CBOW] [-size SIZE] [-window WINDOW]
-                [-threads THREADS] [-iter ITER] [-min_count MIN_COUNT]
-                [-only_letters] [-vocab_limit VOCAB_LIMIT] [-N N] [-n N]
-                [-min_size MIN_SIZE] [-pooling_method POOLING_METHOD]
-                train_corpus
-```
-
-Here is the description of all parameters:
-
-For Stage 1 (training of word/context vectors)
-
-* `-cbow` set 1 to use the CBOW model; set 0 for Skip-gram model
-* `-size` is the dimensionality of learned vectors
-* `-window` is the max context window length
-* `-threads` is the number of threads
-* `-iter` is the number of training iterations
-* `-min_count` specifies the minimum word count below which word will be ignored.
-
-For Stage 2 (calculating word similarity graph)
-
-* `-only_letters` if set, words containg characters different from letters/dash/point will be ignored
-* `-vocab_limit` is the number of most frequent words for which to collect nearest neighbours
-
-For Stage 3 (clustering of ego-networks)
-
-* `-N` is the number of nodes in each ego-network. We suggest to use 200.
-* `-n` is the max number of edges for each node in the network. Regulatedcluster granularity (smaller n, more clusters).
-* `-min_size` is the minimum size of the sense cluster. Consider values between 5-15, depending on N.
-
-For Stage 4 (pooling of word vectors)
-
-* `-pooling_method` specifies which pooling method to use: 'mean' or 'weighted_mean'. Weighted mean is consistently better.
-
-
-The training produces following output files:
-
-* `model/ + CORPUS_NAME + .words` - word vectors
-* `model/ + CORPUS_NAME + .contexts` - context vectors
-* `model/ + CORPUS_NAME + .senses.w2v` - sense vectors
-* `model/ + CORPUS_NAME + .senses.w2v.probs` - sense probabilities  
-
-In addition, it produces several intermediary files that can be investigated for error analysis or deleted:
-
-* `intermediate/ + CORPUS_NAME + .neighbours` - word similarity graph (distributional thesaurus) 
-* `intermediate/ + corpus_name + .clusters` - sense clusters produced by chinese-whispers
-* `intermediate/ + corpus_name + .minsize + MIN_SIZE` - clusters that remained after filtering out of small clusters 
-* `intermediate/ + corpus_name + .filtered` - clusters that were filtered out    
-* `intermediate/ + corpus_name + .inventory` - sense inventory that exactly corresponds to produced sense vectors
-
-In [demo_train.sh](demo_train.sh) we provide an example for usage of `train.py` script.
 
