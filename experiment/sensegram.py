@@ -7,9 +7,9 @@ from gensim.models import word2vec
 
 default_count = 100 # arbitrary, should be larger than min_count of vec object, which is 5 by default
 
-class Sense2Vec(word2vec.Word2Vec):
+class SenseGram(word2vec.Word2Vec):
     def __init__(self, *args, **kwargs):
-        super(Sense2Vec, self).__init__(*args, **kwargs)
+        super(SenseGram, self).__init__(*args, **kwargs)
         self.probs = {} # mapping from a sense (String) to its probability
     
     def get_senses(self, word, ignore_case=False):
@@ -33,7 +33,7 @@ class Sense2Vec(word2vec.Word2Vec):
         return senses
     
     def save_word2vec_format(self, fname, fvocab=None, binary=False):
-        super(Sense2Vec, self).save_word2vec_format(fname, fvocab, binary)
+        super(SenseGram, self).save_word2vec_format(fname, fvocab, binary)
         
         prob_file = fname + ".probs"
         with codecs.open(prob_file, 'w', encoding='utf-8') as out:

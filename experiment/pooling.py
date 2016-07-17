@@ -3,7 +3,7 @@
 """
 Reads sense inventory (chinese-whispers format: word<TAB>sense_id<TAB>cluster, where cluster= word:weight,word:weight) 
 and creates a sense vector for each cluster.
-Result - a sense2vec model, each sense in form word#sense_id. 
+Result - a sensegram model, each sense in form word#sense_id. 
 If -inventory path is set, also creates a new sense inventory for this sense vector model.
 """
 
@@ -13,7 +13,7 @@ from collections import defaultdict
 import numpy as np
 from pandas import read_csv
 from gensim.models import word2vec
-import sense2vec
+import sensegram
 import pbar
 
 CHUNK_LINES = 500000
@@ -63,7 +63,7 @@ def initialize(clusters_file, has_header, vector_size):
     nclusters = file_len(clusters_file)
     if has_header:
         ncluster = nclusters - 1
-    senvec = sense2vec.Sense2Vec(size=vector_size, sorted_vocab=0)
+    senvec = sensegram.SenseGram(size=vector_size, sorted_vocab=0)
     senvec.syn0 = np.zeros((nclusters, vector_size), dtype=np.float32)
     if debug: 
         print("Matrix shape: (%i, %i)" % (nclusters, vector_size))
@@ -163,7 +163,7 @@ def run(clusters, model, output, method='weighted', lowercase=False, inventory=N
                     small_clusters += 1
                     if debug:
                         print row_word, "\t", row.cid
-                        print cluster_words
+                        print sen_cluster
                 pb.update(i)
                 i += 1 
         senvec.__normalize_probs__(cluster_sum)

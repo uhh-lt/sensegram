@@ -3,7 +3,8 @@
 import argparse, codecs
 from pandas import read_csv
 from csv import QUOTE_NONE
-from sense2vec import WSD
+from sensegram import WSD, SenseGram
+from gensim.models import word2vec
 import pbar
 
 n_neighbours = 50
@@ -11,7 +12,7 @@ n_neighbours = 50
 def run(test_file, sense, context, output, wsd_method='sim', filter_ctx=2, lowercase=False, ignore_case=False):
     
     print("Loading models...")
-    vs = Sense2Vec.load_word2vec_format(sense, binary=True)
+    vs = SenseGram.load_word2vec_format(sense, binary=True)
     vc = word2vec.Word2Vec.load_word2vec_format(context, binary=True)
     wsd_model = WSD(vs, vc, method=wsd_method, filter_ctx=filter_ctx, ignore_case=ignore_case)
 

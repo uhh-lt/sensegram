@@ -90,8 +90,8 @@ To load sense vectors:
 
 ```
 $ python
->>> import sense2vec
->>> sv = sense2vec.Sense2Vec.load_word2vec_format(PATH_TO_SENSE_VECTORS, binary=True)
+>>> import sensegram
+>>> sv = sensegram.SenseGram.load_word2vec_format(PATH_TO_SENSE_VECTORS, binary=True)
 ```
 Probabilities of senses will be loaded automatically if placed in the same folder as sense vectors and named according to the same scheme as our pretrained files.
 
@@ -139,7 +139,7 @@ wv = word2vec.Word2Vec.load_word2vec_format(PATH_TO_WORD_VECTORS, binary=True)
 Then initialise the WSD object with sense and word vectors:
 
 ```
-wsd_model = sense2vec.WSD(sv, wv, window=5, method='sim', filter_ctx=3)
+wsd_model = sensegram.WSD(sv, wv, window=5, method='sim', filter_ctx=3)
 ```
 The settings have the following meaning: it will extract at most `window`*2 words around the target word from the sentence as context and it will use only three most discriminative context words for disambiguation. 
 

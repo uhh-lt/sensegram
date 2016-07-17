@@ -3,8 +3,7 @@ from pandas import read_csv
 from csv import QUOTE_NONE
 import numpy as np
 from random import randint
-from gensim.models import word2vec
-from wsd import get_senses
+import sensegram
         
 def run(test_file, vs, output):
     print("Loading test set...")
@@ -13,7 +12,7 @@ def run(test_file, vs, output):
     print(unicode(rows_count) + " test instances")
     
     for i, row in reader.iterrows():
-        sense_count = len(get_senses(vs, row.target))
+        sense_count = len(vs.get_senses(row.target))
         if sense_count > 0:
             rand_sense = randint(0, sense_count-1)
             reader.set_value(i, 'predict_sense_ids', rand_sense)
@@ -34,7 +33,7 @@ def main():
     
     #mapping = mfs_mapping(args.inventory)
     print("Loading sense model...")
-    vs = word2vec.Word2Vec.load_word2vec_format(args.senses, binary=True)
+    vs = sensegram.SenseGram.load_word2vec_format(args.senses, binary=True)
     
     run(args.test_file, vs, args.output) 
     
