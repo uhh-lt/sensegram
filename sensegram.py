@@ -53,8 +53,11 @@ class SenseGram(word2vec.Word2Vec):
         if os.path.isfile(prob_file):
             with codecs.open(prob_file, 'r', encoding='utf-8') as inp: 
                 for line in inp:
-                    sense, prob = line.split()
-                    result.probs[sense] = float(prob)
+                    try:
+                        sense, prob = line.split()
+                        result.probs[sense] = float(prob)
+                    except:
+                        result.probs[sense] = 1
         else:
             for w in result.index2word:
                 result.probs[w] = 1.0
