@@ -5,12 +5,13 @@ A system for word sense induction and disambiguation based on sense embeddings. 
 This project is implemented in Python 2.7. 
 It makes use of a modified implementation of word2vec toolkit that saves context vectors ([word2vec_c](word2vec_c/)) and a clustering algorithm [chinese-whispers](chinese-whispers/), both distributed with this package. 
 
+It has been tested on Linux. It should work on Mac too, but there are known problems with compilation of word2vec on Mac. You can read more about it, and find some solutions [here](https://code.google.com/archive/p/word2vec/issues/1).
+
 To install SenseGram run the following commands:
 
 ```
 git clone https://github.com/tudarmstadt-lt/sensegram.git
-cd sensegram/experiment/
-chmod +x init.sh
+cd sensegram/
 ./init.sh
 ```
 
@@ -82,8 +83,8 @@ Note: This project implements the induction of word senses via clustering of ego
 To play with word sense embeddings you can use a pretrained model (sense vectors and sense probabilities). These sense vectors were induced from English Wikipedia using word2vec similarities between words in ego-networks. Probabilities are stored in a separate file and are not strictly necessary (if absent, the model will assign equal probabilities for every sense). To download the model call:
 
 ```
-wget /home/pelevina/experiment/model/public/wiki.senses.w2v
-wget /home/pelevina/experiment/model/public/wiki.senses.w2v.probs
+wget /home/pelevina/experiment/model/public/wiki.senses.w2v 	// sense vectors
+wget /home/pelevina/experiment/model/public/wiki.senses.w2v.probs	// sense probabilities
 ```
 
 To load sense vectors:
@@ -91,7 +92,7 @@ To load sense vectors:
 ```
 $ python
 >>> import sensegram
->>> sv = sensegram.SenseGram.load_word2vec_format(PATH_TO_SENSE_VECTORS, binary=True)
+>>> sv = sensegram.SenseGram.load_word2vec_format(path_to_model/wiki.senses.w2v, binary=True)
 ```
 Probabilities of senses will be loaded automatically if placed in the same folder as sense vectors and named according to the same scheme as our pretrained files.
 
@@ -123,8 +124,8 @@ For example, "table#1" represents the sense related to furniture.
 To use our word sense disambiguation mechanism you also need word vectors or context vectors, depending on the dismabiguation strategy. Those word and context vectors should be trained on the same corpus as sense vectors. You can download word and context vectors pretrained on English Wikipedia here:
 
 ```
-wget /home/pelevina/experiment/model/public/wiki.words
-wget /home/pelevina/experiment/model/public/wiki.contexts
+wget /home/pelevina/experiment/model/public/wiki.words	// word vectors
+wget /home/pelevina/experiment/model/public/wiki.contexts	// context vectors
 ```
 
 Our WSD mechanism supports two disambiguation strategies: one based on word similarities (`sim`) and another based on word probabilities (`prob`). The first one requires word vectors to represent context words and the second one requires context vectors for the same purpose. In following we provide a disambiguation example using similarity strategy.
@@ -133,7 +134,7 @@ First, load word vectors using gensim library:
 
 ```
 from gensim.models import word2vec
-wv = word2vec.Word2Vec.load_word2vec_format(PATH_TO_WORD_VECTORS, binary=True)
+wv = word2vec.Word2Vec.load_word2vec_format(path_to_model/wiki.words, binary=True)
 ```
 
 Then initialise the WSD object with sense and word vectors:
