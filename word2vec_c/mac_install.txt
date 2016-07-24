@@ -1,0 +1,7 @@
+Installation of word2vec on Mac might not work out of the box.
+Discussion of this problem can be found here: https://code.google.com/archive/p/word2vec/issues/1
+
+We have found these instructions useful:
+1) Update gcc to 4.7: http://superuser.com/questions/517218/how-do-i-install-gcc-4-7-2-on-os-x-10-8 
+2) Change "-march=native" to "-msse4.2" in makefile 
+3) Add "-I/usr/include/sys" to makefile "CFLAGS = " statement
