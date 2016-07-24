@@ -1,8 +1,0 @@
-#!/bin/bash
-MAIN_CLASS=$1
-shift # remove first argument (name of main class) from $@
-# Compile list of jars of dependencies that will be added to Hadoop's classpath ...
-#mvn -DskipTests compile package dependency:build-classpath -Dmdep.outputFile=".dependency-jars" &&
-JAVA_CLASSPATH=$JAVA_CLASSPATH:`cat .dependency-jars` &&
-JAVA_CLASSPATH=$JAVA_CLASSPATH:`echo target/*.jar | tr " " ":"` &&
-java -Xms8G -Xmx8G -cp $JAVA_CLASSPATH $MAIN_CLASS $@

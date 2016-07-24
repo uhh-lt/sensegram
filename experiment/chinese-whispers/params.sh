@@ -1,1 +1,0 @@
-m=mcl; e=0; n=; N=50; dir=~/sense-vectors; f=en-all; ./mvn-run de.tudarmstadt.lt.wsi.WSI -clustering mcl -N $N -n $n -e 0 -in $dir/$f.csv -out $dir/clusters-$f-e$e-N$N-n$n-$m.csv > $dir/clusters-$f-e$e-N$N-n$n-$m.log &
