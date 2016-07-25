@@ -42,7 +42,7 @@ class SenseGram(word2vec.Word2Vec):
     
     @classmethod
     def load_word2vec_format(cls, fname, fvocab=None, binary=False, norm_only=True, encoding='utf8', unicode_errors='strict'):
-        mod = word2vec.Word2Vec.load_word2vec_format(fname, fvocab, binary, norm_only, encoding, unicode_errors)
+        mod = word2vec.Word2Vec.load_word2vec_format(fname, fvocab, binary, encoding, unicode_errors)
         
         result = cls(size=mod.vector_size)
         result.syn0 = mod.syn0
