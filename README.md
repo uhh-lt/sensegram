@@ -88,8 +88,8 @@ Note: This project implements the induction of word senses via clustering of ego
 To play with word sense embeddings you can use a pretrained model (sense vectors and sense probabilities). These sense vectors were induced from English Wikipedia using word2vec similarities between words in ego-networks. Probabilities are stored in a separate file and are not strictly necessary (if absent, the model will assign equal probabilities for every sense). To download the model call:
 
 ```
-wget /home/pelevina/experiment/model/public/wiki.senses.w2v 	// sense vectors
-wget /home/pelevina/experiment/model/public/wiki.senses.w2v.probs	// sense probabilities
+wget http://panchenko.me/data/joint/sensegram/wiki.senses.w2v 	// sense vectors
+wget http://panchenko.me/data/joint/sensegram/wiki.senses.w2v.probs	// sense probabilities
 ```
 
 To load sense vectors:
@@ -129,8 +129,8 @@ For example, "table#1" represents the sense related to furniture.
 To use our word sense disambiguation mechanism you also need word vectors or context vectors, depending on the dismabiguation strategy. Those word and context vectors should be trained on the same corpus as sense vectors. You can download word and context vectors pretrained on English Wikipedia here:
 
 ```
-wget /home/pelevina/experiment/model/public/wiki.words	// word vectors
-wget /home/pelevina/experiment/model/public/wiki.contexts	// context vectors
+wget http://panchenko.me/data/joint/sensegram/wiki.words	// word vectors
+wget http://panchenko.me/data/joint/sensegram/wiki.contexts	// context vectors
 ```
 
 Our WSD mechanism supports two disambiguation strategies: one based on word similarities (`sim`) and another based on word probabilities (`prob`). The first one requires word vectors to represent context words and the second one requires context vectors for the same purpose. In following we provide a disambiguation example using similarity strategy.
@@ -165,23 +165,23 @@ We provide several pretrained sense models accompanied by word and context vecto
 Word and context vectors:
 
 ```
-wget /home/pelevina/experiment/model/public/wiki.words
-wget /home/pelevina/experiment/model/public/wiki.contexts
+wget http://panchenko.me/data/joint/sensegram/wiki.words
+wget http://panchenko.me/data/joint/sensegram/wiki.contexts
 ```
 Those vectors are of size 300, trained with CBOW model using 3-words context window, 3 iterations and minimum word frequency of 5.
 
 Senses and probabilities induced using word2vec similarities between words:
 
 ```
-wget /home/pelevina/experiment/model/public/wiki.senses.w2v
-wget /home/pelevina/experiment/model/public/wiki.senses.w2v.probs
+wget http://panchenko.me/data/joint/sensegram/wiki.senses.w2v
+wget http://panchenko.me/data/joint/sensegram/wiki.senses.w2v.probs
 ```
 
 Senses and probabilities induced using JoBimText similarities between words:
 
 ```
-wget /home/pelevina/experiment/model/public/wiki.senses.jbt
-wget /home/pelevina/experiment/model/public/wiki.senses.jbt.probs
+wget http://panchenko.me/data/joint/sensegram/wiki.senses.jbt
+wget http://panchenko.me/data/joint/sensegram/wiki.senses.jbt.probs
 ```
 
 #### UKWaC
@@ -189,22 +189,22 @@ wget /home/pelevina/experiment/model/public/wiki.senses.jbt.probs
 Word and context vectors:
 
 ```
-wget /home/pelevina/experiment/model/public/ukwac.words
-wget /home/pelevina/experiment/model/public/ukwac.contexts
+wget http://panchenko.me/data/joint/sensegram/ukwac.words
+wget http://panchenko.me/data/joint/sensegram/ukwac.contexts
 ```
 Those vectors are of size 100, trained with CBOW model using 3-words context window, 3 iterations and minimum word frequency of 5.
 
 Senses and probabilities induced using word2vec similarities between words:
 
 ```
-wget /home/pelevina/experiment/model/public/ukwac.senses.w2v
-wget /home/pelevina/experiment/model/public/ukwac.senses.w2v.probs
+wget http://panchenko.me/data/joint/sensegram/ukwac.senses.w2v
+wget http://panchenko.me/data/joint/sensegram/ukwac.senses.w2v.probs
 ```
 
 Senses and probabilities induced using JoBimText similarities between words:
 
 ```
-wget /home/pelevina/experiment/model/public/ukwac.senses.jbt
-wget /home/pelevina/experiment/model/public/ukwac.senses.jbt.probs
+wget http://panchenko.me/data/joint/sensegram/ukwac.senses.jbt
+wget http://panchenko.me/data/joint/sensegram/ukwac.senses.jbt.probs
 ```
 
