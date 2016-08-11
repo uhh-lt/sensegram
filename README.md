@@ -1,5 +1,31 @@
 # SenseGram
-A system for word sense induction and disambiguation based on sense embeddings. Sense inventory is induced from exhisting word embeddings via clustering of ego-networks of related words.
+This repository contains implementation of a method for word sense induction and disambiguation based on sense embeddings. Sense inventory is induced from exhisting word embeddings via clustering of ego-networks of related words.
+
+Detailed description of the method is available in the original paper:
+
+- [**Original paper**](http://aclweb.org/anthology/W/W16/W16-1620.pdf)
+- [**Presentation**](docs/presentation.pdf)
+- [**Poster**](docs/poster.pdf)
+
+![ego](docs/table3.png)
+
+
+If you use the method please cite the following paper:
+
+```
+@InProceedings{pelevina-EtAl:2016:RepL4NLP,
+  author    = {Pelevina, Maria  and  Arefiev, Nikolay  and  Biemann, Chris  and  Panchenko, Alexander},
+  title     = {Making Sense of Word Embeddings},
+  booktitle = {Proceedings of the 1st Workshop on Representation Learning for NLP},
+  month     = {August},
+  year      = {2016},
+  address   = {Berlin, Germany},
+  publisher = {Association for Computational Linguistics},
+  pages     = {174--183},
+  url       = {http://anthology.aclweb.org/W16-1620}
+}
+
+```
 
 ## Installation
 This project is implemented in Python 2.7. 
