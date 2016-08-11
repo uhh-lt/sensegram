@@ -22,7 +22,9 @@
       <h1>
 <a id="sensegram" class="anchor" href="#sensegram" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SenseGram</h1>
 
-<p>This repository contains implementation of a method for word sense induction and disambiguation based on sense embeddings. Sense inventory is induced from exhisting word embeddings via clustering of ego-networks of related words, such as one shown on the image below.</p>
+<p>This repository contains implementation of a method that takes as an input a word embeddings, such as word2vec and splits different senses of the input words. For instance, the vector for the word "table" will be split into "table (data)" and "table (furniture)" as shown below. </p>
+
+<p>Our approach performs word sense induction and disambiguation based on sense embeddings. Sense inventory is induced from exhisting word embeddings via clustering of ego-networks of related words, such as one shown on the image below.</p>
 
 <p>Detailed description of the method is available in the original paper:</p>
 
@@ -53,8 +55,6 @@
 <p>The picture below shows the overall architecture of word sense embedding learning from word senses. </p>
 
 <p><img src="https://raw.githubusercontent.com/tudarmstadt-lt/sensegram/master/docs/pipeline.png" alt="ego"></p>
-
-<p><img src="https://raw.githubusercontent.com/tudarmstadt-lt/sensegram/master/docs/pipeline2.png" alt="ego"></p>
 
 <h1>
 <a id="word-sense-induction" class="anchor" href="#word-sense-induction" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Word sense induction</h1>
