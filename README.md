@@ -24,7 +24,6 @@ If you use the method please cite the following paper:
   pages     = {174--183},
   url       = {http://anthology.aclweb.org/W16-1620}
 }
-
 ```
 
 ## Installation
