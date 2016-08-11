@@ -210,6 +210,13 @@ wget http://panchenko.me/data/joint/sensegram/wiki.senses.jbt
 wget http://panchenko.me/data/joint/sensegram/wiki.senses.jbt.probs
 ```
 
+Senses and probabilities based on TWSI sense inventory:
+
+```
+wget http://panchenko.me/data/joint/sensegram/wiki.senses.twsi
+wget http://panchenko.me/data/joint/sensegram/wiki.senses.twsi.probs
+```
+
 #### UKWaC
 
 Word and context vectors:
@@ -232,5 +239,12 @@ Senses and probabilities induced using JoBimText similarities between words:
 ```
 wget http://panchenko.me/data/joint/sensegram/ukwac.senses.jbt
 wget http://panchenko.me/data/joint/sensegram/ukwac.senses.jbt.probs
+```
+
+Senses and probabilities based on TWSI sense inventory:
+
+```
+wget http://panchenko.me/data/joint/sensegram/ukwac.senses.twsi
+wget http://panchenko.me/data/joint/sensegram/ukwac.senses.twsi.probs
 ```
 
