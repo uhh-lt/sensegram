@@ -34,9 +34,10 @@ struct vocab_word {
   char *word, *code, codelen;
 };
 
-char train_file[MAX_STRING], output_file[MAX_STRING], contexts_file[MAX_STRING];
+char train_file[MAX_STRING], output_file[MAX_STRING], contexts_file[MAX_STRING], pseudowords_file[MAX_STRING];
 char save_vocab_file[MAX_STRING], read_vocab_file[MAX_STRING];
 struct vocab_word *vocab;
+int *psw = NULL; // array to store pseudowords; length is the same as vocabulary length, psw[i]==-1 if word i is not part of a pseudoword, otherwise psw[i]==j where j is another part of a pseudoword
 int binary = 0, cbow = 1, debug_mode = 2, window = 5, min_count = 5, num_threads = 12, min_reduce = 1;
 int *vocab_hash;
 long long vocab_max_size = 1000, vocab_size = 0, layer1_size = 100;
@@ -335,6 +336,61 @@ void ReadVocab() {
   fclose(fin);
 }
 
+// Read pseudowords file and fill psw global array.
+void ReadPseudowords() {
+  printf("Reading pseudowords...\n");
+  psw = (int *) malloc(vocab_size*sizeof(int *));
+  int a;
+  for(a=0; a<vocab_size; a++)
+    psw[a] = -1;
+  FILE *fin = fopen(pseudowords_file, "rb");
+  if (fin == NULL) {
+    printf("Pseudowords file not found!\n");
+    exit(1);
+  }
+  char line[MAX_STRING];
+  int i = 0;
+  while (fgets(line, MAX_STRING, fin) != NULL) {
+    i++;
+    int len = strlen(line);
+    if ( !feof(fin) && (line[len-1] != '\n') )
+      printf ("WARNING: line %d in pseudowords file is too long, was truncated:\n%s\n", i, line);
+    char *w1 = line, *w2 = NULL;
+    for (a=0; a<len; a++) {
+      if (line[a] == '\n')
+        line[a] = '\0';
+      else if (line[a] == ' ') {
+        if (w2 != NULL){
+          printf("ERROR: More than two pseudowords in line %d\n", i);
+          exit(1);
+        }
+        line[a] = '\0';
+        w2 = &line[a+1];
+      }
+    }
+    if (w2 == NULL){
+      printf("ERROR: line %d in pseudowords file contains only one word:\n%s\n", i, line);
+      exit(1);
+    }
+    int a1 = SearchVocab(w1), a2 = SearchVocab(w2);
+    if (a1 == -1) printf("Word %s is out of vocabulary, skipping pseudoword '%s %s'\n", w1, w1, w2);
+    else if (a2 == -1) printf("Word %s is out of vocabulary, skipping pseudoword '%s %s'\n", w2, w1, w2);
+    else {
+      psw[a1] = a2;
+      psw[a2] = a1;
+    }
+  }
+
+  fclose(fin);
+  if (debug_mode > 1) {
+    printf("Pseudowords indices:\n");
+    for (a=0; a<vocab_size; a++)
+      if (psw[a] != -1)
+        printf("%d-%d ", psw[a], psw[psw[a]]);
+    printf("\n");
+  }
+}
+
 void InitNet() {
   long long a, b;
   unsigned long long next_random = 1;
@@ -356,6 +412,15 @@ void InitNet() {
     next_random = next_random * (unsigned long long)25214903917 + 11;
     syn0[a * layer1_size + b] = (((next_random & 0xFFFF) / (real)65536) - 0.5) / layer1_size;
   }
+  // **********************MODIFICATION START
+  // Make word vectors for pseudowords parts equal after init 
+  for (a = 0; a < vocab_size; a++) {
+    int a1 = (psw==NULL ? -1 : psw[a]);
+    if (a1 == -1) continue;
+    for (b = 0; b < layer1_size; b++) // v(a) = v(a1) = (v(a) + v(a1)) / 2
+      syn0[a * layer1_size + b] = syn0[a1 * layer1_size + b] = (syn0[a * layer1_size + b] + syn0[a1 * layer1_size + b]) / 2;
+  }
+  // **********************MODIFICATION END
   CreateBinaryTree();
 }
 
@@ -476,7 +541,16 @@ void *TrainModelThread(void *id) {
           if (c >= sentence_length) continue;
           last_word = sen[c];
           if (last_word == -1) continue;
-          for (c = 0; c < layer1_size; c++) syn0[c + last_word * layer1_size] += neu1e[c];
+          // **********************MODIFICATION START
+          int last_word1 = (psw == NULL ? -1 : psw[last_word]);
+          if (last_word1 == -1) // not part of pseudoword - modify it's vector as before
+            for (c = 0; c < layer1_size; c++) syn0[c + last_word * layer1_size] += neu1e[c];
+          else // part of pseudo word - pass half of gradient to each part's vector
+            for (c = 0; c < layer1_size; c++) {
+                syn0[c + last_word * layer1_size] += neu1e[c] / 2.0;
+                syn0[c + last_word1 * layer1_size] += neu1e[c] / 2.0;
+            }
+          // **********************MODIFICATION END
         }
       }
     } else {  //train skip-gram
@@ -526,7 +600,16 @@ void *TrainModelThread(void *id) {
           for (c = 0; c < layer1_size; c++) syn1neg[c + l2] += g * syn0[c + l1];
         }
         // Learn weights input -> hidden
-        for (c = 0; c < layer1_size; c++) syn0[c + l1] += neu1e[c];
+        // **********************MODIFICATION START
+        int last_word1 = (psw == NULL ? -1 : psw[last_word]);
+        if (last_word1 == -1) // not part of pseudoword - modify it's vector as before
+          for (c = 0; c < layer1_size; c++) syn0[c + l1] += neu1e[c];
+        else // part of pseudo word - pass half of gradient to each part's vector
+          for (c = 0; c < layer1_size; c++) {
+              syn0[c + last_word * layer1_size] += neu1e[c] / 2.0;
+              syn0[c + last_word1 * layer1_size] += neu1e[c] / 2.0;
+          }
+        // **********************MODIFICATION END
       }
     }
     sentence_position++;
@@ -550,6 +633,10 @@ void TrainModel() {
   if (read_vocab_file[0] != 0) ReadVocab(); else LearnVocabFromTrainFile();
   if (save_vocab_file[0] != 0) SaveVocab();
   if (output_file[0] == 0) return;
+  // **********************MODIFICATION START
+  // Read pseudowords
+  if (pseudowords_file[0] != 0) ReadPseudowords();
+  // **********************MODIFICATION END
   InitNet();
   if (negative > 0) InitUnigramTable();
   start = clock();
@@ -682,12 +769,15 @@ int main(int argc, char **argv) {
     printf("\t\tUse the continuous bag of words model; default is 1 (use 0 for skip-gram model)\n");
     printf("\t-save-ctx <file>\n");
     printf("\t\tSave context vectors to <file>.\n");
+    printf("\t-pseudo-words <file>\n");
+    printf("\t\tRead pairs of words from file (each pair on separated line, words inside pair are space delimited). Words inside each pair will be considered indistinguishable when occur as targets (not contexts) and equal word vectors (not conext vectors) will be trained for them. \n");;
     printf("\nExamples:\n");
     printf("./word2vec -train data.txt -output vec.txt -size 200 -window 5 -sample 1e-4 -negative 5 -hs 0 -binary 0 -cbow 1 -iter 3\n\n");
     return 0;
   }
   output_file[0] = 0;
   contexts_file[0] = 0;
+  pseudowords_file[0] = 0;
   save_vocab_file[0] = 0;
   read_vocab_file[0] = 0;
   if ((i = ArgPos((char *)"-size", argc, argv)) > 0) layer1_size = atoi(argv[i + 1]);
@@ -701,6 +791,7 @@ int main(int argc, char **argv) {
   if ((i = ArgPos((char *)"-alpha", argc, argv)) > 0) alpha = atof(argv[i + 1]);
   if ((i = ArgPos((char *)"-output", argc, argv)) > 0) strcpy(output_file, argv[i + 1]);
   if ((i = ArgPos((char *)"-save-ctx", argc, argv)) > 0) strcpy(contexts_file, argv[i + 1]);
+  if ((i = ArgPos((char *)"-pseudo-words", argc, argv)) > 0) strcpy(pseudowords_file, argv[i + 1]);
   if ((i = ArgPos((char *)"-window", argc, argv)) > 0) window = atoi(argv[i + 1]);
   if ((i = ArgPos((char *)"-sample", argc, argv)) > 0) sample = atof(argv[i + 1]);
   if ((i = ArgPos((char *)"-hs", argc, argv)) > 0) hs = atoi(argv[i + 1]);
