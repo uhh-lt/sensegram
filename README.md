@@ -53,7 +53,7 @@ pip install -r requirements.txt
 or use your own package manager.
 
 ## Training a model
-The best way to train your own sense model is with the `train.py` script. You will have to provide a tokenized corpus as input. For tokenization you can use the [preprocessing](corpora/preprocessing.py) script (it uses Treebank tokenizer and keeps letter cases, numbers and punctuation intact).
+The best way to train your own sense model is with the `train.py` script. You will have to provide a tokenized corpus as input. For tokenization you can use the [preprocessing](corpora/preprocess.py) script (it uses Treebank tokenizer and keeps letter cases, numbers and punctuation intact).
 
 If you run `train.py` with no parameters, it will print usage information:
 
