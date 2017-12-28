@@ -1,4 +1,0 @@
-he	0	bla	bla:1.0
-bla	0	he	he:2.0
-bla	1	hi	hi:3.0
-bla	2	ha	ha:2.0
