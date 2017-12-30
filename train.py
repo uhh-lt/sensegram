@@ -2,52 +2,39 @@ import argparse, sys, subprocess
 from os.path import basename
 import fast_top_nn.similar_top
 import filter_clusters
-import os
 import vector_representations.build_sense_vectors
 from os.path import join
 from utils.common import ensure_dir
+import pcz
 
-
-corpus_fpath = ""
-vectors_fpath = ""
-neighbours_fpath = ""
-clusters_fpath  = ""
-clusters_minsize_fpath = ""
-clusters_removed_fpath = ""
-
-
-def init(args):
-    global corpus_fpath
-    global vectors_fpath
-    global neighbours_fpath
-    global clusters_fpath
-    global clusters_minsize_fpath
-    global clusters_removed_fpath
-
-    corpus_fpath = args.train_corpus
+def get_paths(corpus_fpath, min_size):
     corpus_name = basename(corpus_fpath)
     model_dir = "model/"
     ensure_dir(model_dir)
     vectors_fpath = join(model_dir, corpus_name + ".words")
     neighbours_fpath = join(model_dir, corpus_name + ".neighbours")
     clusters_fpath = join(model_dir, corpus_name + ".clusters")
-    clusters_minsize_fpath = clusters_fpath + ".minsize" + unicode(args.min_size) # clusters that satisfy min_size
+    clusters_minsize_fpath = clusters_fpath + ".minsize" + unicode(min_size) # clusters that satisfy min_size
     clusters_removed_fpath = clusters_minsize_fpath + ".removed" # cluster that are smaller than min_size
 
+    return vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath
 
-def stage1_learn_word_embeddings(args):
-    """ Train word vectors using word2vec """
-    bash_command = ("word2vec/bin/word2vec -train " + corpus_fpath +
+def stage1_learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, size, threads, min_count):
+
+    bash_command = ("word2vec/bin/word2vec -train " +
+                   corpus_fpath +
                    " -output " + vectors_fpath +
-                   " -cbow " + unicode(args.cbow) + " -size " + unicode(args.size) + 
-                   " -window " + unicode(args.window) + " -threads " + unicode(args.threads) +
-                   " -iter " + unicode(args.iter) + " -min_count " + unicode(args.min_count) +
+                   " -cbow " + unicode(cbow) +
+                   " -size " + unicode(size) +
+                   " -window " + unicode(window) +
+                   " -threads " + unicode(threads) +
+                   " -iter " + unicode(iter_num) +
+                   " -min_count " + unicode(min_count) +
                    " -binary 0 -negative 25 -hs 0 -sample 1e-4")
     
     print "\n\n", "="*50, "\nSTAGE 1"
-    print "Start word vectors training with following parameters:"
+    print "Train word vectors using word2vec with following parameters:"
     print bash_command
-    
     print "\nTraining progress won't be printed."
     
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
@@ -55,18 +42,23 @@ def stage1_learn_word_embeddings(args):
         sys.stdout.write(line)
 
 
-def stage2_compute_graph_of_related_words(args):
+def stage2_compute_graph_of_related_words(vectors_fpath, neighbours_fpath, vocab_limit, only_letters, threads):
     print "\n\n", "="*50, "\nSTAGE 2"
     print "Start collection of word neighbours."
-    fast_top_nn.similar_top.run(vectors_fpath, neighbours_fpath, only_letters=args.only_letters,
-                                   vocab_limit=args.vocab_limit, pairs=True, batch_size=5000,
-                                   threads_num=args.threads, word_freqs=None)
+    fast_top_nn.similar_top.run(vectors_fpath,
+                                neighbours_fpath,
+                                only_letters=only_letters,
+                                vocab_limit=vocab_limit,
+                                pairs=True,
+                                batch_size=5000,
+                                threads_num=threads,
+                                word_freqs=None)
 
 
-def stage3_graph_based_word_sense_induction(args):
+def stage3_graph_based_word_sense_induction(neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, min_size, n, N):
     bash_command = ("java -Xms1G -Xmx130G -cp chinese-whispers/target/chinese-whispers.jar de.tudarmstadt.lt.wsi.WSI " +
                     " -in " + neighbours_fpath + " -out " + clusters_fpath +
-                    " -N " + unicode(args.N) + " -n " + unicode(args.n) +
+                    " -N " + unicode(N) + " -n " + unicode(n) +
                     " -clustering cw")
     
     print "\n\n", "="*50, "\nSTAGE 3"
@@ -79,10 +71,10 @@ def stage3_graph_based_word_sense_induction(args):
     
     print "\nStart filtering of clusters."
     
-    filter_clusters.run(clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, unicode(args.min_size))
+    filter_clusters.run(clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, unicode(min_size))
 
 
-def stage4_building_sense_embeddings(args):
+def stage4_building_sense_embeddings(clusters_minsize_fpath, vectors_fpath):
     print "\n\n", "="*50, "\nSTAGE 4"
     print "\nStart pooling of word vectors."
     vector_representations.build_sense_vectors.run(
@@ -110,17 +102,34 @@ def main():
     parser.add_argument('-n', help="Maximum number of edges a node can have in the network"
                                    " (default is 200).", default=200, type=int)
     parser.add_argument('-min_size', help="Minimum size of the cluster (default is 5).", default=5, type=int)
+    parser.add_argument('-make-pcz', help="Perform two extra steps to label the original sense inventory with"
+                                          " hypernymy labels and disambiguate the list of related words."
+                                          "The obtained resource is called proto-concepualization or PCZ.", action="store_true")
     args = parser.parse_args()
-    
-    init(args)
-    stage1_learn_word_embeddings(args)
-    stage2_compute_graph_of_related_words(args)
-    stage3_graph_based_word_sense_induction(args)
-    stage4_building_sense_embeddings(args)
-    # optional steps:
-    # add isas
-    # disambiguate the original sense clusters
-    # make the closure
+
+    vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath = get_paths(
+        args.train_corpus, args.min_size)
+    stage1_learn_word_embeddings(args.train_corpus, vectors_fpath, args.cbow, args.window,
+                                 args.iter, args.size, args.threads, args.min_count)
+    stage2_compute_graph_of_related_words(vectors_fpath, neighbours_fpath, args.vocab_limit, args.only_letters, args.threads)
+    stage3_graph_based_word_sense_induction(neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath,
+                                            args.min_size, args.n, args.N)
+    stage4_building_sense_embeddings(clusters_minsize_fpath, vectors_fpath)
+
+    if (args.make_pcz):
+        # add isas
+        isas_fpath = ""
+        # in: clusters_minsize_fpath
+        clusters_with_isas_fpath = clusters_minsize_fpath + ".isas"
+
+
+        # disambiguate the original sense clusters
+        clusters_disambiguated_fpath = clusters_with_isas_fpath + ".disambiguated"
+        pcz.disamgiguate_sense_clusters.run(clusters_with_isas_fpath, clusters_disambiguated_fpath)
+
+        # make the closure
+        clusters_closure_fpath = clusters_disambiguated_fpath + ".closure"
+        # in: clusters_disambiguated_fpath
 
 if __name__ == '__main__':
     main()

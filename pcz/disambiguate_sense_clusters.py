@@ -18,7 +18,7 @@ SEP3 = ":"
 SEP4 = "#"
 NORM = "l2"
 MIN_SCORE = 0.000001
-OUPUT_UNKNOWN = True
+OUTPUT_UNKNOWN = True
 
 
 class SenseClusterDisambiguator(object):
@@ -109,16 +109,6 @@ class SenseClusterDisambiguator(object):
                         sense.pop(cword_lemma, None)
                         senses.append((csense_id, sense, cwi))
 
-                # print "\n>>>",  target_field.upper(), word_lemma, sense_id, cword_lemma.upper()
-                # print "\ncontext fields:", context_fields
-                # for f in context_fields: print self._sc[word][sense_id][f + "_norm"], "\n"
-                # print "\nsense fields:", sense_fields
-                # for cwi in cword_invoc:
-                #     for csense_id in self._sc[cwi]:
-                #         for f in sense_fields:
-                #             print "\n", f, cwi.upper() + "#" + unicode(csense_id), self._sc[cwi][csense_id][f + "_norm"]
-                # print "\nsenses:", senses
-
                 dv = DictVectorizer(separator='=', sparse=True)
                 X = dv.fit_transform(map(lambda x: x[1], senses))
                 if normalize:
@@ -142,6 +132,11 @@ class SenseClusterDisambiguator(object):
         return disambiguated_field
 
 
+def run(sense_clusters_fpath, output_fpath, skip_vocabulary_fpath="", skip_ambigous=True):
+    s = SenseClusterDisambiguator(sense_clusters_fpath, skip_vocabulary_fpath)
+    s.run(output_fpath, skip_ambigous, output_sim=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Make DDT from Sense Clusters.')
     parser.add_argument('sense_clusters', help='Path to a csv file with sense clusters "word<TAB>cid<TAB>cluster<TAB>isas".')
@@ -158,9 +153,9 @@ def main():
     print "Skip ambigous words:", args.skip_ambigous
 
     tic = time()
-    s = SenseClusterDisambiguator(args.sense_clusters, args.s)
-    s.run(output_fpath, args.skip_ambigous, output_sim=True)
+    run(args.sense_clusters, args.s, args.skip_ambigous, output_fpath)
     print time()-tic, "sec."
+
 
 if __name__ == '__main__':
     main()
