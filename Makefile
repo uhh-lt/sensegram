@@ -2,8 +2,8 @@ install:
 	git submodule init
 	git submodule update
 	pip install -r requirements.txt
-	mkdir model
-	mkdir intermediate
+	mkdir -p model
+	mkdir -p intermediate
 	cd word2vec/src; make
 	cd chinese-whispers; mvn package shade:shade
 

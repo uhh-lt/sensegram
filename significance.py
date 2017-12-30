@@ -30,6 +30,7 @@ def mcnemar_midp(b, c):
     print "Mid p = ", midp
     print "Chi = ", chi
 
+
 def run(set1, set2):
     r1 = read_csv(set1, sep='\t', encoding='utf8',
             dtype={'predict_sense_ids': np.unicode, 'gold_sense_ids': np.unicode, 'context_id': np.unicode}, 
@@ -45,7 +46,8 @@ def run(set1, set2):
     c = sum([not x and y for (x,y) in zip(s1,s2)])
     
     mcnemar_midp(b, c)
-    
+
+
 def main():
     parser = argparse.ArgumentParser(description='Compute statistical significance of predicted label sets')
     parser.add_argument('set1', help='A path to the first evaluated dataset. Format: "context_id<TAB>target<TAB>target_pos<TAB>target_position<TAB>gold_sense_ids<TAB>predict_sense_ids<TAB>golden_related<TAB>predict_related<TAB>context<TAB>smth<TAB>correct')
@@ -54,6 +56,7 @@ def main():
     args = parser.parse_args()
 
     run(args.set1, args.set2) 
-    
+
+
 if __name__ == '__main__':
     main()

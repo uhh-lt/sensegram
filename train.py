@@ -1,14 +1,11 @@
 import argparse, sys, subprocess
 from os.path import basename
-import word2vec_utils.similar_top 
+import fast_top_nn.similar_top
 import filter_clusters
 import os
-import jnt.verbs.build_sense_vectors
+import vector_representations.build_sense_vectors
 from os.path import join
-
-def ensure_dir(f):
-    """ Make the directory. """
-    if not os.path.exists(f): os.makedirs(f)
+from utils.common import ensure_dir
 
 
 corpus_fpath = ""
@@ -17,6 +14,7 @@ neighbours_fpath = ""
 clusters_fpath  = ""
 clusters_minsize_fpath = ""
 clusters_removed_fpath = ""
+
 
 def init(args):
     global corpus_fpath
@@ -56,12 +54,14 @@ def stage1_learn_word_embeddings(args):
     for line in iter(process.stdout.readline, ''):
         sys.stdout.write(line)
 
+
 def stage2_compute_graph_of_related_words(args):
     print "\n\n", "="*50, "\nSTAGE 2"
     print "Start collection of word neighbours."
-    word2vec_utils.similar_top.run(vectors_fpath, neighbours_fpath, only_letters=args.only_letters,
+    fast_top_nn.similar_top.run(vectors_fpath, neighbours_fpath, only_letters=args.only_letters,
                                    vocab_limit=args.vocab_limit, pairs=True, batch_size=5000,
                                    threads_num=args.threads, word_freqs=None)
+
 
 def stage3_graph_based_word_sense_induction(args):
     bash_command = ("java -Xms1G -Xmx130G -cp chinese-whispers/target/chinese-whispers.jar de.tudarmstadt.lt.wsi.WSI " +
@@ -80,27 +80,36 @@ def stage3_graph_based_word_sense_induction(args):
     print "\nStart filtering of clusters."
     
     filter_clusters.run(clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, unicode(args.min_size))
-    
+
+
 def stage4_building_sense_embeddings(args):
     print "\n\n", "="*50, "\nSTAGE 4"
     print "\nStart pooling of word vectors."
-    jnt.verbs.build_sense_vectors.run(clusters_minsize_fpath, vectors_fpath, sparse=False, norm_type="sum", weight_type="score",
-                                      max_cluster_words=20)
+    vector_representations.build_sense_vectors.run(
+        clusters_minsize_fpath, vectors_fpath, sparse=False,
+        norm_type="sum", weight_type="score", max_cluster_words=20)
+
 
 def main():
-    parser = argparse.ArgumentParser(description='')
-    parser.add_argument('train_corpus', help="Path to training corpus")
-    parser.add_argument('-cbow', help="Use the continuous bag of words model; default is 1 (use 0 for skip-gram model)", default=1, type=int)
-    parser.add_argument('-size', help="Set size of word vectors; default is 300", default=300, type=int)
-    parser.add_argument('-window', help="Set max skip length between words; default is 5", default=5, type=int)
-    parser.add_argument('-threads', help="Use <int> threads (default 4)", default=4, type=int)
-    parser.add_argument('-iter', help="Run <int> training iterations (default 5)", default=5, type=int)
-    parser.add_argument('-min_count', help="This will discard words that appear less than <int> times; default is 5", default=5, type=int)
+    parser = argparse.ArgumentParser(description='Performs training of a word sense embeddings model from a raw text '
+                                                 'corpus using the SkipGram approach based on word2vec and graph '
+                                                 'clustering of ego networks of semantically related terms.')
+    parser.add_argument('train_corpus', help="Path to a training corpus.")
+    parser.add_argument('-cbow', help="Use the continuous bag of words model (default is 1, use 0 for the "
+                                      "skip-gram model).", default=1, type=int)
+    parser.add_argument('-size', help="Set size of word vectors (default is 300).", default=300, type=int)
+    parser.add_argument('-window', help="Set max skip length between words (default is 5).", default=5, type=int)
+    parser.add_argument('-threads', help="Use <int> threads (default 4).", default=4, type=int)
+    parser.add_argument('-iter', help="Run <int> training iterations (default 5).", default=5, type=int)
+    parser.add_argument('-min_count', help="This will discard words that appear less than <int> times"
+                                           " (default is 5).", default=5, type=int)
     parser.add_argument('-only_letters', help="Use only words built from letters/dash/point for DT.", action="store_true")
-    parser.add_argument("-vocab_limit", help="Use only <int> most frequent words from word vector model for DT. By default use all words.", default=None, type=int)
-    parser.add_argument('-N', help="Number of nodes in each ego-network", default=200, type=int)
-    parser.add_argument('-n', help="Maximum number of edges a node can have in the network", default=200, type=int)
-    parser.add_argument('-min_size', help="Minimum size of the cluster", default=5, type=int)
+    parser.add_argument('-vocab_limit', help="Use only <int> most frequent words from word vector model"
+                                             " for DT. By default use all words (default is none).", default=None, type=int)
+    parser.add_argument('-N', help="Number of nodes in each ego-network (default is 200).", default=200, type=int)
+    parser.add_argument('-n', help="Maximum number of edges a node can have in the network"
+                                   " (default is 200).", default=200, type=int)
+    parser.add_argument('-min_size', help="Minimum size of the cluster (default is 5).", default=5, type=int)
     args = parser.parse_args()
     
     init(args)
@@ -108,6 +117,10 @@ def main():
     stage2_compute_graph_of_related_words(args)
     stage3_graph_based_word_sense_induction(args)
     stage4_building_sense_embeddings(args)
-    
+    # optional steps:
+    # add isas
+    # disambiguate the original sense clusters
+    # make the closure
+
 if __name__ == '__main__':
     main()

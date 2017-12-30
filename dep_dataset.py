@@ -1,11 +1,13 @@
-import nltk, argparse
+import argparse
 from nltk.parse.stanford import StanfordDependencyParser
 import os
 from pandas import read_csv, Series
 from csv import QUOTE_NONE
 from spacy.en import English
 
+
 _spacy = English()
+
 
 os.environ["JAVA_HOME"] = "/home/fahrer/jdk1.8.0_45/"
 

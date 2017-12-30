@@ -1,7 +1,6 @@
-import argparse, codecs
+import argparse
 from pandas import read_csv
 from csv import QUOTE_NONE
-import numpy as np
 from random import randint
 import sensegram
         
@@ -31,11 +30,10 @@ def main():
     
     args = parser.parse_args()
     
-    #mapping = mfs_mapping(args.inventory)
     print("Loading sense model...")
     vs = sensegram.SenseGram.load_word2vec_format(args.senses, binary=False)
-    
-    run(args.test_file, vs, args.output) 
-    
+    run(args.test_file, vs, args.output)
+
+
 if __name__ == '__main__':
     main()

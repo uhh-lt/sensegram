@@ -6,9 +6,11 @@ from collections import defaultdict
 from traceback import format_exc
 import gensim
 
-default_count = 100 # arbitrary, should be larger than min_count of vec object, which is 5 by default
+
+DEFAULT_COUNT = 100 # Should be larger than min_count of vec object, which is 5 by default
 SEP_SENSE = "#"
 INVENTORY_EXT = ".inventory.csv"
+
 
 class SenseGram(word2vec.Word2Vec):
     def __init__(self, *args, **kwargs):
@@ -120,7 +122,7 @@ class SenseGram(word2vec.Word2Vec):
             word_id = len(self.wv.vocab)
 
             sense = word.replace(" ","_") + SEP_SENSE + unicode(sense_id) # w2v format accepts no whitespaces
-            self.wv.vocab[sense] = word2vec.Vocab(index=word_id, count=default_count)
+            self.wv.vocab[sense] = word2vec.Vocab(index=word_id, count=DEFAULT_COUNT)
             self.wv.syn0[word_id] = vector
             self.wv.index2word.append(sense)
             assert sense == self.wv.index2word[self.wv.vocab[sense].index]
