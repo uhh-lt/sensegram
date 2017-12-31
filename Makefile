@@ -2,6 +2,7 @@ install:
 	git submodule init
 	git submodule update
 	pip install -r requirements.txt
+	python -m spacy download en
 	mkdir -p model
 	mkdir -p intermediate
 	cd word2vec/src; make

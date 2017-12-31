@@ -1,13 +1,11 @@
 # coding=utf8
 
-
 import argparse
 import numpy as np
 import math
 import random
 from sys import stderr, stdout
 import six
-import plumbum.cli as cmd
 import pprint
 from os.path import splitext, join
 import codecs
@@ -80,10 +78,6 @@ def prt(string):
 
 def prt2(tuple2):
     stdout.write("%s %s\n" % (tuple2[0], tuple2[1]))
-
-
-def wc(fpath):
-    return int(cmd.wc["-l"](fpath).split()[0])
 
 
 def profiling(function):

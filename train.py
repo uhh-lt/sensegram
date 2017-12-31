@@ -1,11 +1,11 @@
 import argparse, sys, subprocess
 from os.path import basename
-from . import fast_top_nn.similar_top
-from . import filter_clusters
-from . import vector_representations.build_sense_vectors
+import fast_top_nn.similar_top
+import filter_clusters
+import vector_representations.build_sense_vectors
 from os.path import join
-from .utils.common import ensure_dir
-from . import pcz
+from utils.common import ensure_dir
+import pcz
 
 def get_paths(corpus_fpath, min_size):
     corpus_name = basename(corpus_fpath)
@@ -39,7 +39,8 @@ def stage1_learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter
     
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     for line in iter(process.stdout.readline, ''):
-        sys.stdout.write(line)
+        #pass
+        sys.stdout.write(line.decode("utf-8"))
 
 
 def stage2_compute_graph_of_related_words(vectors_fpath, neighbours_fpath, vocab_limit, only_letters, threads):
@@ -67,7 +68,7 @@ def stage3_graph_based_word_sense_induction(neighbours_fpath, clusters_fpath, cl
     
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     for line in iter(process.stdout.readline, ''):
-        sys.stdout.write(line)
+        sys.stdout.write(line.decode("utf-8"))
     
     print("\nStart filtering of clusters.")
     

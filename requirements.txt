@@ -1,3 +1,4 @@
+spacy
 numpy
 pandas
 gensim
