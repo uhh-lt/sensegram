@@ -3,8 +3,8 @@ from pandas import read_csv
 from multiprocessing import Pool
 from contextlib import contextmanager
 from time import time
-from sparse_word_vectors import SparseWordVectors
-from sparse_sense_vectors import SparseSenseVectors
+from .sparse_word_vectors import SparseWordVectors
+from .sparse_sense_vectors import SparseSenseVectors
 
 
 ssv = None
@@ -20,7 +20,7 @@ def calculate_corr(p):
     simlex = read_csv(simlex_fpath, sep="\t", encoding="utf-8")
     simlex["result"] = 0.0
     for i, row in simlex.iterrows():
-        if i % 100 == 0: print i
+        if i % 100 == 0: print(i)
             
         simlex.loc[i,"result"] = ssv.max_similarity_pos(
             row.word1, row.word2, unit_norm=True, use_word_vectors=use_word_vectors)
@@ -43,13 +43,13 @@ def run(pcz_fpath, lmi_fpath, todo, num_cores):
     if num_cores > 1:
         with terminating(Pool(num_cores)) as pool:
             for res in pool.imap_unordered(calculate_corr, todo):
-                print res
+                print(res)
     else:
         for p in todo:
             res = calculate_corr(p)
-            print res
+            print(res)
 
-    print time()-tic
+    print((time()-tic))
 
 
 def main():

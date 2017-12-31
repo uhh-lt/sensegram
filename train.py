@@ -1,11 +1,11 @@
 import argparse, sys, subprocess
 from os.path import basename
-import fast_top_nn.similar_top
-import filter_clusters
-import vector_representations.build_sense_vectors
+from . import fast_top_nn.similar_top
+from . import filter_clusters
+from . import vector_representations.build_sense_vectors
 from os.path import join
-from utils.common import ensure_dir
-import pcz
+from .utils.common import ensure_dir
+from . import pcz
 
 def get_paths(corpus_fpath, min_size):
     corpus_name = basename(corpus_fpath)
@@ -14,7 +14,7 @@ def get_paths(corpus_fpath, min_size):
     vectors_fpath = join(model_dir, corpus_name + ".words")
     neighbours_fpath = join(model_dir, corpus_name + ".neighbours")
     clusters_fpath = join(model_dir, corpus_name + ".clusters")
-    clusters_minsize_fpath = clusters_fpath + ".minsize" + unicode(min_size) # clusters that satisfy min_size
+    clusters_minsize_fpath = clusters_fpath + ".minsize" + str(min_size) # clusters that satisfy min_size
     clusters_removed_fpath = clusters_minsize_fpath + ".removed" # cluster that are smaller than min_size
 
     return vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath
@@ -24,18 +24,18 @@ def stage1_learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter
     bash_command = ("word2vec/bin/word2vec -train " +
                    corpus_fpath +
                    " -output " + vectors_fpath +
-                   " -cbow " + unicode(cbow) +
-                   " -size " + unicode(size) +
-                   " -window " + unicode(window) +
-                   " -threads " + unicode(threads) +
-                   " -iter " + unicode(iter_num) +
-                   " -min_count " + unicode(min_count) +
+                   " -cbow " + str(cbow) +
+                   " -size " + str(size) +
+                   " -window " + str(window) +
+                   " -threads " + str(threads) +
+                   " -iter " + str(iter_num) +
+                   " -min_count " + str(min_count) +
                    " -binary 0 -negative 25 -hs 0 -sample 1e-4")
     
-    print "\n\n", "="*50, "\nSTAGE 1"
-    print "Train word vectors using word2vec with following parameters:"
-    print bash_command
-    print "\nTraining progress won't be printed."
+    print("\n\n", "="*50, "\nSTAGE 1")
+    print("Train word vectors using word2vec with following parameters:")
+    print(bash_command)
+    print("\nTraining progress won't be printed.")
     
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     for line in iter(process.stdout.readline, ''):
@@ -43,8 +43,8 @@ def stage1_learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter
 
 
 def stage2_compute_graph_of_related_words(vectors_fpath, neighbours_fpath, vocab_limit, only_letters, threads):
-    print "\n\n", "="*50, "\nSTAGE 2"
-    print "Start collection of word neighbours."
+    print("\n\n", "="*50, "\nSTAGE 2")
+    print("Start collection of word neighbours.")
     fast_top_nn.similar_top.run(vectors_fpath,
                                 neighbours_fpath,
                                 only_letters=only_letters,
@@ -58,25 +58,25 @@ def stage2_compute_graph_of_related_words(vectors_fpath, neighbours_fpath, vocab
 def stage3_graph_based_word_sense_induction(neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, min_size, n, N):
     bash_command = ("java -Xms1G -Xmx130G -cp chinese-whispers/target/chinese-whispers.jar de.tudarmstadt.lt.wsi.WSI " +
                     " -in " + neighbours_fpath + " -out " + clusters_fpath +
-                    " -N " + unicode(N) + " -n " + unicode(n) +
+                    " -N " + str(N) + " -n " + str(n) +
                     " -clustering cw")
     
-    print "\n\n", "="*50, "\nSTAGE 3"
-    print "\nStart clustering of word ego-networks with following parameters:"
-    print bash_command
+    print("\n\n", "="*50, "\nSTAGE 3")
+    print("\nStart clustering of word ego-networks with following parameters:")
+    print(bash_command)
     
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     for line in iter(process.stdout.readline, ''):
         sys.stdout.write(line)
     
-    print "\nStart filtering of clusters."
+    print("\nStart filtering of clusters.")
     
-    filter_clusters.run(clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, unicode(min_size))
+    filter_clusters.run(clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, str(min_size))
 
 
 def stage4_building_sense_embeddings(clusters_minsize_fpath, vectors_fpath):
-    print "\n\n", "="*50, "\nSTAGE 4"
-    print "\nStart pooling of word vectors."
+    print("\n\n", "="*50, "\nSTAGE 4")
+    print("\nStart pooling of word vectors.")
     vector_representations.build_sense_vectors.run(
         clusters_minsize_fpath, vectors_fpath, sparse=False,
         norm_type="sum", weight_type="score", max_cluster_words=20)

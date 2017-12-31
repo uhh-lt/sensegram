@@ -9,7 +9,7 @@ from sklearn.externals import joblib
 import numpy as np
 from sys import stderr
 from os.path import exists
-from sense_vectors import generate_mixed_cases
+from .sense_vectors import generate_mixed_cases
 from scipy.sparse.linalg import norm
 
 
@@ -27,12 +27,12 @@ class SparseWordVectors:
         if exists(lmi_fpath):
             self.vectors, self.vectorizer, self.word2idx = self.load(lmi_fpath)
             if self.vectors == None:
-                print "No model to load. Bulding a new model from:", lmi_fpath
+                print("No model to load. Bulding a new model from:", lmi_fpath)
                 self.build(lmi_fpath)
             else:
-                print "Loaded model from:", lmi_fpath
+                print("Loaded model from:", lmi_fpath)
         else:
-            print "File not found:", lmi_fpath
+            print("File not found:", lmi_fpath)
 
     def load(self, lmi_fpath):
         """ Load a pre-built model from numpy files. """
@@ -45,12 +45,12 @@ class SparseWordVectors:
             word_vectors = joblib.load(matrix_fpath)
             vectorizer = joblib.load(vectorizer_fpath)
             word2idx = joblib.load(word2idx_fpath)
-            print "Loaded word vectors from:", lmi_fpath
+            print("Loaded word vectors from:", lmi_fpath)
         else:
-            print "Some input files are missing. Cannot load the model."
-            print exists(matrix_fpath), matrix_fpath
-            print exists(vectorizer_fpath), vectorizer_fpath
-            print exists(word2idx_fpath), word2idx_fpath
+            print("Some input files are missing. Cannot load the model.")
+            print(exists(matrix_fpath), matrix_fpath)
+            print(exists(vectorizer_fpath), vectorizer_fpath)
+            print(exists(word2idx_fpath), word2idx_fpath)
             word_vectors = None
             vectorizer = None
             word2idx = None
@@ -70,7 +70,7 @@ class SparseWordVectors:
         curr_word_dict = Counter()
         prev_word = ""
         for i, line in enumerate(lmi_file):
-            if i % 1000000 == 0: print i
+            if i % 1000000 == 0: print(i)
             try:
                 word, feature, score = line.split("\t")
                 score = float(score)
@@ -84,8 +84,8 @@ class SparseWordVectors:
                 curr_word_dict[feature] += score
                 prev_word = curr_word
             except:
-                if self.VERBOSE: print >> stderr, format_exc()
-        print
+                if self.VERBOSE: print(format_exc(), file=stderr)
+        print()
         # add the last element
         lmi_word2idx[prev_word] = len(lmi_word2idx)
         lmi_list.append(curr_word_dict)
@@ -93,32 +93,32 @@ class SparseWordVectors:
         if self.DEBUG:
             pprint(lmi_word2idx)
             for i, x in enumerate(lmi_list):
-                print i
-                print x
-                print
+                print(i)
+                print(x)
+                print()
 
         dv = DictVectorizer(dtype=np.float32, separator='=', sparse=True)
         lmi_vectors = dv.fit_transform(lmi_list)
 
         vec_fpath = lmi_fpath + self.VECTORIZER_EXT
         joblib.dump(dv, vec_fpath)
-        print "Vectorizer:", vec_fpath
+        print("Vectorizer:", vec_fpath)
 
-        print "Features Count:", len(dv.get_feature_names())
+        print("Features Count:", len(dv.get_feature_names()))
         uniqf_fpath = lmi_fpath + self.FEATURES_EXT
         with codecs.open(uniqf_fpath, "w", "utf-8") as uniqf_file:
             for fn in dv.get_feature_names():
-                print >> uniqf_file, fn
-        print "Features:", uniqf_fpath
+                print(fn, file=uniqf_file)
+        print("Features:", uniqf_fpath)
 
-        print "Word-feautre matrix shape:", lmi_vectors.shape
+        print("Word-feautre matrix shape:", lmi_vectors.shape)
         matrix_fpath = lmi_fpath + self.MATRIX_EXT
         joblib.dump(lmi_vectors, matrix_fpath)
-        print "Word-feature matrix:", matrix_fpath
+        print("Word-feature matrix:", matrix_fpath)
 
         word2idx_fpath = lmi_fpath + self.WORD2IDX_EXT
         joblib.dump(lmi_word2idx, word2idx_fpath)
-        print "Word2Index:", word2idx_fpath
+        print("Word2Index:", word2idx_fpath)
         lmi_file.close()
 
         self.word2idx = lmi_word2idx
@@ -134,7 +134,7 @@ class SparseWordVectors:
     def similarity(self, word_i, word_j, unit_length=True):
         oov = word_i not in self.word2idx or word_j not in self.word2idx
         if oov:
-            if self.VERBOSE: print "Warning: out of vocabulary:", word_i, word_j
+            if self.VERBOSE: print("Warning: out of vocabulary:", word_i, word_j)
             return 0.0
 
         vector_i = self.vectors[self.word2idx[word_i]]

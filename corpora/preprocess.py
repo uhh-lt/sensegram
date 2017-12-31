@@ -12,11 +12,11 @@ def run(corpus, output):
         with gzip.open(corpus) as fp, codecs.open(output, mode='w', encoding='utf-8') as out:
             for byteline in fp: # bytestring now has the uncompressed bytes of foo.gz
                 line = byteline.decode('utf-8')
-                out.write(" ".join(word_tokenize(line)) + u'\n')
+                out.write(" ".join(word_tokenize(line)) + '\n')
     else:
         with codecs.open(corpus, mode='r', encoding='utf-8') as fp, codecs.open(output, mode='w', encoding='utf-8') as out:
             for line in fp: # bytestring now has the uncompressed bytes of foo.gz
-                out.write(" ".join(word_tokenize(line)) + u'\n')
+                out.write(" ".join(word_tokenize(line)) + '\n')
 
 def main():
     parser = argparse.ArgumentParser(description='Tokenize corpus for word2vec (Treebank tokenizer)')

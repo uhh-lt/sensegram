@@ -25,8 +25,8 @@ CHUNK_LINES = 500000
 def add_header(input_fpath, header):
     for line in fileinput.input(files=[input_fpath], inplace=True):
         if fileinput.isfirstline():
-            print header
-        print line,
+            print(header)
+        print(line, end=' ')
 
 
 def try_remove(fpath):
@@ -69,10 +69,10 @@ def run(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5"):
     output_fpath = output_fpath or build_output_fpath(ddt_fpath, min_size) 
     filtered_fpath = filtered_fpath or build_filtered_fpath(ddt_fpath, min_size)
 
-    print "Input:", ddt_fpath
-    print "Output:", output_fpath
-    print "Filtered out clusters:", filtered_fpath
-    print "Min size:", min_size
+    print("Input:", ddt_fpath)
+    print("Output:", output_fpath)
+    print("Filtered out clusters:", filtered_fpath)
+    print("Min size:", min_size)
 
     min_size = int(min_size)
     ddt_tmp_fpath = ddt_fpath + ".tmp"
@@ -81,7 +81,7 @@ def run(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5"):
     
     with codecs.open(output_fpath, "w", encoding="utf-8") as output, codecs.open(filtered_fpath, "w", encoding="utf-8") as filtered:
         reader = read_csv(ddt_tmp_fpath, encoding="utf-8", delimiter="\t", error_bad_lines=False,
-            iterator=True, chunksize=CHUNK_LINES, doublequote=False, quotechar=u"\u0000")
+            iterator=True, chunksize=CHUNK_LINES, doublequote=False, quotechar="\u0000")
         num = 0
         selected_num = 0
         senses_num = defaultdict(int)
@@ -104,9 +104,9 @@ def run(ddt_fpath, output_fpath=None, filtered_fpath=None, min_size="5"):
                 selected_num += 1
                 senses_num[row.word] += 1
 
-        print "output clusters: %d of %d (%.2f %%)" % (selected_num, num, float(selected_num)/num*100.)
-        values = senses_num.values()
-        print "average number of senses: %.2f +- %.3f, median: %.3f" % (mean(values), std(values), median(values))
+        print("output clusters: %d of %d (%.2f %%)" % (selected_num, num, float(selected_num)/num*100.))
+        values = list(senses_num.values())
+        print("average number of senses: %.2f +- %.3f, median: %.3f" % (mean(values), std(values), median(values)))
     try_remove(ddt_tmp_fpath)
     return selected_num, mean(values)
 

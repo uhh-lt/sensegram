@@ -30,12 +30,12 @@ class Pbar(object):
         self.step = loop_size/freq
 
     def start(self):
-        print('Progress: 0% '),
+        print(('Progress: 0% '), end=' ')
 
     def update(self, current_step):
         """ updates the progressbar if it is time to. """
         if current_step % self.step == 0: 
-            print('\b\b\b\b%02d%%' % int((float(current_step)/self.loop_size)*100)),
+            print(('\b\b\b\b%02d%%' % int((float(current_step)/self.loop_size)*100)), end=' ')
             sys.stdout.flush()
 
     def finish(self):

@@ -10,7 +10,7 @@ VERBOSE = False
 
 
 def read_ddt(ddt_fpath):
-    df = read_csv(ddt_fpath, "\t", encoding='utf8', error_bad_lines=False, doublequote=False, quotechar=u"\u0000")
+    df = read_csv(ddt_fpath, "\t", encoding='utf8', error_bad_lines=False, doublequote=False, quotechar="\u0000")
     df.word.fillna("", inplace=True)
     df.cid.fillna(-1, inplace=True)
     df.cluster.fillna("", inplace=True)
@@ -24,21 +24,21 @@ def make_closure(ddt_fpath, output_fpath, filtered_fpath, min_cluster_size):
     with codecs.open(output_fpath, "w", "utf-8") as output, codecs.open(filtered_fpath, "w", "utf-8") as filtered:
         df = read_ddt(ddt_fpath)
 
-        print >> output, DDT_HEADER
+        print(DDT_HEADER, file=output)
 
         for i, row in df.iterrows():
             cluster = [related for related in row.cluster.split(LIST_SEP) if "?" not in related]
             isas = [related for related in row.isas.split(LIST_SEP) if "?" not in related]
             if len(cluster) >= min_cluster_size:
-                print >> output, "%s\t%d\t%s\t%s" % (row.word, row.cid, LIST_SEP.join(cluster), LIST_SEP.join(isas))
+                print("%s\t%d\t%s\t%s" % (row.word, row.cid, LIST_SEP.join(cluster), LIST_SEP.join(isas)), file=output)
             else:
                 skipped_num += 1
-                if VERBOSE and skipped_num < 1000: print "\nSkipping cluster:", row.word, row.cid, row.cluster
-                print >> filtered, "%s\t%d\t%s\t%s" % (row.word, row.cid, LIST_SEP.join(cluster), LIST_SEP.join(isas))
+                if VERBOSE and skipped_num < 1000: print("\nSkipping cluster:", row.word, row.cid, row.cluster)
+                print("%s\t%d\t%s\t%s" % (row.word, row.cid, LIST_SEP.join(cluster), LIST_SEP.join(isas)), file=filtered)
 
-    print "Input #clusters:", i
-    print "Output #clusters:", i-skipped_num
-    print "Output:", output_fpath
+    print("Input #clusters:", i)
+    print("Output #clusters:", i-skipped_num)
+    print("Output:", output_fpath)
 
 
 def main():
@@ -50,10 +50,10 @@ def main():
 
     output_fpath = args.ddt + ".out" if args.o == "" else args.o
     filtered_fpath = output_fpath + ".filtered"
-    print "Input sense clusters: ", args.ddt
-    print "Output path: ", output_fpath
-    print "Filtered path: ", filtered_fpath
-    print "Min. cluster size: ", args.s
+    print("Input sense clusters: ", args.ddt)
+    print("Output path: ", output_fpath)
+    print("Filtered path: ", filtered_fpath)
+    print("Min. cluster size: ", args.s)
     make_closure(ddt_fpath=args.ddt, output_fpath=output_fpath, filtered_fpath=filtered_fpath,
             min_cluster_size=int(args.s))
 

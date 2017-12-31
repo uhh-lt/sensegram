@@ -1,6 +1,6 @@
 # coding=utf8
 
-from __future__ import print_function
+
 import argparse
 import numpy as np
 import math
@@ -11,10 +11,10 @@ import plumbum.cli as cmd
 import pprint
 from os.path import splitext, join
 import codecs
-from patterns import re_escape, re_amp, re_quote_escape
+from .patterns import re_escape, re_amp, re_quote_escape
 from pandas import read_csv
 from itertools import islice
-import cPickle as pickle
+import pickle as pickle
 import os
 from os.path import join, abspath, dirname
 import gzip
@@ -24,7 +24,7 @@ from ntpath import basename
 
 UNK_LABEL = "unknown"
 TRUE = ['true', '1', 't', 'y', 'yes']
-LETTERS = [u'а',u'б',u'в',u'г',u'д',u'е',u'ё',u'ж',u'з',u'и',u'к',u'л',u'м',u'н',u'о',u'п',u'р',u'с',u'т',u'у',u'ф',u'х',u'ц',u'ч',u'ш',u'щ',u'э',u'ь',u'ы',u'ю',u'я',u'a',u'b',u'c',u'd',u'e',u'f',u'g',u'h',u'i',u'j',u'k',u'l',u'm',u'n',u'o',u'p',u'q',u'r',u's',u't',u'u',u'v',u'w',u'x',u'y',u'z']
+LETTERS = ['а','б','в','г','д','е','ё','ж','з','и','к','л','м','н','о','п','р','с','т','у','ф','х','ц','ч','ш','щ','э','ь','ы','ю','я','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
 
 def fpath2filename(fpath):
@@ -89,7 +89,7 @@ def wc(fpath):
 def profiling(function):
     import cProfile
     import pstats
-    from cStringIO import StringIO
+    from io import StringIO
     pr = cProfile.Profile()
     pr.enable()
 
@@ -147,16 +147,16 @@ def random_ints():
     return str(int(math.floor(random.random() * 100000)))
 
 
-from patterns import re_newlines
+from .patterns import re_newlines
 def strip_newlines(input):
     return re_newlines.sub(" ", input)
 
 
-from patterns import re_whitespaces
+from .patterns import re_whitespaces
 def normalize_whitespaces(input):
     return re_whitespaces.sub(" ", input)
 
-from patterns import re_url
+from .patterns import re_url
 def get_urls(input):
     matches = re_url.findall(input)
     return matches
@@ -172,7 +172,7 @@ def findnth(haystack, needle, n):
 def whatisthis(s):
     if isinstance(s, str):
         return "str"
-    elif isinstance(s, unicode):
+    elif isinstance(s, str):
         return "unicode"
     else:
         return "not str"
@@ -202,8 +202,8 @@ def ensure_dir(f):
 def chunks(l, n):
     """ Yield successive n-sized chunks from l. """
 
-    for i in xrange(0, len(l), n):
-        yield zip(range(i,i+n), l[i:i+n])
+    for i in range(0, len(l), n):
+        yield list(zip(list(range(i,i+n)), l[i:i+n]))
 
 
 def stat(lst, print_stat=True):
@@ -239,7 +239,7 @@ class readable_dir(argparse.Action):
 
 class PrettyPrinterUtf8(pprint.PrettyPrinter):
     def format(self, object, context, maxlevels, level):
-        if isinstance(object, unicode):
+        if isinstance(object, str):
             return (object.encode('utf8'), True, False)
         return pprint.PrettyPrinter.format(self, object, context, maxlevels, level)
 

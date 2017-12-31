@@ -1,4 +1,4 @@
-from sense_vectors import SenseVectors
+from .sense_vectors import SenseVectors
 from collections import defaultdict
 import codecs
 from sklearn.externals import joblib
@@ -49,7 +49,7 @@ class SparseSenseVectors(SenseVectors):
               sense_i not in self.sense_vectors[word_i] or \
               sense_j not in self.sense_vectors[word_j]
         if oov:
-            print "Warning: out of vocabulary:", word_i, sense_i, word_j, sense_j
+            print("Warning: out of vocabulary:", word_i, sense_i, word_j, sense_j)
             return 0.0
 
         sense_vector_i = self.sense_vectors[word_i][sense_i]
@@ -63,7 +63,7 @@ class SparseSenseVectors(SenseVectors):
                 sense_vector_i = self._mixing(sense_vector_i, word_i)
                 sense_vector_j = self._mixing(sense_vector_j, word_j)
             else:
-                print "Warning: cannot use word vectors as they were not loaded."
+                print("Warning: cannot use word vectors as they were not loaded.")
 
         s = sense_vector_i.dot(sense_vector_j.T) # assuming that vectors are unit norm for cosine
         if s != 0: return s.data[0]
@@ -76,7 +76,7 @@ class SparseSenseVectors(SenseVectors):
             sense_vector_i = sense_vector_i / norm(sense_vector_i)
             sense_vector_i = self.SENSE_WEIGHT*sense_vector_i + self.WORD_WEIGHT*vector_i
         else:
-            print "Warning: mixing not possible, word '%s' not found" % word_i
+            print("Warning: mixing not possible, word '%s' not found" % word_i)
 
         return sense_vector_i
 
@@ -96,12 +96,12 @@ class SparseSenseVectors(SenseVectors):
         if save_pkl: sense2vector = defaultdict() # word -> sense_id -> sparse_vector
 
         with codecs.open(self.sense_vectors_csv_fpath, "w", "utf-8") as csv_file:
-            print >> csv_file, "word\tcid\tcluster\tisas\tfeatures"
+            print("word\tcid\tcluster\tisas\tfeatures", file=csv_file)
             sense_count = 0
             for word in self.pcz.data:
                 for sense_id in self.pcz.data[word]:
                     sense_count += 1
-                    if sense_count % 10000 == 0: print sense_count, "senses processed"
+                    if sense_count % 10000 == 0: print(sense_count, "senses processed")
                     sense_vector = csr_matrix(wv.vectors[0].shape)
                     for i, cluster_word in enumerate(self.pcz.data[word][sense_id]["cluster"]):
                         if cluster_word in wv.word2idx:
@@ -113,7 +113,7 @@ class SparseSenseVectors(SenseVectors):
                             elif len(f) == 3 and ((f[0] + self.SEP_SENSE_POS + f[1]) in wv.word2idx):
                                 cw = f[0] + self.SEP_SENSE_POS + f[1]
                             else:
-                                if self.VERBOSE: print "Warning: cluster word '%s' is OOV." % (cluster_word)
+                                if self.VERBOSE: print("Warning: cluster word '%s' is OOV." % (cluster_word))
                                 continue
 
                         if weight_type == "ones": weight = 1.0
@@ -143,17 +143,17 @@ class SparseSenseVectors(SenseVectors):
                                             self.pcz.data[word][sense_id]["cluster"])
                     hypers_str = ", ".join(
                         "%s:%.3f" % (w, self.pcz.data[word][sense_id]["isas"][w]) for w in self.pcz.data[word][sense_id]["isas"])
-                    print >> csv_file, "%s\t%s\t%s\t%s\t%s" % (
+                    print("%s\t%s\t%s\t%s\t%s" % (
                         word,
-                        unicode(sense_id),
+                        str(sense_id),
                         cluster_str,
                         hypers_str,
-                        features_str)
+                        features_str), file=csv_file)
 
         if save_pkl:
             joblib.dump(sense2vector, self.sense_vectors_bin_fpath)
-            print "Dictionary of vectors:", self.sense_vectors_bin_fpath
+            print("Dictionary of vectors:", self.sense_vectors_bin_fpath)
 
-        print "Created %d sense vectors" % sense_count
+        print("Created %d sense vectors" % sense_count)
 
         return sense2vector

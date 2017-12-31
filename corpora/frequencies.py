@@ -14,7 +14,7 @@ def run(corpus, output, minsize):
             c.update(line.split())
 
     with codecs.open(output, 'w', encoding='utf-8') as freqfile:
-        for word, freq in sorted(c.items(), key=itemgetter(1),  reverse=True):
+        for word, freq in sorted(list(c.items()), key=itemgetter(1),  reverse=True):
             if freq >= minsize:
                 freqfile.write("%s %i\n" % (word, freq))
     

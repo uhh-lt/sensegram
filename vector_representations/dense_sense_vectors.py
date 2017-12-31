@@ -1,4 +1,4 @@
-from sense_vectors import SenseVectors
+from .sense_vectors import SenseVectors
 import numpy as np
 from traceback import format_exc
 from sensegram import SenseGram
@@ -23,7 +23,7 @@ class DenseSenseVectors(SenseVectors):
                 word, sense_id = word_sense.split(self.SEP_SENSE_POS)
                 senses.append( (word_i, sense_id, prob) )
             except:
-                print "Wrong sense format", word_sense
+                print("Wrong sense format", word_sense)
         return senses
 
     def similarity(self, word_i, sense_i, word_j, sense_j, use_word_vectors=False):
@@ -42,7 +42,7 @@ class DenseSenseVectors(SenseVectors):
             sense_vector_i = self.get_sense_vector(sense_i, word_i)
             sense_vector_i = self.SENSE_WEIGHT*sense_vector_i + self.WORD_WEIGHT*word_vector_i
         else:
-            print "Warning: mixing not possible, word '%s' not found" % word_i
+            print("Warning: mixing not possible, word '%s' not found" % word_i)
             sense_vector_i = self.get_sense_vector(sense_i, word_i)
 
         return sense_vector_i
@@ -52,7 +52,7 @@ class DenseSenseVectors(SenseVectors):
         if sense_id in self.sense_vectors:
             sense_vector_i = self.sense_vectors[sense_id]
         else:
-            print "Warning: sense vector not found: %s" % sense_id
+            print("Warning: sense vector not found: %s" % sense_id)
             sense_vector_i = 0.0
         return sense_vector_i
 
@@ -80,7 +80,7 @@ class DenseSenseVectors(SenseVectors):
                 # try to build sense vector for a word sense
                 try:
                     sense_count += 1
-                    if sense_count % 10000 == 0: print sense_count, "senses processed"
+                    if sense_count % 10000 == 0: print(sense_count, "senses processed")
 
                     sense_vector = np.zeros(wv.vectors.syn0[0].shape, dtype=np.float32) # or the word vector?
 
@@ -93,7 +93,7 @@ class DenseSenseVectors(SenseVectors):
                             cw = cluster_word.split("#")[0]
                         else:
                             if self.VERBOSE:
-                                print >> stderr, "Warning: word is OOV: '%s'" % (cluster_word)
+                                print("Warning: word is OOV: '%s'" % (cluster_word), file=stderr)
                             continue
                         non_oov += 1
 
@@ -103,27 +103,27 @@ class DenseSenseVectors(SenseVectors):
                         else: weight = float(self.pcz.data[word][sense_id]["cluster"][cluster_word])
                         
                         if weight == 0:
-                            print "Warning: zero weight:", cluster_word, 
+                            print("Warning: zero weight:", cluster_word, end=' ') 
 
                         sense_vector += weight * wv.vectors[cw]
 
                     if non_oov == 0:
-                        if self.VERBOSE: print >> stderr, "Warning: sense is OOV: %s#%s" % (word, sense_id)
-                    print ">>>", word, sense_id, non_oov, i
+                        if self.VERBOSE: print("Warning: sense is OOV: %s#%s" % (word, sense_id), file=stderr)
+                    print(">>>", word, sense_id, non_oov, i)
 
                     normalizer = self._normalizer(word, sense_id, norm_type, weight_type, max_cluster_words)
                     sense_vector = sense_vector / normalizer
                     sense_prob = self.pcz.get_sense_prob(word, sense_id)
                     sv.add_sense(word, sense_id, sense_vector, sense_prob)
                 except:
-                    print "Cannot process sense:", word, sense_id
-                    print format_exc()
+                    print("Cannot process sense:", word, sense_id)
+                    print(format_exc())
 
         # serialize the sense vector model
         sv.save_word2vec_format(self.sense_vectors_bin_fpath, fvocab=None, binary=False)
 
-        print "Sense vectors:", self.sense_vectors_bin_fpath
-        print "Created %d sense vectors" % sense_count
+        print("Sense vectors:", self.sense_vectors_bin_fpath)
+        print("Created %d sense vectors" % sense_count)
 
         return sv
 

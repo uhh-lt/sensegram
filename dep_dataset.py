@@ -22,7 +22,7 @@ def lemmatize(text):
 
 def run(dataset, block):
     
-    print "Reading the dataset."
+    print("Reading the dataset.")
     reader = read_csv(dataset, encoding="utf-8", delimiter="\t", dtype={'predict_related': object, 'gold_sense_ids':object, 'predict_sense_ids':object})
     rows_count = reader.shape[0]
     lst = ["initDep"] * rows_count
@@ -30,16 +30,16 @@ def run(dataset, block):
     contexts = reader['context'].tolist()
     contexts = [c.lower() for c in contexts]
     
-    print "Parsing sentences."
+    print("Parsing sentences.")
     for j in range(0, rows_count, block):
-        print "j =", j
+        print(("j =", j))
         result = dependency_parser.raw_parse_sents(contexts[j:j+block])
         result = list(result)
         for i, parse in enumerate(result):
             if parse == "ParseError":
                 reader.set_value(j + i, 'deps', parse)
-                print "Parse error at index = ", i
-                print contexts[j + i]
+                print(("Parse error at index = ", i))
+                print((contexts[j + i]))
             else:
                 deplist = list(parse.next().triples())
 
@@ -53,7 +53,7 @@ def run(dataset, block):
                 ctx2 = [rel + "I_" + head[0] for head, rel, tail in deplist if lemmatize(tail[0]) == target or tail[0] == word]
                 reader.set_value(j + i, 'deps', " ".join(ctx1 + ctx2))
     
-    print "Saving the dataset to ", dataset+".dep.csv"
+    print(("Saving the dataset to ", dataset+".dep.csv"))
     reader.to_csv(sep='\t', path_or_buf = dataset + '.dep.csv', encoding="utf-8", index=False, quoting=QUOTE_NONE)
 
     

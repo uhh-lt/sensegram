@@ -54,7 +54,7 @@ class SenseGram(word2vec.Word2Vec):
         for word in words:
             if word not in self.inventory: continue
             for sense_id in self.inventory[word]:
-                sense = word + SEP_SENSE + unicode(sense_id)
+                sense = word + SEP_SENSE + str(sense_id)
                 if sense not in self.wv.vocab: continue
                 senses.append((sense, self.inventory[word][sense_id]))
         return senses
@@ -98,15 +98,15 @@ class SenseGram(word2vec.Word2Vec):
                         if len(word) == 0 or len(sense_id) == 0: continue
                         result.inventory[word][sense_id] = float(prob)
                     except:
-                        print "Bad line '%s'" % line
-                        print format_exc()
+                        print(("Bad line '%s'" % line))
+                        print((format_exc()))
         else:
             for sense in result.wv.index2word:
                 try:
                     word, sense_id = sense.split(SEP_SENSE)
                     result.inventory[word][sense_id] = 1.0
                 except:
-                    print format_exc()
+                    print((format_exc()))
                     
         return result
         
@@ -121,7 +121,7 @@ class SenseGram(word2vec.Word2Vec):
         if hasattr(self.wv, 'syn0'):
             word_id = len(self.wv.vocab)
 
-            sense = word.replace(" ","_") + SEP_SENSE + unicode(sense_id) # w2v format accepts no whitespaces
+            sense = word.replace(" ","_") + SEP_SENSE + str(sense_id) # w2v format accepts no whitespaces
             self.wv.vocab[sense] = word2vec.Vocab(index=word_id, count=DEFAULT_COUNT)
             self.wv.syn0[word_id] = vector
             self.wv.index2word.append(sense)

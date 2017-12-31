@@ -3,7 +3,7 @@
 import argparse, codecs
 from pandas import read_csv
 from csv import QUOTE_NONE
-from sensegram import WSD, SenseGram
+from .sensegram import WSD, SenseGram
 from gensim.models import word2vec
 import pbar
 
@@ -19,13 +19,13 @@ def run(test_file, sense, context, output, wsd_method='sim', filter_ctx=2, lower
     print("Loading test set...")
     reader = read_csv(test_file, encoding="utf-8", delimiter="\t", dtype={'predict_related': object, 'gold_sense_ids':object, 'predict_sense_ids':object})
     rows_count = reader.shape[0]
-    print(unicode(rows_count) + " test instances")
+    print((str(rows_count) + " test instances"))
     pb = pbar.Pbar(rows_count, 100)
     
 
     uncovered_words = [] # target words for which sense model has zero senses
 
-    print("Start prediction over " + test_file)
+    print(("Start prediction over " + test_file))
     pb.start()
     for i, row in reader.iterrows():
         # Form of prediction: (sense, sense_scores)
@@ -47,7 +47,7 @@ def run(test_file, sense, context, output, wsd_method='sim', filter_ctx=2, lower
     pb.finish()
     
     reader.to_csv(sep='\t', path_or_buf=output, encoding="utf-8", index=False, quoting=QUOTE_NONE)
-    print("Saved predictions to " + output)
+    print(("Saved predictions to " + output))
     
 
 def main():

@@ -2,7 +2,7 @@ from traceback import format_exc
 from collections import Counter
 from pandas import read_csv
 from collections import defaultdict
-import cPickle as pickle
+import pickle as pickle
 from utils.common import exists
 from utils.common import load_voc
 from utils.morph import get_stoplist
@@ -44,30 +44,30 @@ class SenseClusters(object):
             if "sense_clusters" in pkl:
                 self._sc = pkl["sense_clusters"]
             else:
-                print "Error: cannot find sense_clusters in ", sense_clusters_pkl_fpath
+                print("Error: cannot find sense_clusters in ", sense_clusters_pkl_fpath)
                 self._sc = {}
 
             if "normword2word" in pkl:
                 self._normword2word = pkl["normword2word"]
             else:
-                print "Error: cannot find normword2word in ", sense_clusters_pkl_fpath
+                print("Error: cannot find normword2word in ", sense_clusters_pkl_fpath)
                 self._normword2word = {}
-            print "Loaded %d words from: %s" % (len(self._sc), sense_clusters_pkl_fpath)
+            print("Loaded %d words from: %s" % (len(self._sc), sense_clusters_pkl_fpath))
 
         else:
             self._sc, self._normword2word = self._load(sense_clusters_fpath, strip_dst_senses, load_sim)
             if use_pickle:
                 pkl = {"sense_clusters": self._sc, "normword2word": self._normword2word}
                 pickle.dump(pkl, open(sense_clusters_pkl_fpath, "wb"))
-                print "Pickled sense clusters:", sense_clusters_pkl_fpath
+                print("Pickled sense clusters:", sense_clusters_pkl_fpath)
 
     def get_sense_prob(self, word, sense_id):
         """ Returns probability of a word sense. During the first run this
         method can be long as it pre-calculates per word cluster sizes. """
 
         if word not in self.data or sense_id not in self.data[word]:
-            print "Warning: The word sense is absent in the vocabulary of the model. " \
-                  "It is not possible to calculate its probability."
+            print("Warning: The word sense is absent in the vocabulary of the model. " \
+                  "It is not possible to calculate its probability.")
             return 1.0
 
         recalculation_is_needed = \
@@ -122,11 +122,11 @@ class SenseClusters(object):
 
     @property
     def words(self):
-        return self._sc.keys()
+        return list(self._sc.keys())
 
     @property
     def normwords(self):
-        return self._normword2word.keys()
+        return list(self._normword2word.keys())
 
     @property
     def data(self):
@@ -157,8 +157,8 @@ class SenseClusters(object):
                     cluster_words[word] = float(sim)
             except:
                 if self._verbose:
-                    print "Warning: bad word '%s'" % cw
-                    print format_exc()
+                    print("Warning: bad word '%s'" % cw)
+                    print(format_exc())
         return cluster_words
 
     def _get_normalized_words(self, cluster_words):
@@ -212,7 +212,7 @@ class SenseClusters(object):
         # foreach sense cluster
         for i, row in df.iterrows():
             try:
-                if i % 25000 == 0: print "%d (%d) senses loaded of %d" % (i, num_senses, len(df))
+                if i % 25000 == 0: print("%d (%d) senses loaded of %d" % (i, num_senses, len(df)))
                 if len(self._voc) > 0 and row.word not in self._voc:
                     continue
 
@@ -226,23 +226,23 @@ class SenseClusters(object):
                 normword2word[self.norm(row.word)].add(row.word)
                 num_senses += 1
             except:
-                print ".",
+                print(".", end=' ')
                 if self._verbose:
-                    print "Warning: bad cluster"
-                    print row
-                    print format_exc()
+                    print("Warning: bad cluster")
+                    print(row)
+                    print(format_exc())
                 err_clusters += 1
 
-        print err_clusters, "cluster errors"
-        print num_senses, "senses loaded out of", i + 1
-        print len(senses), "words loaded"
+        print(err_clusters, "cluster errors")
+        print(num_senses, "senses loaded out of", i + 1)
+        print(len(senses), "words loaded")
 
         return senses, normword2word
 
 
     def _normalize(self, word, dash=False):
-        word = re_norm_babel_dash.sub(u" ", word) if dash else re_norm_babel.sub(u" ", word)
-        word = re_whitespaces2.sub(u" ", word)
+        word = re_norm_babel_dash.sub(" ", word) if dash else re_norm_babel.sub(" ", word)
+        word = re_whitespaces2.sub(" ", word)
         return word.lower().strip()
 
     def _filter_cluster(self, cluster):
@@ -258,7 +258,7 @@ class SenseClusters(object):
             return []
         else:
             field = "cluster_norm" if self._normalized_bow else "cluster"
-            return [(unicode(cid), self._filter_cluster(self._sc[word][cid][field]))
+            return [(str(cid), self._filter_cluster(self._sc[word][cid][field]))
                     for cid in self._sc[word] if self._sc[word][cid]["prob"] > min_prob]
 
     def get_cluster(self, word, sense_id):
@@ -268,8 +268,8 @@ class SenseClusters(object):
 
         if word in self._sc and sense_id in self._sc[word]:
             return self._sc[word][sense_id][field]
-        elif word in self._sc and unicode(sense_id) in self._sc[word]:
-            return self._sc[word][unicode(sense_id)][field]
+        elif word in self._sc and str(sense_id) in self._sc[word]:
+            return self._sc[word][str(sense_id)][field]
         elif word in self._sc:
             try:
                 return self._sc[word][int(sense_id)][field]

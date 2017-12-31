@@ -24,20 +24,20 @@ def mcnemar_midp(b, c):
     midp = p - dist.pmf(x)
     chi = float(abs(b - c)**2)/n
     
-    print "b = ", b
-    print "c = ", c
-    print "Exact p = ", p
-    print "Mid p = ", midp
-    print "Chi = ", chi
+    print(("b = ", b))
+    print(("c = ", c))
+    print(("Exact p = ", p))
+    print(("Mid p = ", midp))
+    print(("Chi = ", chi))
 
 
 def run(set1, set2):
     r1 = read_csv(set1, sep='\t', encoding='utf8',
-            dtype={'predict_sense_ids': np.unicode, 'gold_sense_ids': np.unicode, 'context_id': np.unicode}, 
-            doublequote=False, quotechar=u"\u0000" )
+            dtype={'predict_sense_ids': np.str, 'gold_sense_ids': np.str, 'context_id': np.str}, 
+            doublequote=False, quotechar="\\u0000" )
     r2 = read_csv(set2, sep='\t', encoding='utf8',
-        dtype={'predict_sense_ids': np.unicode, 'gold_sense_ids': np.unicode, 'context_id': np.unicode}, 
-        doublequote=False, quotechar=u"\u0000" )
+        dtype={'predict_sense_ids': np.str, 'gold_sense_ids': np.str, 'context_id': np.str}, 
+        doublequote=False, quotechar="\\u0000" )
     
     s1 = r1["correct"].values.tolist()
     s2 = r2["correct"].values.tolist()

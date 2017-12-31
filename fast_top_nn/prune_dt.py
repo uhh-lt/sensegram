@@ -7,13 +7,13 @@ from pandas import read_csv
 STOPWORDS = "context-eval/data/stopwords.csv"
 
 def load_stoplist(fpath):
-    word_df = read_csv(fpath, sep="\t", quotechar=u"\0",doublequote=False,  encoding='utf8', error_bad_lines=False)
+    word_df = read_csv(fpath, sep="\t", quotechar="\0",doublequote=False,  encoding='utf8', error_bad_lines=False)
     voc = set(row["word"] for i, row in word_df.iterrows())
-    print "loaded %d stopwords: %s" % (len(voc), fpath)
+    print(("loaded %d stopwords: %s" % (len(voc), fpath)))
     return voc
 
 def load_freq(freq_file):
-    print "Loading frequencies"
+    print("Loading frequencies")
     d = defaultdict(int)
     with codecs.open(freq_file, 'r', encoding='utf-8') as f:
         for line in f:
@@ -34,7 +34,7 @@ def run(infile, freq_file, outfile, n, stop):
         global _spacy
         _spacy = English()
         
-    print "Iterating through input file"
+    print("Iterating through input file")
     with codecs.open(infile, "r", encoding="utf-8") as inDT, codecs.open(outfile, "w", encoding="utf-8") as output:
         for line in inDT:
             #try:
@@ -60,10 +60,10 @@ def main():
     parser.add_argument('-stop', help="Delete stop words and flexed forms from cluster", action='store_true')
     args = parser.parse_args()
     
-    print "Input DT:", args.infile
-    print "Frequencies file:", args.freqs
-    print "Pruned DT:", args.output
-    print "Frequency threshold:", args.n
+    print(("Input DT:", args.infile))
+    print(("Frequencies file:", args.freqs))
+    print(("Pruned DT:", args.output))
+    print(("Frequency threshold:", args.n))
     
     run(args.infile, args.freqs, args.output, args.n, args.stop) 
     

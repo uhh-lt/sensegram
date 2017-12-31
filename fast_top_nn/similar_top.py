@@ -6,17 +6,17 @@ from time import time
 import numpy as np
 from collections import OrderedDict, defaultdict
 import sys, traceback
-from parallel import parallel_map
+from .parallel import parallel_map
 import gensim
 from math import ceil
 from sys import stderr
 
 
-re_only_letters = re.compile(u'^[a-zA-Z\.\-]+$')
+re_only_letters = re.compile('^[a-zA-Z\.\-]+$')
 
 
 def load_freq(freq_file):
-    print "Loading frequencies"
+    print("Loading frequencies")
     d = defaultdict(int)
     with codecs.open(freq_file, 'r', encoding='utf-8') as f:
         for line in f:
@@ -43,7 +43,7 @@ def similar_top_opt(vec, words, topn=200):
     best = argmax_k(dists,topn)
 
     res = OrderedDict()
-    for i in xrange(len(indices)):
+    for i in range(len(indices)):
         sims = best[i,np.argsort(-dists[i, best[i]])] 
         ns = [(vec.index2word[sim], float(dists[i, sim])) for sim in sims if sim!=indices[i]]
         res[vec.index2word[indices[i]]] = ns
@@ -55,7 +55,7 @@ def dists2neighbours(vec, dists, indices, topn):
     best = argmax_k(dists,topn)
 
     res = OrderedDict()
-    for i in xrange(len(indices)):
+    for i in range(len(indices)):
         sims = best[i,np.argsort(-dists[i, best[i]])] # sims is a list of indices (in relation to syn0norm) of nearest neighbours
                                                       # sorted(!) by similarity
         ns = [(vec.index2word[sim], float(dists[i, sim])) for sim in sims if sim!=indices[i]]
@@ -65,7 +65,7 @@ def dists2neighbours(vec, dists, indices, topn):
 def order_freq(vec, freq):
     "return frequencies of words as an array ordered excatly as words in vec.syn0norm"
     l = []
-    for i in xrange(len(vec.syn0norm)):
+    for i in range(len(vec.syn0norm)):
         if freq[vec.index2word[i]] > 0:
             l.append(freq[vec.index2word[i]])
         else: 
@@ -87,10 +87,10 @@ def similar_top_opt3(vec, words, topn=200, nthreads=12, freq=None):
         res = dists2neighbours(vec, dists, indices, topn)
     else:
         batchsize = int(ceil(1. * len(indices) / nthreads))
-        print >> stderr, "dists2neighbours for %d words in %d threads, batchsize=%d" % (len(indices), nthreads, batchsize)
+        print("dists2neighbours for %d words in %d threads, batchsize=%d" % (len(indices), nthreads, batchsize), file=stderr)
         def ppp(i):
             return dists2neighbours(vec, dists[i:i+batchsize], indices[i:i+batchsize], topn)
-        lres = parallel_map(ppp, range(0,len(indices),batchsize), threads=nthreads)
+        lres = parallel_map(ppp, list(range(0,len(indices),batchsize)), threads=nthreads)
         res = OrderedDict()
         for lr in lres:
             res.update(lr)
@@ -100,20 +100,20 @@ def similar_top_opt3(vec, words, topn=200, nthreads=12, freq=None):
 
 def print_similar(out, vectors, batch, mindist=None, only_letters=False, threads_num=4, pairs=False, freq=None):
     try:
-        for word, ns in similar_top_opt3(vectors, batch, nthreads=threads_num, freq=freq).iteritems():
+        for word, ns in similar_top_opt3(vectors, batch, nthreads=threads_num, freq=freq).items():
             sims = []
             for w, d in ns:
                 if (mindist is None or d >= mindist) and (not only_letters or re_only_letters.match(w) is not None):
                     sims.append((w, d))
                 else:
-                    print >> stderr,  "%s: SKIPPED\t%s\t%r" % (word.encode('utf8'), w.encode('utf8'), d)
+                    print("%s: SKIPPED\t%s\t%r" % (word.encode('utf8'), w.encode('utf8'), d), file=stderr)
 
             if pairs:
-                print >> out, '\n'.join(("%s\t%s\t%f" % (word.encode('utf8'), w.encode('utf8'), d) for w, d in sims))
+                print('\n'.join(("%s\t%s\t%f" % (word.encode('utf8'), w.encode('utf8'), d) for w, d in sims)), file=out)
             else:
-                print >> out, "%s\t%s" % (word.encode('utf8'), ','.join(("%s:%f" % (w.encode('utf8'), d) for w, d in sims)))
+                print("%s\t%s" % (word.encode('utf8'), ','.join(("%s:%f" % (w.encode('utf8'), d) for w, d in sims))), file=out)
     except:
-        print >> stderr, "ERROR in print_similar()"
+        print("ERROR in print_similar()", file=stderr)
         traceback.print_exc(file=sys.stderr)
 
 
@@ -123,10 +123,10 @@ def process(output_file, vectors, words, only_letters, batch_size=10000, threads
         try:
             word = word.rstrip('\n')
         except UnicodeDecodeError:
-            print >> stderr, "couldn't decode word from stdout, skipped"
+            print("couldn't decode word from stdout, skipped", file=stderr)
             continue
         if only_letters and re_only_letters.match(word) is None:
-            print >> stderr, "%s: SKIPPED_ALL" % word
+            print("%s: SKIPPED_ALL" % word, file=stderr)
             continue
 
         batch.append(word)
@@ -139,31 +139,31 @@ def process(output_file, vectors, words, only_letters, batch_size=10000, threads
         print_similar(output_file, vectors, batch, only_letters=only_letters, pairs=pairs, freq=freq)
 
 def run(vectors_fpath, output_fpath="", only_letters=False, vocab_limit=None, pairs=False, batch_size=1000, threads_num=4, word_freqs=None):
-    print >> stderr, "Vectors: {}, only_letters: {}".format(vectors_fpath, only_letters)
-    print >> stderr, "Loading vectors from {}".format(vectors_fpath)
+    print("Vectors: {}, only_letters: {}".format(vectors_fpath, only_letters), file=stderr)
+    print("Loading vectors from {}".format(vectors_fpath), file=stderr)
     tic = time()
     vectors = gensim.models.KeyedVectors.load_word2vec_format(
         vectors_fpath, binary=False, unicode_errors='ignore')
     vectors.init_sims(replace=True)
 
-    print >> stderr, "Vectors loaded in %d sec." % (time()-tic)
-    print >> stderr, "Vectors shape is: ", vectors.syn0norm.shape
+    print("Vectors loaded in %d sec." % (time()-tic), file=stderr)
+    print("Vectors shape is: ", vectors.syn0norm.shape, file=stderr)
 
     vocab_size = len(vectors.vocab)
-    print("Vocabulary size: %i" % vocab_size)
+    print(("Vocabulary size: %i" % vocab_size))
     
     # Limit the number of words for which to collect neighbours
     if vocab_limit and vocab_limit < vocab_size:
         vocab_size = vocab_limit
     words = vectors.index2word[:vocab_size]
     
-    print("Collect neighbours for %i most frequent words" % vocab_size)
+    print(("Collect neighbours for %i most frequent words" % vocab_size))
     
     freq=None
     if word_freqs:
         freq_dict = load_freq(word_freqs)
         freq = order_freq(vectors, freq_dict)
-        print "freqs loaded. Length ", len(freq), freq[:10]
+        print("freqs loaded. Length ", len(freq), freq[:10])
 
     with codecs.open(output_fpath, 'wb') if output_fpath else stdout as output_file:
         process(output_file, vectors, words, only_letters=only_letters, batch_size=batch_size, threads_num=threads_num, pairs=pairs, freq=freq)

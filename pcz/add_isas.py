@@ -1,6 +1,6 @@
 from pandas import read_csv
 import codecs
-from isas import ISAs
+from .isas import ISAs
 from collections import Counter
 from spacy.en import English
 import argparse
@@ -21,7 +21,7 @@ _spacy = English()
 
 
 def read_ddt(ddt_fpath):
-    df = read_csv(ddt_fpath, "\t", encoding='utf8', error_bad_lines=False, doublequote=False, quotechar=u"\u0000")
+    df = read_csv(ddt_fpath, "\t", encoding='utf8', error_bad_lines=False, doublequote=False, quotechar="\u0000")
     df.word.fillna("", inplace=True)
     df.cid.fillna(-1, inplace=True)
     df.cluster.fillna("", inplace=True)
@@ -71,7 +71,7 @@ def add_isas(ddt_fpath, output_fpath, isas_fpath, max_hypers=MAX_HYPERS):
 
     with codecs.open(output_fpath, "w", "utf-8") as output:
         df = read_ddt(ddt_fpath)
-        print >> output, DDT_HEADER
+        print(DDT_HEADER, file=output)
 
         for i, row in df.iterrows():
             cluster = row.cluster.split(LIST_SEP)
@@ -89,7 +89,7 @@ def add_isas(ddt_fpath, output_fpath, isas_fpath, max_hypers=MAX_HYPERS):
                         cluster_hypers_count[hyper] += 1
                 except:
                     if VERBOSE and cluster_err_count < 1000:
-                        print "Warning: wrong cluster word:", cw
+                        print("Warning: wrong cluster word:", cw)
                     cluster_err_count += 1
 
             cluster_hypers.pop(row.word, None)
@@ -99,20 +99,20 @@ def add_isas(ddt_fpath, output_fpath, isas_fpath, max_hypers=MAX_HYPERS):
             if len(row.word) > 2: cluster_hypers.pop(row.word[0].upper() + row.word[1].lower(), None)
             clusters_hyper_top = cluster_hypers.most_common(max_hypers)
             isas_lst = [(hyper, hyper_score) for hyper, hyper_score in clusters_hyper_top if lemmatize_word(hyper) != row.word.lower()]
-            isas = [hyper + SCORE_SEP + unicode(hyper_score) for hyper, hyper_score in isas_lst]
+            isas = [hyper + SCORE_SEP + str(hyper_score) for hyper, hyper_score in isas_lst]
             substr_hyper, substr_score = substring_hyper(row.word)
-            if substr_hyper != "" and substr_hyper not in clusters_hyper_top: isas.append(substr_hyper + SCORE_SEP + unicode(substr_score))
+            if substr_hyper != "" and substr_hyper not in clusters_hyper_top: isas.append(substr_hyper + SCORE_SEP + str(substr_score))
             
             isas_coverage = []
             for hyper, score in isas_lst:
                 isas_coverage.append("%s:%.3f:%.3f:%d:%.3f" % (hyper, cluster_hypers[hyper], cluster_hypers[hyper]/float(len(cluster)),
                     cluster_hypers_count[hyper], cluster_hypers_count[hyper]/len(cluster)))
 
-            print >> output, "%s\t%d\t%s\t%s\t%s" % (row.word, row.cid, LIST_SEP.join(cluster), 
-                    LIST_SEP.join(isas), LIST_SEP.join(isas_coverage))
+            print("%s\t%d\t%s\t%s\t%s" % (row.word, row.cid, LIST_SEP.join(cluster), 
+                    LIST_SEP.join(isas), LIST_SEP.join(isas_coverage)), file=output)
 
-    print "# cluster errors:", cluster_err_count
-    print "Output:", output_fpath
+    print("# cluster errors:", cluster_err_count)
+    print("Output:", output_fpath)
 
 
 
@@ -129,9 +129,9 @@ def main():
     args = parser.parse_args()
 
     output_fpath = args.ddt + ".isas" if args.output == "" else args.output
-    print "Input sense clusters: ", args.ddt
-    print "Output path: ", output_fpath
-    print "Max. number of hypernyms: ", args.max_hyper_num
+    print("Input sense clusters: ", args.ddt)
+    print("Output path: ", output_fpath)
+    print("Max. number of hypernyms: ", args.max_hyper_num)
     add_isas(ddt_fpath=args.ddt, output_fpath=output_fpath, isas_fpath=args.isas, max_hypers=int(args.max_hyper_num))
 
 

@@ -6,7 +6,7 @@ import sys
 
 POS_SEP = "|"
 GO_POS = ["NOUN", "VERB", "ADJ"]
-STOP_LIST = [unicode(w) for w in
+STOP_LIST = [str(w) for w in
              ['.', ',', '?', '!', ";", ':', '"', "&", "'", "(", ")", "-", "+", "/", "\\", "|","[","]", "often", "a", "an",
               "-pron-","can", "just"]]
 
@@ -15,13 +15,13 @@ def load_stoplist():
     try:
         return set(get_stop_words("en") + STOP_LIST)
     except:
-        print format_exc()
+        print((format_exc()))
         return set()
 
 
 # load resources 
 _stop_words = load_stoplist()
-print "Loading spacy model..."
+print("Loading spacy model...")
 _spacy = English()
 
 
@@ -52,7 +52,7 @@ def add_pos(text, pos_sep=POS_SEP):
 def tokenize(text, pos_filter=False, lowercase=True, remove_stopwords=True, return_pos=False):
     tokens = _spacy(text, tag=True, parse=False, entity=False)
     lemmas = [t.lemma_ for t in tokens if not pos_filter or t.pos_ in GO_POS]
-    if remove_stopwords: lemmas = filter(lambda l: l not in _stop_words and l.lower() not in _stop_words, lemmas)
+    if remove_stopwords: lemmas = [l for l in lemmas if l not in _stop_words and l.lower() not in _stop_words]
     if lowercase: lemmas = [l.lower() for l in lemmas]
 
     if return_pos: 
@@ -72,11 +72,11 @@ def lemmatize_word(word, lowercase=True):
         lemma = tokens[0].lemma_
         if lowercase: lemma = lemma.lower()
         return lemma
-    except SystemExit, KeyboardInterrupt:
+    except SystemExit as KeyboardInterrupt:
          sys.exit()
     except:
-        print "Warning: lemmatization error '%s'" % word
-        print format_exc()
+        print(("Warning: lemmatization error '%s'" % word))
+        print((format_exc()))
         return word
 
 
@@ -90,6 +90,6 @@ def analyze_word(word, lowercase=True):
 def parse(text, pos_filter=False, lowercase=True, remove_stopwords=False):
     tokens = _spacy(text, tag=True, parse=True, entity=False)
     lemmas = [t.lemma_ for t in tokens if not pos_filter or t.pos_ in GO_POS]
-    if remove_stopwords: lemmas = filter(lambda l: l not in _stop_words, lemmas)
+    if remove_stopwords: lemmas = [l for l in lemmas if l not in _stop_words]
     if lowercase: lemmas = [l.lower() for l in lemmas]
     return lemmas

@@ -1,5 +1,5 @@
 from pandas import read_csv
-import cPickle as pickle
+import pickle as pickle
 from utils.common import exists, preprocess_pandas_csv
 from utils.common import try_remove
 from traceback import format_exc
@@ -26,13 +26,13 @@ class ISAs(object):
             if "hypo2hyper" in pkl:
                 hypo2hyper = pkl["hypo2hyper"]
             else:
-                print "Error: cannot find hypo2hyper in ", isas_pkl_fpath
+                print(("Error: cannot find hypo2hyper in ", isas_pkl_fpath))
                 hypo2hyper = {}
 
             if "hyper2hypo" in pkl:
                 hyper2hypo = pkl["hyper2hypo"]
             else:
-                print "Error: cannot find hyper2hypo in ", isas_pkl_fpath
+                print(("Error: cannot find hyper2hypo in ", isas_pkl_fpath))
                 hyper2hypo = {}
 
         else:
@@ -49,8 +49,8 @@ class ISAs(object):
             hyper2hypo = defaultdict(dict)
             for i, row in isas_df.iterrows():
                 try:
-                    hypo = unicode(row["hyponym"]).split("#")[0].lower() if lowercase else unicode(row["hyponym"]).split("#")[0]
-                    hyper = unicode(row["hypernym"]).split("#")[0].lower() if lowercase else unicode(row["hypernym"]).split("#")[0]
+                    hypo = str(row["hyponym"]).split("#")[0].lower() if lowercase else str(row["hyponym"]).split("#")[0]
+                    hyper = str(row["hypernym"]).split("#")[0].lower() if lowercase else str(row["hypernym"]).split("#")[0]
                     freq = float(row["freq"])
                     hypo_lemma = lemmatize(hypo).lower()
                     hyper_lemma = lemmatize(hyper).lower()
@@ -70,17 +70,17 @@ class ISAs(object):
                         else: hyper2hypo[hyper_lemma][hypo_lemma] += freq
 
                 except:
-                    print "Bad row:", row
-                    print format_exc()
+                    print(("Bad row:", row))
+                    print((format_exc()))
 
-            print "dictionary is loaded:", len(hypo2hyper)
+            print(("dictionary is loaded:", len(hypo2hyper)))
 
             if use_pickle:
                 pkl = {"hypo2hyper": hypo2hyper, "hyper2hypo": hyper2hypo}
                 pickle.dump(pkl, open(isas_pkl_fpath, "wb"))
-                print "Pickled voc:", isas_pkl_fpath
+                print(("Pickled voc:", isas_pkl_fpath))
 
-        print "Loaded %d words from: %s" % (len(hypo2hyper), isas_pkl_fpath if isas_pkl_fpath else isas_fpath)
+        print(("Loaded %d words from: %s" % (len(hypo2hyper), isas_pkl_fpath if isas_pkl_fpath else isas_fpath)))
 
         self._hypo2hyper = hypo2hyper
         self._hyper2hypo = hyper2hypo
@@ -101,8 +101,8 @@ class ISAs(object):
         return self.has_relation(hypo, hyper)
 
     def has_relation(self, hypo, hyper):
-        hypo = unicode(hypo)
-        hyper = unicode(hyper)
+        hypo = str(hypo)
+        hyper = str(hyper)
 
         hypo_variants = set([hypo, hypo.lower(), lemmatize(hypo), lemmatize(hypo).lower()])
         hyper_variants = set([hyper, hyper.lower(), lemmatize(hyper), lemmatize(hyper).lower()])
@@ -120,7 +120,7 @@ class ISAs(object):
     def all_hypo(self, hyper, max_output=MAX_ISAS):
         """ Returns all hypo relations of a hyper """
 
-        hyper = unicode(hyper)
+        hyper = str(hyper)
 
         if hyper in self._hyper2hypo:
             res = self._hyper2hypo[hyper]
@@ -130,13 +130,13 @@ class ISAs(object):
             res = {}
         
         res.pop(hyper, None)
-        res_sort = sorted(res.items(), key=operator.itemgetter(1), reverse=True)
+        res_sort = sorted(list(res.items()), key=operator.itemgetter(1), reverse=True)
         return res_sort[:min(len(res_sort),max_output)]
 
     def all_hyper(self, hypo, max_output=MAX_ISAS):
         """ Returns all hyper relations of a hypo """
         
-        hypo = unicode(hypo)
+        hypo = str(hypo)
 
         if hypo in self._hypo2hyper:
             res = self._hypo2hyper[hypo]
@@ -146,6 +146,6 @@ class ISAs(object):
             res = {}
 
         res.pop(hypo, None)
-        res_sort = sorted(res.items(), key=operator.itemgetter(1), reverse=True)
+        res_sort = sorted(list(res.items()), key=operator.itemgetter(1), reverse=True)
         return res_sort[:min(len(res_sort),max_output)]
 
