@@ -25,9 +25,11 @@ def foreach(f,l,threads=3,return_=False):
                     try:
                         if exceptions:
                             return
-                        v = next(i)
-                    finally:
+                        v = i.pop()
+                    except IndexError:
                         iteratorlock.release()
+                    finally:
+                        if iteratorlock.locked(): iteratorlock.release()
                 except StopIteration:
                     return
                 try:
