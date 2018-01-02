@@ -1,3 +1,14 @@
+# This is for Centos:
+# # BLASLDFLAGS?=/usr/lib64/libopenblas.so.0
+#
+# # for Ubuntu 16:
+# # sudo apt-get install swig libopenblas-dev python-numpy python-dev
+# # BLASLDFLAGS?=/usr/lib/libopenblas.so.0
+#
+# # for Ubuntu 14:
+# # sudo apt-get install swig libopenblas-dev liblapack3 python-numpy python-dev
+# # BLASLDFLAGS?=/usr/lib/libopenblas.so.0 /usr/lib/lapack/liblapack.so.3.0
+
 install:
 	git submodule init
 	git submodule update

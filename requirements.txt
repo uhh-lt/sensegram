@@ -1,5 +1,6 @@
-spacy
 numpy
 pandas
 gensim
 stop_words
+chinese_whispers
+spacy
