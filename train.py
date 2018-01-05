@@ -7,6 +7,57 @@ from os.path import join
 from utils.common import ensure_dir
 import pcz
 import gensim 
+import gzip
+from gensim.utils import tokenize
+from gensim.models.phrases import Phrases, Phraser
+from gensim.models import Word2Vec
+import codecs
+from time import time 
+
+
+class GzippedCorpusStreamer(object):
+    def __init__(self, corpus_fpath):
+        self._corpus_fpath = corpus_fpath
+        
+    def __iter__(self):
+        if self._corpus_fpath.endswith(".gz"):
+            corpus = gzip.open(self._corpus_fpath, "r", "utf-8")
+        else:
+            corpus = codecs.open(self._corpus_fpath, "r", "utf-8")
+            
+        for line in corpus:
+                yield list(tokenize(line,
+                              lowercase=False,
+                              deacc=False,
+                              encoding='utf8',
+                              errors='strict',
+                              to_lower=False,
+                              lower=False))
+
+
+def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, size, threads, min_count, detect_phrases=True):
+    print("Training word vectors:", corpus_fpath)
+    tic = time()
+    sentences = GzippedCorpusStreamer(corpus_fpath) 
+    
+    if detect_phrases:
+        phrases = Phrases(sentences)
+        bigram = Phraser(phrases)
+        input_sentences = list(bigram[sentences])
+    else:
+        input_sentences = sentences
+    
+    model = Word2Vec(input_sentences,
+                     min_count=min_count,
+                     size=size,
+                     window=window, 
+                     max_vocab_size=None,
+                     workers=threads,
+                     sg=(1 if cbow == 0 else 0),
+                     iter=iter_num)
+    model.wv.save_word2vec_format(vectors_fpath, binary=False)
+    print("Vectors:", vectors_fpath)
+    print("Time, sec.:", time()-tic) 
 
 
 def get_paths(corpus_fpath, min_size):
@@ -21,27 +72,9 @@ def get_paths(corpus_fpath, min_size):
 
     return vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath
 
-def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, size, threads, min_count):
 
-    bash_command = ("word2vec/bin/word2vec -train " +
-                   corpus_fpath +
-                   " -output " + vectors_fpath +
-                   " -cbow " + str(cbow) +
-                   " -size " + str(size) +
-                   " -window " + str(window) +
-                   " -threads " + str(threads) +
-                   " -iter " + str(iter_num) +
-                   " -min_count " + str(min_count) +
-                   " -binary 0 -negative 25 -hs 0 -sample 1e-4")
-    
-    print("\n\n", "="*50, "\nSTAGE 1")
-    print("Train word vectors using word2vec with following parameters:")
-    print(bash_command)
-    print("\nTraining progress won't be printed.")
-    
-    process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
-    #for line in iter(process.stdout.readline, ''):
-    #    sys.stdout.write(line.decode("utf-8"))
+
+
 
 
 def compute_graph_of_related_words(vectors_fpath, neighbours_fpath, vocab_limit, only_letters, threads):
