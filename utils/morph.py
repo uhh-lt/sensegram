@@ -1,4 +1,4 @@
-from spacy.en import English
+import spacy
 from stop_words import get_stop_words
 from traceback import format_exc
 import sys
@@ -22,8 +22,7 @@ def load_stoplist():
 # load resources 
 _stop_words = load_stoplist()
 print "Loading spacy model..."
-_spacy = English()
-
+_spacy = spacy.load('en')
 
 def get_stoplist():
     return _stop_words

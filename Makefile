@@ -1,12 +1,20 @@
+	
 install:
 	git submodule init
 	git submodule update
-	pip install -r requirements.txt
+	sudo pip install -r requirements.txt
 	mkdir -p model
 	mkdir -p intermediate
 	cd word2vec/src; make
 	cd chinese-whispers; mvn package shade:shade
+	sudo python -m spacy download en
 
+install-with-java-ubuntu-16-04:
+	sudo apt install maven
+	sudo add-apt-repository ppa:webupd8team/java
+	sudo apt-get update
+	sudo apt-get install oracle-java8-installer
+	make install
 download:
 	wget http://panchenko.me/data/joint/sensegram/wiki.senses.w2v
 	wget http://panchenko.me/data/joint/sensegram/wiki.senses.w2v.probs
