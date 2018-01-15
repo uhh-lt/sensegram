@@ -41,7 +41,7 @@ For Ubunbu Linux you can alternatively use the following commands which will als
 
 ```
 git clone https://github.com/tudarmstadt-lt/sensegram.git
-make install
+make install-ubuntu
 ```
 
 ## Testing a pre-trained model
