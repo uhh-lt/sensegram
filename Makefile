@@ -10,10 +10,12 @@ install:
 	sudo python -m spacy download en
 
 install-with-java-ubuntu-16-04:
+	sudo apt install python-pip
 	sudo apt install maven
 	sudo add-apt-repository ppa:webupd8team/java
 	sudo apt-get update
 	sudo apt-get install oracle-java8-installer
+	sudo apt-get install unzip
 	make install
 download:
 	wget http://panchenko.me/data/joint/sensegram/wiki.senses.w2v

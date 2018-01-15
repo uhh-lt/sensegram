@@ -1,3 +1,4 @@
+sklearn
 numpy
 pandas
 gensim
