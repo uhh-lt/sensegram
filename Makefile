@@ -9,7 +9,7 @@ install:
 	cd chinese-whispers; mvn package shade:shade
 	sudo python -m spacy download en
 
-install-with-java-ubuntu-16-04:
+install-ubuntu:
 	sudo apt install python-pip
 	sudo apt install maven
 	sudo add-apt-repository ppa:webupd8team/java

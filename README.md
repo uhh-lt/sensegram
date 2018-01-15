@@ -33,7 +33,14 @@ If you use the method please cite the following paper:
 This project is implemented in Python 2.7. It makes use of the word2vec toolkit and the clustering algorithm [chinese-whispers](chinese-whispers/), both distributed with this package. It has been tested on Linux and Mac OSX. To install SenseGram run the following commands:
 
 ```
-git clone --recursive https://github.com/tudarmstadt-lt/sensegram.git
+git clone https://github.com/tudarmstadt-lt/sensegram.git
+make install
+```
+
+For Ubunbu Linux you can alternatively use the following commands which will also install the requred system requirements, namely: Java 1.8+, maven, and pip: 
+
+```
+git clone https://github.com/tudarmstadt-lt/sensegram.git
 make install
 ```
 
@@ -127,6 +134,14 @@ The vectors are of size 100, trained with CBOW model using 3-words context windo
 - Senses and probabilities based on TWSI sense inventory: ```ukwac.senses.twsi, ukwac.senses.twsi.probs```
 
 ## Training a new model from a text corpus
+
+To quickly test the training type the following command:
+
+```
+make train
+```
+
+The output will appear in the model directory. The command automatically download a default corpus and trains a small test model on the corpus. 
 
 The best way to train your own sense model is with the `train.py` script. You will have to provide a tokenized corpus as input. For tokenization you can use the [preprocessing](corpora/preprocessing.py) script (it uses Treebank tokenizer and keeps letter cases, numbers and punctuation intact). If you run `train.py` with no parameters, it will print usage information:
 
