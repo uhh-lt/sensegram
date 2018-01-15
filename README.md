@@ -37,7 +37,7 @@ git clone https://github.com/tudarmstadt-lt/sensegram.git
 make install
 ```
 
-For Ubunbu Linux you can alternatively use the following commands which will also install the requred system requirements, namely: Java 1.8+, maven, and pip: 
+For Ubuntu Linux you can alternatively use the following commands which will also install the requred system requirements, namely: Java 1.8+, maven, and pip: 
 
 ```
 git clone https://github.com/tudarmstadt-lt/sensegram.git
