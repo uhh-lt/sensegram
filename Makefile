@@ -10,14 +10,8 @@
 # # BLASLDFLAGS?=/usr/lib/libopenblas.so.0 /usr/lib/lapack/liblapack.so.3.0
 
 install:
-	git submodule init
-	git submodule update
-	pip install -r requirements.txt
-	python -m spacy download en
-	mkdir -p model
-	mkdir -p intermediate
-	cd word2vec/src; make
-	cd chinese-whispers; mvn package shade:shade
+	sudo pip install -r requirements.txt
+	sudo python -m spacy download en
 
 download:
 	wget http://panchenko.me/data/joint/sensegram/wiki.senses.w2v
