@@ -69,8 +69,8 @@ def get_paths(corpus_fpath, min_size):
     corpus_name = basename(corpus_fpath)
     model_dir = "model/"
     ensure_dir(model_dir)
-    vectors_fpath = join(model_dir, corpus_name + ".words")
-    neighbours_fpath = join(model_dir, corpus_name + ".neighbours")
+    vectors_fpath = join(model_dir, corpus_name + ".vectors")
+    neighbours_fpath = join(model_dir, corpus_name + ".graph")
     clusters_fpath = join(model_dir, corpus_name + ".clusters")
     clusters_minsize_fpath = clusters_fpath + ".minsize" + str(min_size) # clusters that satisfy min_size
     clusters_removed_fpath = clusters_minsize_fpath + ".removed" # cluster that are smaller than min_size
@@ -78,12 +78,7 @@ def get_paths(corpus_fpath, min_size):
     return vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath
 
 
-
-
-
-
 def compute_graph_of_related_words(vectors_fpath, neighbours_fpath, vocab_limit, only_letters, threads):
-    print("\n\n", "="*50, "\nSTAGE 2")
     print("Start collection of word neighbours.")
     fast_top_nn.similar_top.run(vectors_fpath,
                                 neighbours_fpath,
@@ -96,26 +91,14 @@ def compute_graph_of_related_words(vectors_fpath, neighbours_fpath, vocab_limit,
 
 
 def word_sense_induction(neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, min_size, n, N):
-    bash_command = ("java -Xms1G -Xmx130G -cp chinese-whispers/target/chinese-whispers.jar de.tudarmstadt.lt.wsi.WSI " +
-                    " -in " + neighbours_fpath + " -out " + clusters_fpath +
-                    " -N " + str(N) + " -n " + str(n) +
-                    " -clustering cw")
-    
-    print("\n\n", "="*50, "\nSTAGE 3")
-    print("\nStart clustering of word ego-networks with following parameters:")
-    print(bash_command)
-    
-    process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
-    #for line in iter(process.stdout.readline, ''):
-    #    sys.stdout.write(line.decode("utf-8"))
-    
+    print("\nStart clustering of word ego-networks.")
+    # call   
     print("\nStart filtering of clusters.")
     
     filter_clusters.run(clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, str(min_size))
 
 
 def building_sense_embeddings(clusters_minsize_fpath, vectors_fpath):
-    print("\n\n", "="*50, "\nSTAGE 4")
     print("\nStart pooling of word vectors.")
     vector_representations.build_sense_vectors.run(
         clusters_minsize_fpath, vectors_fpath, sparse=False,
