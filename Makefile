@@ -31,14 +31,17 @@ download:
 	wget -P model http://panchenko.me/data/joint/sensegram/ukwac.senses.twsi.probs
 
 train:
-	bash demo_train.sh
+	bash train.sh
 
 faiss:
 	rm -rf faiss
 	git clone https://github.com/facebookresearch/faiss.git 
 	# for compilation using other linux distributions see the faiss/makefile.inc and change it accordingly
 	cp makefile-faiss-ubuntu-16-04-python3.inc faiss/makefile.inc
-	make -C faiss all py
+	make -C faiss
+	make -C faiss py
+	mv faiss faiss-src
+	mv -fv faiss-src/{faiss.py,swigfaiss.py,_swigfaiss.so} .
 
 clean:
 	rm -rf faiss

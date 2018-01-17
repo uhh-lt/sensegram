@@ -1,3 +1,5 @@
+# todo: prune the bottom elements of the nns file? 
+
 import argparse, sys, subprocess
 from os.path import basename
 import fast_top_nn.similar_top
@@ -36,17 +38,20 @@ class GzippedCorpusStreamer(object):
 
 
 def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, size, threads, min_count, detect_phrases=True):
-    print("Training word vectors:", corpus_fpath)
     tic = time()
     sentences = GzippedCorpusStreamer(corpus_fpath) 
     
     if detect_phrases:
+        print("Extracting phrases from the corpus:", corpus_fpath)
         phrases = Phrases(sentences)
         bigram = Phraser(phrases)
         input_sentences = list(bigram[sentences])
+        print("Time, sec.:", time()-tic)
     else:
         input_sentences = sentences
     
+    print("Training word vectors:", corpus_fpath)
+    print(threads) 
     model = Word2Vec(input_sentences,
                      min_count=min_count,
                      size=size,
