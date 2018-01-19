@@ -1,13 +1,18 @@
-	
+ifndef VIRTUAL_ENV
+	SUDO=sudo
+else
+	SUDO=
+endif
+
 install:
 	git submodule init
 	git submodule update
-	sudo pip install -r requirements.txt
+	$(SUDO) pip install -r requirements.txt
 	mkdir -p model
 	mkdir -p intermediate
 	cd word2vec/src; make
 	cd chinese-whispers; mvn package shade:shade
-	sudo python -m spacy download en
+	$(SUDO) python -m spacy download en
 
 install-ubuntu:
 	sudo apt install python-pip
@@ -37,4 +42,3 @@ download:
 
 train:
 	bash demo_train.sh
-
