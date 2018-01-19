@@ -1,20 +1,14 @@
-# todo: prune the bottom elements of the nns file? 
+import numpy as np
+from chinese_whispers import chinese_whispers, aggregate_clusters
+import codecs 
+import networkx as nx
+from multiprocessing import Pool 
+from os.path import join
 
-import argparse, sys, subprocess
-from os.path import basename
-import fast_top_nn.similar_top
 import filter_clusters
 import vector_representations.build_sense_vectors
-from os.path import join
 from utils.common import ensure_dir
 import pcz
-import gensim 
-import gzip
-from gensim.utils import tokenize
-from gensim.models.phrases import Phrases, Phraser
-from gensim.models import Word2Vec
-import codecs
-from time import time 
 
 
 class GzippedCorpusStreamer(object):
@@ -78,24 +72,110 @@ def get_paths(corpus_fpath, min_size):
     return vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath
 
 
-def compute_graph_of_related_words(vectors_fpath, neighbours_fpath, vocab_limit, only_letters, threads):
+def get_clustered_ego_network(ego):
+    tic = time()
+    ego_network = nx.Graph(name=ego)
+
+    # Add related and substring nodes 
+    substring_nodes = []
+    for j, node in enumerate(G.nodes):
+        if ego.lower() == node.lower():
+            ego_network.add_nodes_from( [(rn, {"weight": G[node][rn]["weight"]})
+                                         for rn in G[node].keys()] )
+        else:
+            if "_" not in node: continue
+            if node.startswith(ego + "_") or node.endswith("_" + ego):
+                
+                if ego in G and node in G[ego]: w = G[ego][node]["weight"]
+                else: w = 0.99
+                    
+                substring_nodes.append( (node, {"weight": w}) )
+                
+    ego_network.add_nodes_from(substring_nodes)
+
+    # Find edges of the ego network
+    for r_node in ego_network:
+        related_related_nodes = G[r_node]
+        related_related_nodes_ego = sorted(
+            [(related_related_nodes[rr_node]["weight"], rr_node) for rr_node in related_related_nodes if rr_node in ego_network],
+            reverse=True)[:n]
+        related_edges = [(r_node, rr_node, {"weight": w}) for w, rr_node in  related_related_nodes_ego]
+
+        ego_network.add_edges_from(related_edges)
+
+    # Perform clustering   
+    chinese_whispers(ego_network, weighting="top", iterations=20)
+    if verbose: print("{}\t{:f} sec.".format(ego, time()-tic))
+        
+    return ego_network
+
+G = None
+n = None
+
+def word_sense_induction(neighbors_fpath, clusters_fpath, max_related=300, num_cores=32): 
+    global G
+    global n
+    n = max_related
+    G = nx.read_edgelist(neighbors_fpath, nodetype=str, delimiter="\t", data=(('weight',float),))
+
+    with codecs.open(clusters_fpath, "w", "utf-8") as output, Pool(num_cores) as pool:    
+        output.write("word\tcid\tcluster\tisas\n") 
+
+        for ego_network in pool.imap_unordered(get_clustered_ego_network, G.nodes): 
+            
+            sense_num = 1
+            for label, cluster in sorted(aggregate_clusters(ego_network).items(), key=lambda e: len(e[1]), reverse=True):
+                output.write("{}\t{}\t{}\t\n".format(
+                    ego_network.name,
+                    sense_num,
+                    ", ".join( ["{}:{:.4f}".format(c_node, ego_network.node[c_node]["weight"]) for c_node in cluster] )
+                ))
+                sense_num += 1
+
+        print("Clusters:", clusters_fpath)
+
+
+def build_vector_index(w2v_fpath):
+    w2v = KeyedVectors.load_word2vec_format(w2v_fpath, binary=False, unicode_errors='ignore')
+    w2v.init_sims(replace=True)
+    index = faiss.IndexFlatIP(w2v.vector_size)
+    index.add(w2v.syn0norm)
+
+    return index
+
+
+def compute_neighbours(index, nns_fpath, neighbors=200):
+    tic = time()
+    with codecs.open(nns_fpath, "w", "utf-8") as output:
+        X = w2v.syn0norm
+        D, I = index.search(X, neighbors + 1)
+
+        j = 0
+        for _D, _I in zip(D, I):
+            for n, (d, i) in enumerate(zip(_D.ravel(), _I.ravel())):
+                if n > 0:
+                    output.write("{}\t{}\t{:f}\n".format(w2v.index2word[j], w2v.index2word[i], d))
+            j += 1
+
+        print("Word graph:", nns_fpath)
+        print("Elapsed: {:f} sec.".format(time() - tic))
+
+ 
+def compute_graph_of_related_words(vectors_fpath, neighbours_fpath, neighbors=200):
     print("Start collection of word neighbours.")
-    fast_top_nn.similar_top.run(vectors_fpath,
-                                neighbours_fpath,
-                                only_letters=only_letters,
-                                vocab_limit=vocab_limit,
-                                pairs=True,
-                                batch_size=5000,
-                                threads_num=threads,
-                                word_freqs=None)
+    tic = time()
+    index = build_vector_index(vectors_fpath)
+    compute_neighbours(index, neighbours_fpath, neighbors)
+    print("Elapsed: {:f} sec.".format(time() - tic))
 
 
-def word_sense_induction(neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, min_size, n, N):
+def word_sense_induction(neighbours_fpath, clusters_fpath, clusters_minsize_fpath, n, N, threads):
     print("\nStart clustering of word ego-networks.")
-    # call   
-    print("\nStart filtering of clusters.")
-    
-    filter_clusters.run(clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, str(min_size))
+    tic = time()
+    word_sense_induction(neighbors_fpath, clusters_fpath, max_related=n, num_cores=threads)
+    print("Elapsed: {:f} sec.".format(time() - tic))
+
+
 
 
 def building_sense_embeddings(clusters_minsize_fpath, vectors_fpath):
@@ -134,10 +214,10 @@ def main():
         args.train_corpus, args.min_size)
     learn_word_embeddings(args.train_corpus, vectors_fpath, args.cbow, args.window,
                                  args.iter, args.size, args.threads, args.min_count)
-    compute_graph_of_related_words(vectors_fpath, neighbours_fpath, args.vocab_limit,
-            args.only_letters, args.threads)
-    graph_based_word_sense_induction(neighbours_fpath, clusters_fpath, clusters_minsize_fpath,
-            clusters_removed_fpath, args.min_size, args.n, args.N)
+    compute_graph_of_related_words(vectors_fpath, neighbours_fpath)
+    word_sense_induction(neighbours_fpath, clusters_fpath, args.n, args.N, args.threads)
+    
+    filter_clusters.run(clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, str(args.min_size))
     building_sense_embeddings(clusters_minsize_fpath, vectors_fpath)
 
     if (args.make_pcz):
@@ -154,6 +234,7 @@ def main():
         # make the closure
         clusters_closure_fpath = clusters_disambiguated_fpath + ".closure"
         # in: clusters_disambiguated_fpath
+
 
 if __name__ == '__main__':
     main()
