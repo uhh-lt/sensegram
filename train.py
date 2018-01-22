@@ -1,3 +1,11 @@
+import argparse, sys, subprocess
+from os.path import basename
+import gensim 
+import gzip
+from gensim.utils import tokenize
+from gensim.models.phrases import Phrases, Phraser
+from gensim.models import Word2Vec
+from time import time 
 import numpy as np
 from chinese_whispers import chinese_whispers, aggregate_clusters
 import codecs 

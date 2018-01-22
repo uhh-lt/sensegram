@@ -30,6 +30,11 @@ download:
 train:
 	bash train.sh
 
+train-wikipedia:
+	wget http://panchenko.me/data/joint/corpora/en59g/wikipedia.txt.gz -P model
+	gunzip model/wikipedia.txt.gz
+	bash train.sh model/wikipedia.txt
+
 install-faiss:
 	rm -rf faiss
 	git clone https://github.com/facebookresearch/faiss.git 
@@ -47,5 +52,6 @@ clean:
 install-anaconda3:
 	wget https://repo.continuum.io/archive/Anaconda3-5.0.1-Linux-x86_64.sh -O ~/anaconda.sh
 	bash ~/anaconda.sh -b -p ${HOME}/anaconda
-	export PATH="${HOME}/anaconda/bin:${PATH}"
-	source ${HOME}/anaconda/bin/activate
+	echo 'export PATH="${HOME}/anaconda/bin:${PATH}"' >> ~/.bashrc	
+	echo 'source ${HOME}/anaconda/bin/activate' >> ~/.bashrc
+	bash
