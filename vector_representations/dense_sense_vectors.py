@@ -109,7 +109,6 @@ class DenseSenseVectors(SenseVectors):
 
                     if non_oov == 0:
                         if self.VERBOSE: print("Warning: sense is OOV: %s#%s" % (word, sense_id), file=stderr)
-                    print(">>>", word, sense_id, non_oov, i)
 
                     normalizer = self._normalizer(word, sense_id, norm_type, weight_type, max_cluster_words)
                     sense_vector = sense_vector / normalizer

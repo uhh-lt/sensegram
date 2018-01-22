@@ -1,7 +1,9 @@
 import argparse, sys, subprocess
+from utils.common import exists
 from os.path import basename
 import gensim 
 import gzip
+from gensim.models.keyedvectors import KeyedVectors
 from gensim.utils import tokenize
 from gensim.models.phrases import Phrases, Phraser
 from gensim.models import Word2Vec
@@ -12,11 +14,15 @@ import codecs
 import networkx as nx
 from multiprocessing import Pool 
 from os.path import join
+import faiss
 
 import filter_clusters
 import vector_representations.build_sense_vectors
 from utils.common import ensure_dir
 import pcz
+
+
+verbose = False
 
 
 class GzippedCorpusStreamer(object):
@@ -120,7 +126,7 @@ def get_clustered_ego_network(ego):
 G = None
 n = None
 
-def word_sense_induction(neighbors_fpath, clusters_fpath, max_related=300, num_cores=32): 
+def ego_network_clustering(neighbors_fpath, clusters_fpath, max_related=300, num_cores=32): 
     global G
     global n
     n = max_related
@@ -129,8 +135,8 @@ def word_sense_induction(neighbors_fpath, clusters_fpath, max_related=300, num_c
     with codecs.open(clusters_fpath, "w", "utf-8") as output, Pool(num_cores) as pool:    
         output.write("word\tcid\tcluster\tisas\n") 
 
-        for ego_network in pool.imap_unordered(get_clustered_ego_network, G.nodes): 
-            
+        for i, ego_network in enumerate(pool.imap_unordered(get_clustered_ego_network, G.nodes)): 
+            if i % 50000 == 0: print(i, "word processed")
             sense_num = 1
             for label, cluster in sorted(aggregate_clusters(ego_network).items(), key=lambda e: len(e[1]), reverse=True):
                 output.write("{}\t{}\t{}\t\n".format(
@@ -149,10 +155,10 @@ def build_vector_index(w2v_fpath):
     index = faiss.IndexFlatIP(w2v.vector_size)
     index.add(w2v.syn0norm)
 
-    return index
+    return index, w2v
 
 
-def compute_neighbours(index, nns_fpath, neighbors=200):
+def compute_neighbours(index, w2v, nns_fpath, neighbors=200):
     tic = time()
     with codecs.open(nns_fpath, "w", "utf-8") as output:
         X = w2v.syn0norm
@@ -172,18 +178,16 @@ def compute_neighbours(index, nns_fpath, neighbors=200):
 def compute_graph_of_related_words(vectors_fpath, neighbours_fpath, neighbors=200):
     print("Start collection of word neighbours.")
     tic = time()
-    index = build_vector_index(vectors_fpath)
-    compute_neighbours(index, neighbours_fpath, neighbors)
+    index, w2v = build_vector_index(vectors_fpath)
+    compute_neighbours(index, w2v, neighbours_fpath, neighbors)
     print("Elapsed: {:f} sec.".format(time() - tic))
 
 
-def word_sense_induction(neighbours_fpath, clusters_fpath, clusters_minsize_fpath, n, N, threads):
+def word_sense_induction(neighbours_fpath, clusters_fpath, n, threads):
     print("\nStart clustering of word ego-networks.")
     tic = time()
-    word_sense_induction(neighbors_fpath, clusters_fpath, max_related=n, num_cores=threads)
+    ego_network_clustering(neighbours_fpath, clusters_fpath, max_related=n, num_cores=threads)
     print("Elapsed: {:f} sec.".format(time() - tic))
-
-
 
 
 def building_sense_embeddings(clusters_minsize_fpath, vectors_fpath):
@@ -220,12 +224,28 @@ def main():
 
     vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath = get_paths(
         args.train_corpus, args.min_size)
-    learn_word_embeddings(args.train_corpus, vectors_fpath, args.cbow, args.window,
-                                 args.iter, args.size, args.threads, args.min_count)
-    compute_graph_of_related_words(vectors_fpath, neighbours_fpath)
-    word_sense_induction(neighbours_fpath, clusters_fpath, args.n, args.N, args.threads)
     
-    filter_clusters.run(clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath, str(args.min_size))
+    if not exists(vectors_fpath):
+        learn_word_embeddings(args.train_corpus, vectors_fpath, args.cbow, args.window,
+                              args.iter, args.size, args.threads, args.min_count)
+    else:
+        print("Using existing vectors:", vectors_fpath)
+ 
+    if not exists(neighbours_fpath):
+        compute_graph_of_related_words(vectors_fpath, neighbours_fpath)
+    else:
+        print("Using existing neighbors:", neighbours_fpath)
+        
+    if not exists(clusters_fpath):
+        word_sense_induction(neighbours_fpath, clusters_fpath, args.n, args.threads)
+    else:
+       print("Using existing clusters:", clusters_fpath)
+   
+    if not exists(clusters_minsize_fpath): 
+        filter_clusters.run(clusters_fpath, clusters_minsize_fpath, args.min_size)
+    else:
+        print("Using existing filtered clusters:", clusters_minsize_fpath)
+    
     building_sense_embeddings(clusters_minsize_fpath, vectors_fpath)
 
     if (args.make_pcz):

@@ -6,14 +6,14 @@ from .sparse_sense_vectors import SparseSenseVectors
 from os.path import exists
 
 def run(pcz_fpath, wv_fpath, sparse=False, sense_dim_num=1000, save_pkl=False, norm_type="sum", weight_type="score", max_cluster_words=20):
-    print(("Input PCZ:", pcz_fpath))
-    print(("Input word vectors:", wv_fpath))
-    print(("Sparse:", sparse))
-    print(("Type of vector normalization:", norm_type))
-    print(("Weight type:", weight_type))
-    print(("Max. number of cluster words to use:", max_cluster_words))
-    print(("Sense dim. number (sparse only):", sense_dim_num))
-    print(("Save pickle (sparse only):", save_pkl))
+    print("Input PCZ:", pcz_fpath)
+    print("Input word vectors:", wv_fpath)
+    print("Sparse:", sparse)
+    print("Type of vector normalization:", norm_type)
+    print("Weight type:", weight_type)
+    print("Max. number of cluster words to use:", max_cluster_words)
+    print("Sense dim. number (sparse only):", sense_dim_num)
+    print("Save pickle (sparse only):", save_pkl)
 
     if exists(pcz_fpath) and exists(wv_fpath):
         if sparse:

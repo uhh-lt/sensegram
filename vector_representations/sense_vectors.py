@@ -32,8 +32,8 @@ class SenseVectors(object):
             self.sense_vectors = self.load(self.sense_vectors_bin_fpath)
             if self.sense_vectors == None:
                 if self.word_vectors != None:
-                    print(("No pre-calculated model found at:", self.sense_vectors_bin_fpath))
-                    print(("Building a new model from:", self.pcz_fpath))
+                    print("No pre-calculated model found at:", self.sense_vectors_bin_fpath)
+                    print("Building a new model from:", self.pcz_fpath)
                     self.sense_vectors = self.build(self.word_vectors,
                                sense_dim_num=sense_dim_num,
                                save_pkl=save_pkl,
@@ -41,9 +41,9 @@ class SenseVectors(object):
                                weight_type=weight_type,
                                max_cluster_words=max_cluster_words)
             else:
-                print(("Loaded model from:", pcz_fpath))
+                print("Loaded model from:", pcz_fpat)
         else:
-            print(("File not found:", pcz_fpath))
+            print("File not found:", pcz_fpath)
 
     def get_senses(self, word_i, ignore_case=False):
         return []
@@ -140,9 +140,9 @@ class SenseVectors(object):
     def load(self, sense2vector_fpath):
         if exists(sense2vector_fpath):
             sense2vector = self._load_sense2vector_precomp(sense2vector_fpath)
-            print(("Loaded a pre-computed model from:", sense2vector_fpath))
+            print("Loaded a pre-computed model from:", sense2vector_fpath)
         else:
-            print(("Cannot load a pre-computed model from:", sense2vector_fpath))
+            print("Cannot load a pre-computed model from:", sense2vector_fpath)
             sense2vector = None
 
         return sense2vector
