@@ -1,3 +1,4 @@
+from itertools import zip_longest
 import argparse, sys, subprocess
 from utils.common import exists
 from os.path import basename
@@ -86,7 +87,8 @@ def get_paths(corpus_fpath, min_size):
     return vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath
 
 
-def get_clustered_ego_network(ego):
+def get_ego_network(ego, G, n):
+    if ego == None  
     tic = time()
     ego_network = nx.Graph(name=ego)
 
@@ -117,35 +119,42 @@ def get_clustered_ego_network(ego):
 
         ego_network.add_edges_from(related_edges)
 
-    # Perform clustering   
-    chinese_whispers(ego_network, weighting="top", iterations=20)
+    
     if verbose: print("{}\t{:f} sec.".format(ego, time()-tic))
         
     return ego_network
 
-G = None
-n = None
+
+def grouper(iterable, n, fillvalue=None):
+    args = [iter(iterable)] * n
+    return zip_longest(*args, fillvalue=fillvalue)
+
+def remove_nones(t):
+    return list(filter(lambda e: e is not None, t))
+
+EGO_GROUP_SIZE = 10000
 
 def ego_network_clustering(neighbors_fpath, clusters_fpath, max_related=300, num_cores=32): 
-    global G
-    global n
-    n = max_related
     G = nx.read_edgelist(neighbors_fpath, nodetype=str, delimiter="\t", data=(('weight',float),))
 
     with codecs.open(clusters_fpath, "w", "utf-8") as output, Pool(num_cores) as pool:    
         output.write("word\tcid\tcluster\tisas\n") 
 
-        for i, ego_network in enumerate(pool.imap_unordered(get_clustered_ego_network, G.nodes)): 
-            if i % 50000 == 0: print(i, "word processed")
-            sense_num = 1
-            for label, cluster in sorted(aggregate_clusters(ego_network).items(), key=lambda e: len(e[1]), reverse=True):
-                output.write("{}\t{}\t{}\t\n".format(
-                    ego_network.name,
-                    sense_num,
-                    ", ".join( ["{}:{:.4f}".format(c_node, ego_network.node[c_node]["weight"]) for c_node in cluster] )
-                ))
-                sense_num += 1
-
+        for i, ego_group in enumerate(grouper(G.nodes, EGO_GROUP_SIZE)):
+            tic = time()
+            print(i*EGO_GROUP_SIZE, "ego networks processed")
+            ego_networks = [get_ego_network(ego, G, max_related) for ego in remove_nones(ego_group)]
+            print(time()-tic)
+            for i, ego_network in enumerate(pool.imap_unordered(chinese_whispers, ego_networks)): 
+                sense_num = 1
+                for label, cluster in sorted(aggregate_clusters(ego_network).items(), key=lambda e: len(e[1]), reverse=True):
+                    output.write("{}\t{}\t{}\t\n".format(
+                        ego_network.name,
+                        sense_num,
+                        ", ".join( ["{}:{:.4f}".format(c_node, ego_network.node[c_node]["weight"]) for c_node in cluster] )
+                    ))
+                    sense_num += 1
+            print(time()-tic)
         print("Clusters:", clusters_fpath)
 
 
