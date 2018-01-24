@@ -23,7 +23,7 @@ from utils.common import ensure_dir
 import pcz
 
 
-verbose = False
+verbose = True
 
 
 class GzippedCorpusStreamer(object):
@@ -87,8 +87,7 @@ def get_paths(corpus_fpath, min_size):
     return vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath
 
 
-def get_ego_network(ego, G, n):
-    if ego == None  
+def get_ego_network(ego):
     tic = time()
     ego_network = nx.Graph(name=ego)
 
@@ -96,8 +95,9 @@ def get_ego_network(ego, G, n):
     substring_nodes = []
     for j, node in enumerate(G.nodes):
         if ego.lower() == node.lower():
-            ego_network.add_nodes_from( [(rn, {"weight": G[node][rn]["weight"]})
-                                         for rn in G[node].keys()] )
+            ego_nodes = [(rn, {"weight": G[node][rn]["weight"]}) for rn in G[node].keys()]
+            #print("------", ego_nodes)
+            ego_network.add_nodes_from(ego_nodes)
         else:
             if "_" not in node: continue
             if node.startswith(ego + "_") or node.endswith("_" + ego):
@@ -106,7 +106,6 @@ def get_ego_network(ego, G, n):
                 else: w = 0.99
                     
                 substring_nodes.append( (node, {"weight": w}) )
-                
     ego_network.add_nodes_from(substring_nodes)
 
     # Find edges of the ego network
@@ -116,46 +115,36 @@ def get_ego_network(ego, G, n):
             [(related_related_nodes[rr_node]["weight"], rr_node) for rr_node in related_related_nodes if rr_node in ego_network],
             reverse=True)[:n]
         related_edges = [(r_node, rr_node, {"weight": w}) for w, rr_node in  related_related_nodes_ego]
-
         ego_network.add_edges_from(related_edges)
 
-    
+    chinese_whispers(ego_network, weighting="top", iterations=20) 
     if verbose: print("{}\t{:f} sec.".format(ego, time()-tic))
-        
+    
+
     return ego_network
 
-
-def grouper(iterable, n, fillvalue=None):
-    args = [iter(iterable)] * n
-    return zip_longest(*args, fillvalue=fillvalue)
-
-def remove_nones(t):
-    return list(filter(lambda e: e is not None, t))
-
-EGO_GROUP_SIZE = 10000
+G = None
+n = None 
 
 def ego_network_clustering(neighbors_fpath, clusters_fpath, max_related=300, num_cores=32): 
+    global G
+    global n
     G = nx.read_edgelist(neighbors_fpath, nodetype=str, delimiter="\t", data=(('weight',float),))
 
     with codecs.open(clusters_fpath, "w", "utf-8") as output, Pool(num_cores) as pool:    
         output.write("word\tcid\tcluster\tisas\n") 
 
-        for i, ego_group in enumerate(grouper(G.nodes, EGO_GROUP_SIZE)):
-            tic = time()
-            print(i*EGO_GROUP_SIZE, "ego networks processed")
-            ego_networks = [get_ego_network(ego, G, max_related) for ego in remove_nones(ego_group)]
-            print(time()-tic)
-            for i, ego_network in enumerate(pool.imap_unordered(chinese_whispers, ego_networks)): 
-                sense_num = 1
-                for label, cluster in sorted(aggregate_clusters(ego_network).items(), key=lambda e: len(e[1]), reverse=True):
-                    output.write("{}\t{}\t{}\t\n".format(
-                        ego_network.name,
-                        sense_num,
-                        ", ".join( ["{}:{:.4f}".format(c_node, ego_network.node[c_node]["weight"]) for c_node in cluster] )
-                    ))
-                    sense_num += 1
-            print(time()-tic)
-        print("Clusters:", clusters_fpath)
+        for i, ego_network in enumerate(pool.imap_unordered(get_ego_network, G.nodes)): 
+            if i % 100 == 0: print(i, "ego networks processed")
+            sense_num = 1
+            for label, cluster in sorted(aggregate_clusters(ego_network).items(), key=lambda e: len(e[1]), reverse=True):
+                output.write("{}\t{}\t{}\t\n".format(
+                    ego_network.name,
+                    sense_num,
+                    ", ".join( ["{}:{:.4f}".format(c_node, ego_network.node[c_node]["weight"]) for c_node in cluster] )
+                ))
+                sense_num += 1
+    print("Clusters:", clusters_fpath)
 
 
 def build_vector_index(w2v_fpath):
