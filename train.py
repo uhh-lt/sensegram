@@ -119,7 +119,6 @@ def get_ego_network(ego):
 
     chinese_whispers(ego_network, weighting="top", iterations=20) 
     if verbose: print("{}\t{:f} sec.".format(ego, time()-tic))
-    
 
     return ego_network
 
