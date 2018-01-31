@@ -18,14 +18,26 @@ class NetworkxServer(object):
         print("\nLoaded in {:f} sec.".format(time() - tic))
                    
     def get_neighbors(self, node):
-        return self.G[node]
+        try:
+            return self.G[node]
+        except:
+            print("Error:", node)
+            return []
     
     def get_node(self, node):
-        return self.G.nodes[node]
-    
+        try:
+            return self.G.nodes[node]
+        except:
+            print("Error:", node)
+            return {}
+
     def get_edge(self, node_i, node_j):
-        return self.G[node_i][node_j]    
-    
+        try:
+            return self.G[node_i][node_j]    
+        except:
+            print("Error:", node_i, node_j)
+            return {}
+
     def get_node_list(self):
         return self.G.nodes.keys()
     

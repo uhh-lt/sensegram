@@ -17,6 +17,7 @@ from multiprocessing import Pool
 from os.path import join
 import faiss
 
+from networkx_server import NetworxServerManager
 import filter_clusters
 import vector_representations.build_sense_vectors
 from utils.common import ensure_dir
@@ -93,10 +94,9 @@ def get_ego_network(ego):
 
     # Add related and substring nodes 
     substring_nodes = []
-    for j, node in enumerate(G.nodes):
+    for j, node in enumerate(G.graph.get_node_list()):
         if ego.lower() == node.lower():
             ego_nodes = [(rn, {"weight": G[node][rn]["weight"]}) for rn in G[node].keys()]
-            #print("------", ego_nodes)
             ego_network.add_nodes_from(ego_nodes)
         else:
             if "_" not in node: continue
@@ -128,8 +128,8 @@ n = None
 def ego_network_clustering(neighbors_fpath, clusters_fpath, max_related=300, num_cores=32): 
     global G
     global n
-    G = nx.read_edgelist(neighbors_fpath, nodetype=str, delimiter="\t", data=(('weight',float),))
-
+    G = NetworxServerManager(neighbors_fpath)
+    
     with codecs.open(clusters_fpath, "w", "utf-8") as output, Pool(num_cores) as pool:    
         output.write("word\tcid\tcluster\tisas\n") 
 
