@@ -1,78 +1,16 @@
-from itertools import zip_longest
-import argparse, sys, subprocess
+import argparse
 from utils.common import exists
 from os.path import basename
 import gensim 
-import gzip
-from gensim.models.keyedvectors import KeyedVectors
-from gensim.utils import tokenize
-from gensim.models.phrases import Phrases, Phraser
-from gensim.models import Word2Vec
 from time import time 
-import numpy as np
-from chinese_whispers import chinese_whispers, aggregate_clusters
-import codecs 
-import networkx as nx
-from multiprocessing import Pool 
 from os.path import join
-import faiss
 
-from networkx_server import NetworxServerManager
 import filter_clusters
 import vector_representations.build_sense_vectors
 from utils.common import ensure_dir
 import pcz
-
-
-verbose = True
-
-
-class GzippedCorpusStreamer(object):
-    def __init__(self, corpus_fpath):
-        self._corpus_fpath = corpus_fpath
-        
-    def __iter__(self):
-        if self._corpus_fpath.endswith(".gz"):
-            corpus = gzip.open(self._corpus_fpath, "r", "utf-8")
-        else:
-            corpus = codecs.open(self._corpus_fpath, "r", "utf-8")
-            
-        for line in corpus:
-                yield list(tokenize(line,
-                              lowercase=False,
-                              deacc=False,
-                              encoding='utf8',
-                              errors='strict',
-                              to_lower=False,
-                              lower=False))
-
-
-def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, size, threads, min_count, detect_phrases=True):
-    tic = time()
-    sentences = GzippedCorpusStreamer(corpus_fpath) 
-    
-    if detect_phrases:
-        print("Extracting phrases from the corpus:", corpus_fpath)
-        phrases = Phrases(sentences)
-        bigram = Phraser(phrases)
-        input_sentences = list(bigram[sentences])
-        print("Time, sec.:", time()-tic)
-    else:
-        input_sentences = sentences
-    
-    print("Training word vectors:", corpus_fpath)
-    print(threads) 
-    model = Word2Vec(input_sentences,
-                     min_count=min_count,
-                     size=size,
-                     window=window, 
-                     max_vocab_size=None,
-                     workers=threads,
-                     sg=(1 if cbow == 0 else 0),
-                     iter=iter_num)
-    model.wv.save_word2vec_format(vectors_fpath, binary=False)
-    print("Vectors:", vectors_fpath)
-    print("Time, sec.:", time()-tic) 
+from word_embeddings import learn_word_embeddings
+from word_sense_induction import ego_network_clustering
 
 
 def get_paths(corpus_fpath, min_size):
@@ -86,90 +24,6 @@ def get_paths(corpus_fpath, min_size):
     clusters_removed_fpath = clusters_minsize_fpath + ".removed" # cluster that are smaller than min_size
 
     return vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath
-
-
-def get_ego_network(ego):
-    tic = time()
-    ego_network = nx.Graph(name=ego)
-
-    # Add related and substring nodes 
-    substring_nodes = []
-    for j, node in enumerate(G.graph.get_node_list()):
-        if ego.lower() == node.lower():
-            ego_nodes = [(rn, {"weight": G[node][rn]["weight"]}) for rn in G[node].keys()]
-            ego_network.add_nodes_from(ego_nodes)
-        else:
-            if "_" not in node: continue
-            if node.startswith(ego + "_") or node.endswith("_" + ego):
-                
-                if ego in G and node in G[ego]: w = G[ego][node]["weight"]
-                else: w = 0.99
-                    
-                substring_nodes.append( (node, {"weight": w}) )
-    ego_network.add_nodes_from(substring_nodes)
-
-    # Find edges of the ego network
-    for r_node in ego_network:
-        related_related_nodes = G[r_node]
-        related_related_nodes_ego = sorted(
-            [(related_related_nodes[rr_node]["weight"], rr_node) for rr_node in related_related_nodes if rr_node in ego_network],
-            reverse=True)[:n]
-        related_edges = [(r_node, rr_node, {"weight": w}) for w, rr_node in  related_related_nodes_ego]
-        ego_network.add_edges_from(related_edges)
-
-    chinese_whispers(ego_network, weighting="top", iterations=20) 
-    if verbose: print("{}\t{:f} sec.".format(ego, time()-tic))
-
-    return ego_network
-
-G = None
-n = None 
-
-def ego_network_clustering(neighbors_fpath, clusters_fpath, max_related=300, num_cores=32): 
-    global G
-    global n
-    G = NetworxServerManager(neighbors_fpath)
-    
-    with codecs.open(clusters_fpath, "w", "utf-8") as output, Pool(num_cores) as pool:    
-        output.write("word\tcid\tcluster\tisas\n") 
-
-        for i, ego_network in enumerate(pool.imap_unordered(get_ego_network, G.nodes)): 
-            if i % 100 == 0: print(i, "ego networks processed")
-            sense_num = 1
-            for label, cluster in sorted(aggregate_clusters(ego_network).items(), key=lambda e: len(e[1]), reverse=True):
-                output.write("{}\t{}\t{}\t\n".format(
-                    ego_network.name,
-                    sense_num,
-                    ", ".join( ["{}:{:.4f}".format(c_node, ego_network.node[c_node]["weight"]) for c_node in cluster] )
-                ))
-                sense_num += 1
-    print("Clusters:", clusters_fpath)
-
-
-def build_vector_index(w2v_fpath):
-    w2v = KeyedVectors.load_word2vec_format(w2v_fpath, binary=False, unicode_errors='ignore')
-    w2v.init_sims(replace=True)
-    index = faiss.IndexFlatIP(w2v.vector_size)
-    index.add(w2v.syn0norm)
-
-    return index, w2v
-
-
-def compute_neighbours(index, w2v, nns_fpath, neighbors=200):
-    tic = time()
-    with codecs.open(nns_fpath, "w", "utf-8") as output:
-        X = w2v.syn0norm
-        D, I = index.search(X, neighbors + 1)
-
-        j = 0
-        for _D, _I in zip(D, I):
-            for n, (d, i) in enumerate(zip(_D.ravel(), _I.ravel())):
-                if n > 0:
-                    output.write("{}\t{}\t{:f}\n".format(w2v.index2word[j], w2v.index2word[i], d))
-            j += 1
-
-        print("Word graph:", nns_fpath)
-        print("Elapsed: {:f} sec.".format(time() - tic))
 
  
 def compute_graph_of_related_words(vectors_fpath, neighbours_fpath, neighbors=200):
