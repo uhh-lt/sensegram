@@ -61,7 +61,7 @@ class CRSGraph(object):
         return graph, index 
 
     def get_neighbors(self, word):
-	""" Returns a dictionary with nearest neighbors. """
+        """ Returns a dictionary with nearest neighbors. """
 
         idx_i = self.index[word]
         data_i = self._graph[idx_i].data
