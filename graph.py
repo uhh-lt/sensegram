@@ -71,15 +71,15 @@ class CRSGraph(object):
         return nns
        
     def get_weight(self, word_i, word_j):
-	""" Returns weight of a pair of elements. """
+        """ Returns weight of a pair of elements. """
 
-	idx_i = self.index[word_i]
-	idx_j = self.index[word_j]
-	slice_i = self._graph[idx_i]
-	r = np.where(slice_i.indices == idx_j)[0]
-	if r.size > 0:
-	    return slice_i.data[r[0]]
-	else:	
+        idx_i = self.index[word_i]
+        idx_j = self.index[word_j]
+        slice_i = self._graph[idx_i]
+        r = np.where(slice_i.indices == idx_j)[0]
+        if r.size > 0:
+            return slice_i.data[r[0]]
+        else:
             return 0.0
 
 
