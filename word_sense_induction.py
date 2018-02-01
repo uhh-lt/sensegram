@@ -1,9 +1,7 @@
-import numpy as np
 from chinese_whispers import chinese_whispers, aggregate_clusters
 from networkx import Graph
 from multiprocessing import Pool
-from os.path import join
-import codecs 
+import codecs
 from time import time
 
 from graph import CRSGraph
@@ -12,6 +10,7 @@ from graph import CRSGraph
 G = None
 n = None
 verbose = True
+
 
 def get_ego_network(ego):
     tic = time()

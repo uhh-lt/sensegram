@@ -1,16 +1,16 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-import argparse, codecs
+import argparse
 from pandas import read_csv
 from csv import QUOTE_NONE
-from .sensegram import WSD, SenseGram
+from sensegram import SenseGram
+from wsd import WSD
 from gensim.models import word2vec
-import pbar
+from utils import pbar
 
-n_neighbours = 50
 
-def run(test_file, sense, context, output, wsd_method='sim', filter_ctx=2, lowercase=False, ignore_case=False):
-    
+NEIGHBORS_NUM = 50
+
+
+def run(test_file, sense, context, output, wsd_method="sim", filter_ctx=2, lowercase=False, ignore_case=False):
     print("Loading models...")
     vs = SenseGram.load_word2vec_format(sense, binary=False)
     vc = word2vec.Word2Vec.load_word2vec_format(context, binary=False)
@@ -48,7 +48,7 @@ def run(test_file, sense, context, output, wsd_method='sim', filter_ctx=2, lower
     
     reader.to_csv(sep='\t', path_or_buf=output, encoding="utf-8", index=False, quoting=QUOTE_NONE)
     print(("Saved predictions to " + output))
-    
+
 
 def main():
     parser = argparse.ArgumentParser(description='Fill in a test dataset for word sense disambiguation.')
@@ -63,6 +63,7 @@ def main():
     args = parser.parse_args()
 
     run(args.test_file, args.sense, args.context, args.output, args.wsd_method, args.filter_ctx, args.lowercase_context, args.ignore_case) 
-    
+
+
 if __name__ == '__main__':
     main()

@@ -1,5 +1,5 @@
 
-import time, sys
+import sys
 
 class Pbar(object):
     """

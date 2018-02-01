@@ -2,8 +2,9 @@ import argparse
 from pandas import read_csv
 from csv import QUOTE_NONE
 from random import randint
-from . import sensegram
-        
+from sensegram import SenseGram
+
+
 def run(test_file, vs, output):
     print("Loading test set...")
     reader = read_csv(test_file, encoding="utf-8", delimiter="\t", dtype={'predict_related': object, 'gold_sense_ids':object, 'predict_sense_ids':object})
@@ -31,7 +32,7 @@ def main():
     args = parser.parse_args()
     
     print("Loading sense model...")
-    vs = sensegram.SenseGram.load_word2vec_format(args.senses, binary=False)
+    vs = SenseGram.load_word2vec_format(args.senses, binary=False)
     run(args.test_file, vs, args.output)
 
 

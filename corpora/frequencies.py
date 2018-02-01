@@ -1,10 +1,8 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import codecs
 from collections import Counter
 from operator import itemgetter
 import argparse
+
 
 def run(corpus, output, minsize):
     c = Counter()
@@ -17,7 +15,8 @@ def run(corpus, output, minsize):
         for word, freq in sorted(list(c.items()), key=itemgetter(1),  reverse=True):
             if freq >= minsize:
                 freqfile.write("%s %i\n" % (word, freq))
-    
+
+
 def main():
     parser = argparse.ArgumentParser(description='Count term frequencies in tokenized corpus')
     parser.add_argument('corpus', help='A path to a corpus (.txt)')
@@ -26,6 +25,7 @@ def main():
     args = parser.parse_args()
 
     run(args.corpus, args.output, args.minsize) 
-    
+
+
 if __name__ == '__main__':
     main()

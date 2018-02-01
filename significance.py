@@ -5,8 +5,7 @@ import argparse
 
 
 def mcnemar_midp(b, c):
-    """
-    Compute McNemar's test using the "mid-p" variant suggested by:
+    """Compute McNemar's test using the "mid-p" variant suggested by:
     
     M.W. Fagerland, S. Lydersen, P. Laake. 2013. The McNemar test for 
     binary matched-pairs data: Mid-p and asymptotic are better than exact 
@@ -14,8 +13,8 @@ def mcnemar_midp(b, c):
     
     `b` is the number of observations correctly labeled by the first---but 
     not the second---system; `c` is the number of observations correctly 
-    labeled by the second---but not the first---system.
-    """
+    labeled by the second---but not the first---system."""
+
     n = b + c
     
     x = min(b, c)
@@ -24,11 +23,11 @@ def mcnemar_midp(b, c):
     midp = p - dist.pmf(x)
     chi = float(abs(b - c)**2)/n
     
-    print(("b = ", b))
-    print(("c = ", c))
-    print(("Exact p = ", p))
-    print(("Mid p = ", midp))
-    print(("Chi = ", chi))
+    print("b = ", b)
+    print("c = ", c)
+    print("Exact p = ", p)
+    print("Mid p = ", midp)
+    print("Chi = ", chi)
 
 
 def run(set1, set2):

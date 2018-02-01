@@ -1,16 +1,16 @@
 import argparse
 from utils.common import exists
 from os.path import basename
-import gensim 
-from time import time 
+from time import time
 from os.path import join
 
+from utils.common import ensure_dir
 import filter_clusters
 import vector_representations.build_sense_vectors
-from utils.common import ensure_dir
-import pcz
 from word_embeddings import learn_word_embeddings
 from word_sense_induction import ego_network_clustering
+from word_graph import compute_graph_of_related_words
+import pcz
 
 
 def get_paths(corpus_fpath, min_size):
@@ -24,14 +24,6 @@ def get_paths(corpus_fpath, min_size):
     clusters_removed_fpath = clusters_minsize_fpath + ".removed" # cluster that are smaller than min_size
 
     return vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath
-
- 
-def compute_graph_of_related_words(vectors_fpath, neighbours_fpath, neighbors=200):
-    print("Start collection of word neighbours.")
-    tic = time()
-    index, w2v = build_vector_index(vectors_fpath)
-    compute_neighbours(index, w2v, neighbours_fpath, neighbors)
-    print("Elapsed: {:f} sec.".format(time() - tic))
 
 
 def word_sense_induction(neighbours_fpath, clusters_fpath, n, threads):

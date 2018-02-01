@@ -2,9 +2,9 @@ from pandas import read_csv
 import codecs
 from .isas import ISAs
 from collections import Counter
-from spacy.en import English
 import argparse
 from utils.morph import lemmatize_word
+import spacy
 
 
 LIST_SEP = ","
@@ -17,7 +17,8 @@ MIN_SUBSTRINGABLE_LENGTH = 6
 ADPOSITION = "adp"
 NOUN = "noun"
 
-_spacy = English()
+
+_spacy = spacy.load('en')
 
 
 def read_ddt(ddt_fpath):
@@ -115,7 +116,6 @@ def add_isas(ddt_fpath, output_fpath, isas_fpath, max_hypers=MAX_HYPERS):
     print("Output:", output_fpath)
 
 
-
 def main():
     parser = argparse.ArgumentParser(description='Add ISA relations to sense clusters or DDT.')
     parser.add_argument('ddt', help='Path to a csv file with disambiguated or unsiambiguated sense clusters'
@@ -137,4 +137,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

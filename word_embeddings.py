@@ -1,9 +1,9 @@
 import gzip
 import codecs
-from gensim.models.keyedvectors import KeyedVectors
 from gensim.utils import tokenize
 from gensim.models.phrases import Phrases, Phraser
 from gensim.models import Word2Vec
+from time import time
 
 
 class GzippedCorpusStreamer(object):

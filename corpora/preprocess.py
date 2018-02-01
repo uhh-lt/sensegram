@@ -1,8 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-""" Tokenize corpus for word2vec (Treebank tokenizer) """
-
 import gzip, codecs, argparse
 from nltk.tokenize import word_tokenize
 
@@ -18,6 +13,7 @@ def run(corpus, output):
             for line in fp: # bytestring now has the uncompressed bytes of foo.gz
                 out.write(" ".join(word_tokenize(line)) + '\n')
 
+
 def main():
     parser = argparse.ArgumentParser(description='Tokenize corpus for word2vec (Treebank tokenizer)')
     parser.add_argument('corpus', help='A path to a corpus (.gz or .txt)')
@@ -25,6 +21,7 @@ def main():
     args = parser.parse_args()
 
     run(args.corpus, args.output) 
-    
+
+
 if __name__ == '__main__':
     main()

@@ -1,5 +1,16 @@
 import faiss
-import codecs 
+import codecs
+from time import time
+from gensim.models import KeyedVectors
+
+
+def compute_graph_of_related_words(vectors_fpath, neighbours_fpath, neighbors=200):
+    print("Start collection of word neighbours.")
+    tic = time()
+    index, w2v = build_vector_index(vectors_fpath)
+    compute_neighbours(index, w2v, neighbours_fpath, neighbors)
+    print("Elapsed: {:f} sec.".format(time() - tic))
+
 
 def build_vector_index(w2v_fpath):
     w2v = KeyedVectors.load_word2vec_format(w2v_fpath, binary=False, unicode_errors='ignore')

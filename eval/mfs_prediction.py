@@ -1,18 +1,13 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-import argparse, codecs
+import argparse
 from pandas import read_csv
 from csv import QUOTE_NONE
 import numpy as np
 
+
 def mfs_mapping(inventory):
     mapping = {}
-    print(("Loading provided inventory " + inventory))
-    #reader = read_csv(clusters, encoding="utf-8", delimiter="\t", error_bad_lines=False, iterator=True,
-    #                      chunksize=CHUNK_LINES, na_values=[""], keep_default_na=False, 
-    #                      doublequote=False, quotechar=u"\u0000", index_col=False)
-    
+    print("Loading provided inventory " + inventory)
+
     inv = read_csv(inventory, sep="\t", encoding='utf8', header=None,
             names=["word","sense_id","cluster"], dtype={'sense_id':np.str, 'cluster':np.str}, 
             doublequote=False, quotechar="\\u0000")
@@ -31,19 +26,20 @@ def mfs_mapping(inventory):
             mapping[row.word] = (row.sense_id, size)
             
     return mapping
-        
+
+
 def run(test_file, output, mapping):
     print("Loading test set...")
     reader = read_csv(test_file, encoding="utf-8", delimiter="\t", dtype={'predict_related': object, 'gold_sense_ids':object, 'predict_sense_ids':object})
     rows_count = reader.shape[0]
-    print((str(rows_count) + " test instances"))
+    print(rows_count, " test instances")
     
     for i, row in reader.iterrows():
         if row.target in mapping:
             reader.set_value(i, 'predict_sense_ids', mapping[row.target][0])
     
     reader.to_csv(sep='\t', path_or_buf=output, encoding="utf-8", index=False, quoting=QUOTE_NONE)
-    print(("Saved predictions to " + output))
+    print("Saved predictions to ", output)
     
 
 def main():
@@ -57,6 +53,7 @@ def main():
     mapping = mfs_mapping(args.inventory)
 
     run(args.test_file, args.output, mapping) 
-    
+
+
 if __name__ == '__main__':
     main()

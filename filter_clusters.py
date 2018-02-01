@@ -1,15 +1,7 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from os.path import splitext, join
 import codecs
-import traceback
 import argparse
-from shutil import copyfile
-import fileinput
 from pandas import read_csv
-import os
-from collections import defaultdict 
+from collections import defaultdict
 from numpy import std, mean, median
 
 
