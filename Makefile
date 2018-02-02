@@ -30,9 +30,12 @@ download:
 train:
 	bash train.sh
 
+train-wikipedia-sample:
+	wget http://panchenko.me/data/joint/corpora/wiki.txt.gz -P model
+	bash train.sh model/wiki.txt.gz
+
 train-wikipedia:
 	wget http://panchenko.me/data/joint/corpora/en59g/wikipedia.txt.gz -P model
-	gunzip model/wikipedia.txt.gz
 	bash train.sh model/wikipedia.txt
 
 install-faiss:
