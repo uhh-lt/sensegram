@@ -6,6 +6,7 @@ import codecs
 from scipy.sparse import csr_matrix
 from math import floor
 
+WEIGHT_COEF = 10000.
 
 class CRSGraph(object):
     """ A graph based on the CSR sparse matrix data structure. """
@@ -47,7 +48,7 @@ class CRSGraph(object):
 
                     src_lst.append(int(src_idx))
                     dst_lst.append(int(dst_idx))
-                    data_lst.append(np.int16(floor(float(weight) * 10000.)))
+                    data_lst.append(np.int16(floor(float(weight) * WEIGHT_COEF)))
                 except:
                     print(format_exc())
                     print("Bad line:", line)

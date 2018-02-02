@@ -4,7 +4,7 @@ from multiprocessing import Pool
 import codecs
 from time import time
 
-from graph import CRSGraph
+from graph import CRSGraph, WEIGHT_COEF
 
 
 G = None
@@ -26,7 +26,7 @@ def get_ego_network(ego):
         else:
             if "_" not in node: continue
             if node.startswith(ego + "_") or node.endswith("_" + ego):
-                substring_nodes.append( (node, {"weight": 9999}) )
+                substring_nodes.append( (node, {"weight": WEIGHT_COEF}) )
     ego_network.add_nodes_from(substring_nodes)
     
     # Find edges of the ego network
@@ -59,7 +59,8 @@ def ego_network_clustering(neighbors_fpath, clusters_fpath, max_related=300, num
                 output.write("{}\t{}\t{}\t\n".format(
                     ego_network.name,
                     sense_num,
-                    ", ".join( ["{}:{:.4f}".format(c_node, ego_network.node[c_node]["weight"]) for c_node in cluster] )
-                ))
+                    ", ".join(
+                        ["{}:{:.4f}".format(n,w) for w, n in sorted([(ego_network.node[c_node]["weight"]/WEIGHT_COEF, c_node) for c_node in cluster], reverse=True)]
+                        )))
                 sense_num += 1
     print("Clusters:", clusters_fpath)
