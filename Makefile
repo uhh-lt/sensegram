@@ -57,4 +57,4 @@ install-anaconda3:
 	bash ~/anaconda.sh -b -p ${HOME}/anaconda
 	echo 'export PATH="${HOME}/anaconda/bin:${PATH}"' >> ~/.bashrc	
 	echo 'source ${HOME}/anaconda/bin/activate' >> ~/.bashrc
-	bash
+	source ${HOME}/anaconda/bin/activate
