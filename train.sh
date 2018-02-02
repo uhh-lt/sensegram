@@ -14,4 +14,4 @@ else
     corpus=$1
 fi
 
-python train.py $corpus -cbow 1 -size 100 -window 5 -threads $(nproc) -iter 3 -min_count 10 -only_letters -n 200 -N 200 -min_size 5
+python train.py $corpus -size 100 -iter 3 

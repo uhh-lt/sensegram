@@ -3,6 +3,7 @@ from utils.common import exists
 from os.path import basename
 from time import time
 from os.path import join
+from multiprocessing import cpu_count
 
 from utils.common import ensure_dir
 import filter_clusters
@@ -44,18 +45,18 @@ def main():
     parser = argparse.ArgumentParser(description='Performs training of a word sense embeddings model from a raw text '
                                                  'corpus using the SkipGram approach based on word2vec and graph '
                                                  'clustering of ego networks of semantically related terms.')
-    parser.add_argument('train_corpus', help="Path to a training corpus.")
+    parser.add_argument('train_corpus', help="Path to a training corpus in text form (can be .gz).")
     parser.add_argument('-cbow', help="Use the continuous bag of words model (default is 1, use 0 for the "
                                       "skip-gram model).", default=1, type=int)
     parser.add_argument('-size', help="Set size of word vectors (default is 300).", default=300, type=int)
     parser.add_argument('-window', help="Set max skip length between words (default is 5).", default=5, type=int)
-    parser.add_argument('-threads', help="Use <int> threads (default 4).", default=4, type=int)
+    parser.add_argument('-threads', help="Use <int> threads (default {}).".format(cpu_count()), default=cpu_count(), type=int)
     parser.add_argument('-iter', help="Run <int> training iterations (default 5).", default=5, type=int)
     parser.add_argument('-min_count', help="This will discard words that appear less than <int> times"
-                                           " (default is 5).", default=5, type=int)
-    parser.add_argument('-only_letters', help="Use only words built from letters/dash/point for DT.", action="store_true")
-    parser.add_argument('-vocab_limit', help="Use only <int> most frequent words from word vector model"
-                                             " for DT. By default use all words (default is none).", default=None, type=int)
+                                           " (default is 10).", default=10, type=int)
+    #parser.add_argument('-only_letters', help="Use only words built from letters/dash/point for DT.", action="store_true")
+    #parser.add_argument('-vocab_limit', help="Use only <int> most frequent words from word vector model"
+    #                                         " for DT. By default use all words (default is none).", default=None, type=int)
     parser.add_argument('-N', help="Number of nodes in each ego-network (default is 200).", default=200, type=int)
     parser.add_argument('-n', help="Maximum number of edges a node can have in the network"
                                    " (default is 200).", default=200, type=int)
