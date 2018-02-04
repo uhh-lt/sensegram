@@ -2,6 +2,7 @@ bidict
 numpy
 pandas
 gensim
+cython
 stop_words
 chinese_whispers
 spacy
