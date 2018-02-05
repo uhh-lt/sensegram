@@ -64,7 +64,7 @@ The function returns a list of sense names with probabilities for each sense. As
 To understand which word sense is represented with a sense vector use `most_similar` function:
 
 ```
->>> sv.most_similar("table#1")
+>>> sv.wv.most_similar("table#1")
 [('pile#1', 0.9263191819190979),
  ('stool#1', 0.918972909450531),
  ('tray#0', 0.9099194407463074),
