@@ -71,7 +71,7 @@ def main():
     
     if not exists(vectors_fpath):
         learn_word_embeddings(args.train_corpus, vectors_fpath, args.cbow, args.window,
-                              args.iter, args.size, args.threads, args.min_count)
+                              args.iter, args.size, args.threads, args.min_count, detect_phrases=False)
     else:
         print("Using existing vectors:", vectors_fpath)
  

@@ -41,7 +41,6 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
         input_sentences = sentences
     
     print("Training word vectors:", corpus_fpath)
-    print(threads) 
     model = Word2Vec(input_sentences,
                      min_count=min_count,
                      size=size,
