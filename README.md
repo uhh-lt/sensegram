@@ -169,32 +169,6 @@ optional arguments:
                         proto-concepualization or PCZ.
 ```
 
-Here is the description of all parameters:
-
-For Stage 1 (training of word/context vectors with word2vec)
-
-* `train_corpus` is a path to a training corpus
-* `-cbow` set 1 to use the CBOW model; set 0 for Skip-gram model
-* `-size` is the dimensionality of learned vectors
-* `-window` is the max context window length
-* `-threads` is the number of threads
-* `-iter` is the number of training iterations
-* `-min_count` specifies the minimum word count below which word will be ignored.
-
-For Stage 2 (calculating word similarity graph)
-
-* N/A
-
-For Stage 3 (clustering of ego-networks)
-
-* `-N` is the number of nodes in each ego-network. We suggest to use 200.
-* `-n` is the max number of edges for each node in the network. Regulatedcluster granularity (smaller n, more clusters).
-* `-min_size` is the minimum size of the sense cluster. Consider values between 5-15, depending on N.
-
-For Stage 4 (pooling of word vectors)
-
-* N/A
-
 The training produces following output files:
 
 * `model/ + CORPUS_NAME + .word_vectors` - word vectors
@@ -207,10 +181,9 @@ In addition, it produces several intermediary files that can be investigated for
 * `model/ + corpus_name + .clusters` - sense clusters produced by chinese-whispers
 * `model/ + corpus_name + .minsize + MIN_SIZE` - clusters that remained after filtering out of small clusters 
 
-In [train.sh](train.sh) we provide an example for usage of the `train.py` script. You can test it using the command ``make train``. 
+In [train.sh](train.sh) we provide an example for usage of the `train.py` script. You can test it using the command ``make train``. More useful commands can be found in the [Makefile](Makefile).
 
-
-## Using a trained model
+## Using a trained model 
 
 See the [QuickStart](QuickStart.ipynb) tutorial on how to perform word sense disambiguation and inspection of a trained model.
 
