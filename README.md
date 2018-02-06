@@ -209,4 +209,9 @@ In addition, it produces several intermediary files that can be investigated for
 
 In [train.sh](train.sh) we provide an example for usage of the `train.py` script. You can test it using the command ``make train``. 
 
-Note: This project implements the induction of word senses via clustering of ego-networks built with word2vec word similarities. To use JoBimText similarities you need a sense inventory produced by JoBimText, which you can pass as input to Stage 4 of the training pipeline.
+
+## Using a trained model
+
+See the [QuickStart](QuickStart.ipynb) tutorial on how to perform word sense disambiguation and inspection of a trained model.
+
+
