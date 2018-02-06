@@ -60,8 +60,8 @@ install-anaconda3:
 	source ${HOME}/anaconda/bin/activate
 
 extract-text:
-	#wget -P model https://dumps.wikimedia.org/dewiki/20180120/dewiki-20180120-pages-articles-multistream.xml.bz2 
-	#git clone https://github.com/attardi/wikiextractor.git
-	#python wikiextractor/WikiExtractor.py model/dewiki-20180120-pages-articles-multistream.xml.bz2 -o model/dewiki --discard_elements gallery,timeline,noinclude --processes $(nproc) --filter_disambig_pages -b 100M
-	#cat model/dewiki/AA/wiki* > model/dewiki.txt	
+	wget -P model https://dumps.wikimedia.org/dewiki/20180120/dewiki-20180120-pages-articles-multistream.xml.bz2 
+	git clone https://github.com/attardi/wikiextractor.git
+	python wikiextractor/WikiExtractor.py model/dewiki-20180120-pages-articles-multistream.xml.bz2 -o model/dewiki --discard_elements gallery,timeline,noinclude --processes $(nproc) --filter_disambig_pages -b 100M
+	cat model/dewiki/AA/wiki* > model/dewiki.txt	
 	sed -i 's/<[^>]*>/ /g' model/dewiki.txt
