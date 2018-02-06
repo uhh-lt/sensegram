@@ -34,8 +34,8 @@ def run(pcz_fpath, wv_fpath, sparse=False, sense_dim_num=1000, save_pkl=False, n
             max_cluster_words=max_cluster_words)
     else:
         print("Input paths not found.")
-        print((exists(pcz_fpath), pcz_fpath))
-        print((exists(wv_fpath), wv_fpath))
+        print(exists(pcz_fpath), pcz_fpath)
+        print(exists(wv_fpath), wv_fpath)
 
 def main():
     parser = argparse.ArgumentParser(description="Build sense vectors out of sense inventory and word vectors.")

@@ -18,7 +18,7 @@ def get_paths(corpus_fpath, min_size):
     corpus_name = basename(corpus_fpath)
     model_dir = "model/"
     ensure_dir(model_dir)
-    vectors_fpath = join(model_dir, corpus_name + ".vectors")
+    vectors_fpath = join(model_dir, corpus_name + ".word_vectors")
     neighbours_fpath = join(model_dir, corpus_name + ".graph")
     clusters_fpath = join(model_dir, corpus_name + ".clusters")
     clusters_minsize_fpath = clusters_fpath + ".minsize" + str(min_size) # clusters that satisfy min_size
@@ -71,7 +71,7 @@ def main():
     
     if not exists(vectors_fpath):
         learn_word_embeddings(args.train_corpus, vectors_fpath, args.cbow, args.window,
-                              args.iter, args.size, args.threads, args.min_count, detect_phrases=False)
+                              args.iter, args.size, args.threads, args.min_count, detect_phrases=True)
     else:
         print("Using existing vectors:", vectors_fpath)
  

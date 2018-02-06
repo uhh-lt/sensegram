@@ -11,8 +11,8 @@ def generate_mixed_cases(word, full_upper=False, generate_pos=False):
 class SenseVectors(object):
     """ Class that stores information about sense vectors """
 
-    VECTORS_CSV_EXT = ".vectors.csv"
-    VECTORS_BIN_EXT = ".vectors.bin"  # the model is loaded from bin version, csv is not used from code
+    VECTORS_CSV_EXT = ".sense_vectors.csv"
+    VECTORS_BIN_EXT = ".sense_vectors"  
     SEP_SENSE_POS = "#"
     POS = ["NN", "NP", "JJ", "VB"]
     SENSE_WEIGHT = 0.5
