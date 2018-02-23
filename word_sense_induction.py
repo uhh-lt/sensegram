@@ -10,7 +10,7 @@ from graph import CRSGraph, WEIGHT_COEF
 G = None
 n = None
 verbose = True
-
+mix_cases = False
 
 def get_ego_network(ego):
     tic = time()
@@ -19,7 +19,12 @@ def get_ego_network(ego):
     # Add related and substring nodes
     substring_nodes = []
     for j, node in enumerate(G.index):
-        if ego.lower() == node.lower():
+        if mix_cases:
+            add_node = ego.lower() == node.lower()
+        else:
+            add_node = node == ego
+
+        if add_node:
             nns_node = G.get_neighbors(node)
             ego_nodes = [(rn, {"weight": w}) for rn, w in nns_node.items()]
             ego_network.add_nodes_from(ego_nodes)
