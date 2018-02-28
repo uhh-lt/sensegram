@@ -2,30 +2,30 @@ from operator import itemgetter
 import math
 import numpy as np
 import stop_words
-    
+   
+
 class WSD(object):
     """ Object that for word sense disambiguation. """
 
-    def __init__(self, vs, vc, window=10, method="sim", lang="en", filter_ctx=2, ignore_case=False, verbose=False):
-        self.vs = vs
-        self.vc = vc
-        self.window = window
-        self.ctx_method = method
-        self.filter_ctx = filter_ctx
-        self.ignore_case = ignore_case
-        self.verbose = verbose
+    def __init__(self, vs, vc, window=10, method="sim", lang="en", filter_ctx=3, ignore_case=False, verbose=False):
+        self._vs = vs
+        self._vc = vc
+        self._window = window
+        self._ctx_method = method
+        self._filter_ctx = filter_ctx
+        self._ignore_case = ignore_case
+        self._verbose = verbose
         self._stop_words = self._get_stop_words(lang)
 
-        print(("Disambiguation method: " + self.ctx_method))
-        print(("Filter context: f = %s" % (self.filter_ctx)))
+        print(("Disambiguation method: " + self._ctx_method))
+        print(("Filter context: f = %s" % (self._filter_ctx)))
 
     def _get_stop_words(self, lang="en"):
         _stop_words = set()
         for sw in stop_words.get_stop_words(lang): 
             _stop_words.add(sw)
-            if len(sw) > 1:
-                _stop_words.add(sw[0].upper() + sw[1:])
-                _stop_words.add(sw.upper())
+            _stop_words.add(sw.title())
+            _stop_words.add(sw.upper())
 
         return _stop_words
 
@@ -37,9 +37,9 @@ class WSD(object):
         l, r = text[:start].split(), text[end:].split()
 
         # it only makes sense to use context for which we have vectors
-        l = [ctx for ctx in l if ctx in self.vc.vocab]
-        r = [ctx for ctx in r if ctx in self.vc.vocab]
-        lr = set(l[-self.window:] + r[:self.window])
+        l = [ctx for ctx in l if ctx in self._vc.vocab]
+        r = [ctx for ctx in r if ctx in self._vc.vocab]
+        lr = set(l[-self._window:] + r[:self._window])
 
         return list(lr.difference(self._stop_words))
 
@@ -61,15 +61,15 @@ class WSD(object):
     def __filter__(self, vctx, senses, n, context):
         """ returns n most relevant for WSD context vectors """
 
-        if self.ctx_method == 'prob':
-            prob_dist_per_cv = [[self.__logprob__(cv, self.vs[sense]) for sense, prob in senses] for cv in vctx]
-        elif self.ctx_method == 'sim':
-            prob_dist_per_cv = [[self.__cosine_sim__(cv, self.vs[sense]) for sense, prob in senses] for cv in vctx]
+        if self._ctx_method == 'prob':
+            prob_dist_per_cv = [[self.__logprob__(cv, self._vs[sense]) for sense, prob in senses] for cv in vctx]
+        elif self._ctx_method == 'sim':
+            prob_dist_per_cv = [[self.__cosine_sim__(cv, self._vs[sense]) for sense, prob in senses] for cv in vctx]
         else:
-            raise ValueError("Unknown context handling method '%s'" % self.ctx_method)
+            raise ValueError("Unknown context handling method '%s'" % self._ctx_method)
 
         significance = [abs(max(pd) - min(pd)) for pd in prob_dist_per_cv]
-        if self.verbose:
+        if self._verbose:
             print("Significance scores of context words:")
             print(significance)
         most_significant_cv = sorted(zip(vctx, significance, context), key=itemgetter(1), reverse=True)[:n]
@@ -81,14 +81,15 @@ class WSD(object):
         
         return context_vectors
 
-    def __dis_context__(self, context, word):
+    def _disambiguate_context(self, context, word, all_cases):
         """ disambiguates the sense of a word for a given list of context words
             context - a list of context words
             word  - word to be disambiguated
             returns None if word is not covered by the model"""
         
-        senses = self.vs.get_senses(word, self.ignore_case)
-        if self.verbose:
+        senses = self._vs.get_senses(word, self._ignore_case)
+
+        if self._verbose:
             print("Senses of a target word:")
             print(senses)
 
@@ -96,44 +97,49 @@ class WSD(object):
             return None
 
         # collect context vectors
-        vctx = [self.vc[c] for c in context]
+        vctx = [self._vc[c] for c in context]
 
         if len(vctx) == 0:  # means we have no context
             return None
         # TODO: better return most frequent sense or make random choice
 
         # filter context vectors, if aplicable
-        if self.filter_ctx >= 0:
-            vctx = self.__filter__(vctx, senses, self.filter_ctx, context)
+        if self._filter_ctx >= 0:
+            vctx = self.__filter__(vctx, senses, self._filter_ctx, context)
 
-        if self.ctx_method == 'prob':
+        if self._ctx_method == 'prob':
             avg_context = np.mean(vctx, axis=0)
-            scores = [self.__logprob__(avg_context, self.vs[sense]) for sense, prob in senses]
+            scores = [self.__logprob__(avg_context, self._vs[sense]) for sense, prob in senses]
 
-        elif self.ctx_method == 'sim':
+        elif self._ctx_method == 'sim':
             avg_context = np.mean(vctx, axis=0)
-            scores = [self.__cosine_sim__(avg_context, self.vs[sense]) for sense, prob in senses]
-            if self.verbose:
+            scores = [self.__cosine_sim__(avg_context, self._vs[sense]) for sense, prob in senses]
+            if self._verbose:
                 print("Sense probabilities:")
                 print(scores)
 
         else:
-            raise ValueError("Unknown context handling method '%s'" % self.ctx_method)
+            raise ValueError("Unknown context handling method '%s'" % self._ctx_method)
 
             # return sense (word#id), scores for senses
         return senses[np.argmax(scores)][0], scores
 
-    def dis_text(self, text, target, target_start, target_end):
+    def disambiguate(self, context, word, all_cases=False):
+        begin_index = context.find(word)
+        end_index = begin_index + len(word)
+        return self._disambiguate(context, word, begin_index, end_index, all_cases)
+        
+    def _disambiguate(self, text, target, target_start, target_end, all_cases=False):
         """ disambiguates the sense of a word in given text
             text - a tokenized string ("Obviously , cats are funny .")
             target  - a target word (lemma) to be disambiguated ("cat")
             target_start - start index of target word occurence in text (12)
             target_end - end index of target word occurence in text, considering flexed forms (16)
-
-            returns None if word is not covered by the model"""
+            returns None if word is not covered by the model """
 
         ctx = self.get_context(text, target_start, target_end)
-        if self.verbose:
+        if self._verbose:
             print("Extracted context words:")
             print(ctx)
-        return self.__dis_context__(ctx, target)
+        return self._disambiguate_context(ctx, target, all_cases)
+
