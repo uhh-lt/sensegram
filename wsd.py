@@ -1,12 +1,12 @@
 from operator import itemgetter
 import math
 import numpy as np
-
-
+import stop_words
+    
 class WSD(object):
     """ Object that for word sense disambiguation. """
 
-    def __init__(self, vs, vc, window=10, method="sim", filter_ctx=2, ignore_case=False, verbose=False):
+    def __init__(self, vs, vc, window=10, method="sim", lang="en", filter_ctx=2, ignore_case=False, verbose=False):
         self.vs = vs
         self.vc = vc
         self.window = window
@@ -14,9 +14,20 @@ class WSD(object):
         self.filter_ctx = filter_ctx
         self.ignore_case = ignore_case
         self.verbose = verbose
+        self._stop_words = self._get_stop_words(lang)
 
         print(("Disambiguation method: " + self.ctx_method))
         print(("Filter context: f = %s" % (self.filter_ctx)))
+
+    def _get_stop_words(self, lang="en"):
+        _stop_words = set()
+        for sw in stop_words.get_stop_words(lang): 
+            _stop_words.add(sw)
+            if len(sw) > 1:
+                _stop_words.add(sw[0].upper() + sw[1:])
+                _stop_words.add(sw.upper())
+
+        return _stop_words
 
     def get_context(self, text, start, end):
         """ returns a list of words surrounding the target positioned at [start:end] in the text
@@ -28,8 +39,9 @@ class WSD(object):
         # it only makes sense to use context for which we have vectors
         l = [ctx for ctx in l if ctx in self.vc.vocab]
         r = [ctx for ctx in r if ctx in self.vc.vocab]
+        lr = set(l[-self.window:] + r[:self.window])
 
-        return l[-self.window:] + r[:self.window]
+        return list(lr.difference(self._stop_words))
 
     def __logprob__(self, cv, vsense):
         """ returns P(vsense|cv), where vsense is a vector, cv is a context vector """
@@ -46,7 +58,7 @@ class WSD(object):
             sumxy += x * y
         return sumxy / math.sqrt(sumxx * sumyy)
 
-    def __filter__(self, vctx, senses, n):
+    def __filter__(self, vctx, senses, n, context):
         """ returns n most relevant for WSD context vectors """
 
         if self.ctx_method == 'prob':
@@ -60,15 +72,21 @@ class WSD(object):
         if self.verbose:
             print("Significance scores of context words:")
             print(significance)
-        most_significant_cv = sorted(zip(vctx, significance), key=itemgetter(1), reverse=True)[:n]
+        most_significant_cv = sorted(zip(vctx, significance, context), key=itemgetter(1), reverse=True)[:n]
+        
+        print("Context words:")
+        for _, sign, word in most_significant_cv: print("{}\t{:.3f}".format(word, sign))
 
-        return [cv for cv, sign in most_significant_cv]
+        context_vectors = [cv for cv, sign, word in most_significant_cv]
+        
+        return context_vectors
 
     def __dis_context__(self, context, word):
         """ disambiguates the sense of a word for a given list of context words
             context - a list of context words
             word  - word to be disambiguated
             returns None if word is not covered by the model"""
+        
         senses = self.vs.get_senses(word, self.ignore_case)
         if self.verbose:
             print("Senses of a target word:")
@@ -77,7 +95,7 @@ class WSD(object):
         if len(senses) == 0:  # means we don't know any sense for this word
             return None
 
-            # collect context vectors
+        # collect context vectors
         vctx = [self.vc[c] for c in context]
 
         if len(vctx) == 0:  # means we have no context
@@ -86,7 +104,7 @@ class WSD(object):
 
         # filter context vectors, if aplicable
         if self.filter_ctx >= 0:
-            vctx = self.__filter__(vctx, senses, self.filter_ctx)
+            vctx = self.__filter__(vctx, senses, self.filter_ctx, context)
 
         if self.ctx_method == 'prob':
             avg_context = np.mean(vctx, axis=0)
