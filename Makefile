@@ -13,20 +13,6 @@ install-ubuntu-16-04:
 	make install-anaconda3
 	make install 
 
-download:
-	wget -P model http://panchenko.me/data/joint/sensegram/wiki.senses.w2v
-	wget -P model http://panchenko.me/data/joint/sensegram/wiki.senses.w2v.probs
-	wget -P model http://panchenko.me/data/joint/sensegram/wiki.words
-	wget -P model http://panchenko.me/data/joint/sensegram/wiki.contexts
-	wget -P model http://panchenko.me/data/joint/sensegram/wiki.senses.jbt
-	wget -P model http://panchenko.me/data/joint/sensegram/wiki.senses.jbt.probs
-	wget -P model http://panchenko.me/data/joint/sensegram/ukwac.words
-	wget -P model http://panchenko.me/data/joint/sensegram/ukwac.contexts
-	wget -P model http://panchenko.me/data/joint/sensegram/ukwac.senses.w2v
-	wget -P model http://panchenko.me/data/joint/sensegram/ukwac.senses.w2v.probs
-	wget -P model http://panchenko.me/data/joint/sensegram/ukwac.senses.jbt
-	wget -P model http://panchenko.me/data/joint/sensegram/ukwac.senses.jbt.probs
-
 train:
 	bash train.sh
 

@@ -183,8 +183,20 @@ In addition, it produces several intermediary files that can be investigated for
 
 In [train.sh](train.sh) we provide an example for usage of the `train.py` script. You can test it using the command ``make train``. More useful commands can be found in the [Makefile](Makefile).
 
-## Using a trained model 
+## Using a pre-trained model 
 
 See the [QuickStart](QuickStart.ipynb) tutorial on how to perform word sense disambiguation and inspection of a trained model.
 
+You can downlooad [pre-trained models for English, German, and Russian](http://ltdata1.informatik.uni-hamburg.de/sensegram/). Note that to run examples from the QuickStart you only need files with extensions ``word_vectors``, ``sense_vectors``, and ``.sense_vectors.inventory.csv``. Other files are supplementary.
 
+## Transforming pre-trained word embeddings to sense embeddings
+
+Instead of learning a model from a text corpus, you can provide a pre-trained word embedding model. To do so, you just neeed to:
+
+1. Save the word embeddings file (in word2vec text format) with the extension ``.word_vectors``, e.g. ``wikipedia.word_vectors``. 
+
+2. Run the ``train.py`` script inducating the path to the word embeddings file, e.g.:
+
+```python train.py model/wikipedia```
+
+Note: do not indicate the ``.word_vectors`` extension when launching the train.py script. 
