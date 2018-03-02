@@ -187,7 +187,7 @@ In [train.sh](train.sh) we provide an example for usage of the `train.py` script
 
 See the [QuickStart](QuickStart.ipynb) tutorial on how to perform word sense disambiguation and inspection of a trained model.
 
-You can downlooad [pre-trained models for English, German, and Russian](http://ltdata1.informatik.uni-hamburg.de/sensegram/). Note that to run examples from the QuickStart you only need files with extensions ``word_vectors``, ``sense_vectors``, and ``.sense_vectors.inventory.csv``. Other files are supplementary.
+You can downlooad [pre-trained models for English, German, and Russian](http://ltdata1.informatik.uni-hamburg.de/sensegram/). Note that to run examples from the QuickStart you only need files with extensions ``.word_vectors``, ``.sense_vectors``, and ``.sense_vectors.inventory.csv``. Other files are supplementary.
 
 ## Transforming pre-trained word embeddings to sense embeddings
 
