@@ -74,8 +74,9 @@ class WSD(object):
             print(significance)
         most_significant_cv = sorted(zip(vctx, significance, context), key=itemgetter(1), reverse=True)[:n]
         
-        print("Context words:")
-        for _, sign, word in most_significant_cv: print("{}\t{:.3f}".format(word, sign))
+        if self._verbose: 
+            print("Context words:")
+            for _, sign, word in most_significant_cv: print("{}\t{:.3f}".format(word, sign))
 
         context_vectors = [cv for cv, sign, word in most_significant_cv]
         
