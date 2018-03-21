@@ -16,6 +16,11 @@ class DenseSenseVectors(SenseVectors):
     def _load_sense2vector_precomp(self, sense2vector_fpath):
         return SenseGram.load_word2vec_format(sense2vector_fpath)
 
+    def get_most_probable_sense(self, word, ignore_case=True):
+        senses = self.get_senses(word, ignore_case=ignore_case)
+        most_probable_sense, prob = sorted(senses, key=lambda s: s[1], reverse=True)[0]
+        return most_probable_sense, prob
+
     def get_senses(self, word_i, ignore_case=False):
         senses = []
         for word_sense, prob in self.sense_vectors.get_senses(word_i, ignore_case):
@@ -24,6 +29,7 @@ class DenseSenseVectors(SenseVectors):
                 senses.append( (word_i, sense_id, prob) )
             except:
                 print("Wrong sense format", word_sense)
+        
         return senses
 
     def similarity(self, word_i, sense_i, word_j, sense_j, use_word_vectors=False):

@@ -87,7 +87,7 @@ class WSD(object):
             context - a list of context words
             word  - word to be disambiguated
             returns None if word is not covered by the model"""
-        
+       
         senses = self._vs.get_senses(word, self._ignore_case)
 
         if self._verbose:
@@ -95,14 +95,14 @@ class WSD(object):
             print(senses)
 
         if len(senses) == 0:  # means we don't know any sense for this word
-            return None
+            return senses, []
 
         # collect context vectors
         vctx = [self._vc[c] for c in context]
 
         if len(vctx) == 0:  # means we have no context
-            return None
-        # TODO: better return most frequent sense or make random choice
+            mfs_sense_id, mfs_prob = self._vc.get_most_probable_sense(word, self._ignore_case)
+            return mfs_sense_id, [mfs_prob]
 
         # filter context vectors, if aplicable
         if self._filter_ctx >= 0:
