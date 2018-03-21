@@ -58,7 +58,12 @@ class SenseGram(word2vec.Word2Vec):
                 if sense not in self.wv.vocab: continue
                 senses.append((sense, self.inventory[word][sense_id]))
         return senses
-    
+ 
+    def get_most_probable_sense(self, word, ignore_case=True):
+        senses = self.get_senses(word, ignore_case=ignore_case)
+        most_probable_sense, prob = sorted(senses, key=lambda s: s[1], reverse=True)[0]
+        return most_probable_sense, prob
+   
     def save_word2vec_format(self, fname, fvocab=None, binary=False):
         """ Saves SenseGram model in the word2vec format. In addition a CSV
         file with word sense inventory is saved containing a priory probabilities."""
