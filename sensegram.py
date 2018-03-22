@@ -13,6 +13,7 @@ INVENTORY_EXT = ".inventory.csv"
 
 
 class SenseGram(word2vec.Word2Vec):
+
     def __init__(self, *args, **kwargs):
         super(SenseGram, self).__init__(*args, **kwargs)
         self.inventory = defaultdict(lambda: defaultdict(float))
@@ -44,13 +45,12 @@ class SenseGram(word2vec.Word2Vec):
         """ Returns a list of all available senses for a given word.
         example: 'mouse' -> [('mouse#0', 0.33), ('mouse#1', 0.66)] """
 
-        words = [word]
+        words = set([word])
         senses = []
         if ignore_case:
-            words.append(word[0].upper() + word[1:])
-            words.append(word[0].lower() + word[1:])
+            words.add(word.title())
+            words.add(word.lower())
         
-        words = set(words)
         for word in words:
             if word not in self.inventory: continue
             for sense_id in self.inventory[word]:
@@ -111,7 +111,7 @@ class SenseGram(word2vec.Word2Vec):
                     word, sense_id = sense.split(SEP_SENSE)
                     result.inventory[word][sense_id] = 1.0
                 except:
-                    print((format_exc()))
+                    print(format_exc())
                     
         return result
         
