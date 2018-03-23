@@ -70,6 +70,7 @@ def main():
         args.train_corpus, args.min_size)
     
     if not exists(vectors_fpath):
+        print(vectors_fpath)
         learn_word_embeddings(args.train_corpus, vectors_fpath, args.cbow, args.window,
                               args.iter, args.size, args.threads, args.min_count, detect_phrases=True)
     else:

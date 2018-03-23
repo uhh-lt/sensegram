@@ -3,14 +3,29 @@ from networkx import Graph
 from multiprocessing import Pool
 import codecs
 from time import time
-
 from graph import CRSGraph, WEIGHT_COEF
+import re 
 
 
 G = None
 n = None
 verbose = True
-mix_cases = False
+
+
+first_not_letter = re.compile(r"^[^a-z]",re.IGNORECASE)
+last_not_letter = re.compile(r"[^a-z]$", re.IGNORECASE)
+
+def minimize(word):
+    word = word.strip().lower()
+    
+    if first_not_letter.findall(word):
+        word = word[1:]
+
+    if last_not_letter.findall(word):        
+        word = word[:-1]
+        
+    return word
+
 
 def get_ego_network(ego):
     tic = time()
@@ -19,15 +34,14 @@ def get_ego_network(ego):
     # Add related and substring nodes
     substring_nodes = []
     for j, node in enumerate(G.index):
-        if mix_cases:
-            add_node = ego.lower() == node.lower()
-        else:
-            add_node = node == ego
+        if node == ego:
 
-        if add_node:
-            nns_node = G.get_neighbors(node)
-            ego_nodes = [(rn, {"weight": w}) for rn, w in nns_node.items()]
-            ego_network.add_nodes_from(ego_nodes)
+            ego_nn_nodes = []
+            for related_node, related_weight in G.get_neighbors(node).items():
+                if minimize(related_node) == minimize(ego): continue
+                ego_nn_nodes.append( (related_node, {"weight": related_weight}) )
+
+            ego_network.add_nodes_from(ego_nn_nodes)
         else:
             if "_" not in node: continue
             if node.startswith(ego + "_") or node.endswith("_" + ego):
