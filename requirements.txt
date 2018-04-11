@@ -1,3 +1,5 @@
+requests
+clint
 bidict
 numpy
 pandas
