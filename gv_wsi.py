@@ -1,3 +1,4 @@
+import argparse
 from word_sense_induction import minimize 
 from chinese_whispers import chinese_whispers, aggregate_clusters
 from networkx import Graph
@@ -35,7 +36,7 @@ def get_sorted_vocabulary(vectors_fpath):
         for i, line in enumerate(in_f):
             if i == 0: continue
             vocabulary.append( str(line, "utf-8").split(" ")[0] )
-
+    return vocabulary
             
 def save_to_gensim_format(wv, output_fpath):
     tic = time()
@@ -185,25 +186,26 @@ def get_cluster_lines(G, nodes):
         
     return lines 
 
-def run(language = "de"):
-    visualize = False
-    show_plot = False
-    eval_vocabulary = False
+def run(language = "de", eval_vocabulary=False, visualize = False, show_plot = False):
+    print("Language:", language)
+    print("Evaluation:", eval_vocabulary)
+    print("Visuzlize:", visualize)
+
     wv_fpath = "model/cc.{}.300.vec.gz".format(language)
     wv_gensim_fpath = wv_fpath + ".gensim"
 
     if not exists(wv_fpath):
         wv_uri = "https://s3-us-west-1.amazonaws.com/fasttext-vectors/word-vectors-v2/cc.{}.300.vec.gz".format(language)
         print("Downloading the fasttext model from {}".format(wv_uri))
-	r = requests.get(wv_uri, stream=True)
-	path = "model/cc.{}.300.vec.gz"
-	with open(path, "wb") as f:
-	    total_length = int(r.headers.get("content-length"))
-	    for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1): 
-		if chunk:
-		    f.write(chunk)
-		    f.flush()
-  
+        r = requests.get(wv_uri, stream=True)
+        path = "model/cc.{}.300.vec.gz".format(language)
+        with open(path, "wb") as f:
+            total_length = int(r.headers.get("content-length"))
+            for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1): 
+                if chunk:
+                    f.write(chunk)
+                    f.flush()
+                    
     if eval_vocabulary:
         voc = get_target_words(language)    
     else:
@@ -239,10 +241,11 @@ def run(language = "de"):
 def main():
     parser = argparse.ArgumentParser(description='Graph-Vector Word Sense Induction appraoch.')
     parser.add_argument("language", help="A two symbols code that represents input language, e.g. 'en', 'de' or 'ru'. ")
-    #parser.add_argument("-wsd_method", help="WSD method 'prob' or 'sim'. Default='sim'", default="sim")
+    parser.add_argument("-eval", help="Use only evaluation vocabulary, not all words in the model.", action="store_true")
+    parser.add_argument("-viz", help="Visualize each ego networks.", action="store_true")
     args = parser.parse_args()
 
-    run(args.language) 
+    run(language=args.language, eval_vocabulary=args.eval, visualize=args.viz) 
 
 
 if __name__ == '__main__':
