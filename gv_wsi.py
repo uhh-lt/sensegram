@@ -14,9 +14,10 @@ from traceback import format_exc
 import gzip
 import logging
 import gensim
-from os.path import exists
 import requests
 from clint.textui import progress
+from os.path import join, exists
+
 
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -28,6 +29,28 @@ try:
     wv
 except NameError:
     wv = None
+
+
+def get_ru_wsi_vocabulary():
+    dataset_names = ["active-dict", "wiki-wiki", "bts-rnc"]
+    wsi_data_dir = "/home/panchenko/russe-wsi-full/data/"
+
+    voc = set(["ключ", "замок", "коса"])
+
+    for dataset_name in dataset_names:
+        train_fpath = join(join(wsi_data_dir, dataset_name), "train.csv")
+        test_fpath = join(join(wsi_data_dir, dataset_name), "test.csv")
+
+        if exists(train_fpath):
+            train = read_csv(train_fpath, sep="\t", encoding="utf-8")
+
+        if exists(test_fpath):
+            test = read_csv(test_fpath, sep="\t", encoding="utf-8")
+
+        for i, row in test.iterrows(): voc.add(row.word)
+        for i, row in train.iterrows(): voc.add(row.word)
+
+    return voc
 
 
 def get_sorted_vocabulary(vectors_fpath):
