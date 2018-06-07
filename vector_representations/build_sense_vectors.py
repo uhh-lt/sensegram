@@ -1,8 +1,8 @@
 import argparse
-from dense_sense_vectors import DenseSenseVectors
-from dense_word_vectors import DenseWordVectors
-from sparse_word_vectors import SparseWordVectors
-from sparse_sense_vectors import SparseSenseVectors
+from vector_representations.dense_sense_vectors import DenseSenseVectors
+from vector_representations.dense_word_vectors import DenseWordVectors
+from vector_representations.sparse_word_vectors import SparseWordVectors
+from vector_representations.sparse_sense_vectors import SparseSenseVectors
 from os.path import exists
 
 
