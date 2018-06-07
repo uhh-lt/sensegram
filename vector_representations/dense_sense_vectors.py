@@ -1,4 +1,4 @@
-from .sense_vectors import SenseVectors
+from vector_representations.sense_vectors import SenseVectors
 import numpy as np
 from traceback import format_exc
 from sensegram import SenseGram
@@ -93,16 +93,8 @@ class DenseSenseVectors(SenseVectors):
                     non_oov = 0
                     for i, cluster_word in enumerate(self.pcz.data[word][sense_id]["cluster"]):
                         if i >= max_cluster_words: break
-                        if cluster_word in wv.vectors.vocab:
-                            cw = cluster_word
-                        elif cluster_word.split("#")[0] in wv.vectors.vocab:
-                            cw = cluster_word.split("#")[0]
-                        else:
-                            if self.VERBOSE:
-                                print("Warning: word is OOV: '%s'" % (cluster_word), file=stderr)
-                            continue
-                        non_oov += 1
-
+                        
+                        # define the weight
                         if weight_type == "ones": weight = 1.0
                         elif weight_type == "score": weight = float(self.pcz.data[word][sense_id]["cluster"][cluster_word])
                         elif weight_type == "rank": weight = 1.0 / (i + 1)
@@ -110,7 +102,26 @@ class DenseSenseVectors(SenseVectors):
                         
                         if weight == 0:
                             print("Warning: zero weight:", cluster_word, end=' ') 
+                        
+                        # define the word
+                        if cluster_word in wv.vectors.vocab:
+                            cw = cluster_word
+                        elif cluster_word.split("#")[0] in wv.vectors.vocab:
+                            cw = cluster_word.split("#")[0]
+                        else:
+                            if self.VERBOSE:
+                                print("Warning: word is OOV: '%s'" % (cluster_word), file=stderr)
+                            
+                            compounds = cluster_word.split("#")[0].split("_")
+                            for cw in compounds:
+                                if cw in wv.vectors.vocab and len(cw) > 3:
+                                    if self.VERBOSE: print("Warning: adding a compound '{}' of '{}'".format(cw, cluster_word))
+                                    sense_vector += (weight/len(compounds)) * wv.vectors[cw]  
+                                    non_oov += 1
+                            
+                            continue 
 
+                        non_oov += 1
                         sense_vector += weight * wv.vectors[cw]
 
                     if non_oov == 0:

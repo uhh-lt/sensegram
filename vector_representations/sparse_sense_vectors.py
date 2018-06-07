@@ -1,4 +1,4 @@
-from .sense_vectors import SenseVectors
+from vector_representations.sense_vectors import SenseVectors
 from collections import defaultdict
 import codecs
 from sklearn.externals import joblib

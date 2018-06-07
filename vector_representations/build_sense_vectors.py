@@ -1,9 +1,10 @@
 import argparse
-from .dense_sense_vectors import DenseSenseVectors
-from .dense_word_vectors import DenseWordVectors
-from .sparse_word_vectors import SparseWordVectors
-from .sparse_sense_vectors import SparseSenseVectors
+from dense_sense_vectors import DenseSenseVectors
+from dense_word_vectors import DenseWordVectors
+from sparse_word_vectors import SparseWordVectors
+from sparse_sense_vectors import SparseSenseVectors
 from os.path import exists
+
 
 def run(pcz_fpath, wv_fpath, sparse=False, sense_dim_num=1000, save_pkl=False, norm_type="sum", weight_type="score", max_cluster_words=20):
     print("Input PCZ:", pcz_fpath)
@@ -37,6 +38,7 @@ def run(pcz_fpath, wv_fpath, sparse=False, sense_dim_num=1000, save_pkl=False, n
         print(exists(pcz_fpath), pcz_fpath)
         print(exists(wv_fpath), wv_fpath)
 
+
 def main():
     parser = argparse.ArgumentParser(description="Build sense vectors out of sense inventory and word vectors.")
     parser.add_argument('pcz', help='PCZ in the format "word<TAB>cid<TAB>cluster<TAB>isas". Cluster and isas'
@@ -61,6 +63,7 @@ def main():
     args = parser.parse_args()
     run(args.pcz, args.wv, args.sparse, int(args.max_dim), (not args.no_pkl),
         args.norm_type, args.weight_type, args.max_words)
+
 
 if __name__ == '__main__':
     main()

@@ -41,7 +41,7 @@ class SenseVectors(object):
                                weight_type=weight_type,
                                max_cluster_words=max_cluster_words)
             else:
-                print("Loaded model from:", pcz_fpat)
+                print("Loaded model from:", pcz_fpath)
         else:
             print("File not found:", pcz_fpath)
 

@@ -9,7 +9,7 @@ from sklearn.externals import joblib
 import numpy as np
 from sys import stderr
 from os.path import exists
-from .sense_vectors import generate_mixed_cases
+from sense_vectors import generate_mixed_cases
 from scipy.sparse.linalg import norm
 
 
