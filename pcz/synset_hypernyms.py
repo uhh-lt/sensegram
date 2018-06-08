@@ -6,16 +6,7 @@ from vector_representations.dense_sense_vectors import DenseSenseVectors
 from traceback import format_exc
 
 
-def generate_binary_hypers(inventory_fpath, max_synsets=1, hyper_synset_max_size=10, hc_max=0):
-    dsv = DenseSenseVectors(
-        pcz_fpath=inventory_fpath,
-        word_vectors_obj=None,
-        save_pkl=True,
-        sense_dim_num=1000,
-        norm_type="sum",
-        weight_type="score",
-        max_cluster_words=20)
-
+def generate_binary_hypers(dsv, inventory_fpath, max_synsets=1, hyper_synset_max_size=10, hc_max=0):
     output_fpath = inventory_fpath + ".vector-link-s%d-hmx%d-hc%d.csv" % (
         max_synsets, hyper_synset_max_size, hc_max)  
     bin_count = 0
@@ -88,8 +79,16 @@ def generate_binary_hypers(inventory_fpath, max_synsets=1, hyper_synset_max_size
     return bin_count, output_fpath
 
     
-def run(pcz_fpath):
-         
+def run(inventory_fpath):
+    dsv = DenseSenseVectors(
+        pcz_fpath=inventory_fpath,
+        word_vectors_obj=None,
+        save_pkl=True,
+        sense_dim_num=1000,
+        norm_type="sum",
+        weight_type="score",
+        max_cluster_words=20)
+
     for max_top_synsets in range(1,10):
         for max_hyper_synset_size in [3, 5, 10, 15, 20]:
             for hc_max in [1, 2, 3, 0]: 
@@ -97,7 +96,7 @@ def run(pcz_fpath):
                 print("max number of synsets:", max_top_synsets)
                 print("max hyper synset size:", max_hyper_synset_size)
                 print("hc_max:", hc_max)
-                generate_binary_hypers(pcz_fpath, max_top_synsets, max_hyper_synset_size, hc_max)
+                generate_binary_hypers(dsv, inventory_fpath, max_top_synsets, max_hyper_synset_size, hc_max)
                        
   
 def main():
