@@ -13,10 +13,8 @@ import codecs
 from traceback import format_exc
 import gzip
 import logging
-import gensim
-import requests
-from clint.textui import progress
 from os.path import join, exists
+from egvi.disambiguator import ensure_word_embeddings
 
 
 wsi_data_dir = "/home/panchenko/russe-wsi-full/data/"
@@ -70,14 +68,14 @@ def save_to_gensim_format(wv, output_fpath):
 
 def load_globally(word_vectors_fpath):
     global wv
-    
+
     if not wv:
         print("Loading word vectors from:", word_vectors_fpath)
         tic = time()
         if word_vectors_fpath.endswith(".vec.gz"):
             wv = KeyedVectors.load_word2vec_format(word_vectors_fpath, binary=False, unicode_errors="ignore")
         else:
-            wv = gensim.models.KeyedVectors.load(word_vectors_fpath)            
+            wv = KeyedVectors.load(word_vectors_fpath)
         print("Loaded in {} sec.".format(time()-tic))
     else:
         print("Using loaded word vectors.")
@@ -213,92 +211,28 @@ def get_cluster_lines(G, nodes):
 
 def run(language="ru", eval_vocabulary=False, visualize=True, show_plot=False):
     # parameters
-    wv_fpath = "model/cc.{}.300.vec.gz".format(language)
-    wv_pkl_fpath = wv_fpath + ".pkl"
 
-    if eval_vocabulary:
-        voc = get_target_words(language)    
-    else:
-        voc = get_sorted_vocabulary(wv_fpath)
-    words = {w: None for w in voc}    words = {w: None for w in voc}
-
-    print("Language:", language)
-    print("Visuzlize:", visualize)
-    print("Vocabulary: {} words", len(voc))
-
-    # ensure that the word vectors exist
-    if not exists(wv_fpath):
-	wv_uri = "https://s3-us-west-1.amazonaws.com/fasttext-vectors/word-vectors-v2/cc.{}.300.vec.gz".format(language)
-	print("Downloading the fasttext model from {}".format(wv_uri))
-	r = requests.get(wv_uri, stream=True)
-	path = "model/cc.{}.300.vec.gz".format(language)
-	with open(path, "wb") as f:
-	    total_length = int(r.headers.get("content-length"))
-	    for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1): 
-		if chunk:
-		    f.write(chunk)
-		    f.flush()
-
-    # ensure the word vectors are saved in the fast to load gensim format 
-    if not exists(wv_pkl_fpath):
-	load_globally(wv_fpath) # loads wv 
-	save_to_gensim_format(wv, wv_pkl_fpath)
-    else:
-	load_globally(wv_pkl_fpath)
-
-    # perform word sense induction 
-    for topn in [50, 100, 200]: 
-	output_fpath = wv_fpath + ".top{}.wsi-inventory.tsv".format(topn)
-	with codecs.open(output_fpath, "w", "utf-8") as out:
-	    out.write("word\tcid\tkeyword\tcluster\n")
-	    for word in words:
-		try:
-		    words[word] = wsi(word, topn=topn)
-		    if visualize:
-			plt_fpath = output_fpath + ".{}.png".format(word)
-			draw_ego(words[word]["network"], show_plot, plt_fpath)
-		    lines = get_cluster_lines(words[word]["network"], words[word]["nodes"])
-		    for l in lines: out.write(l)
-		except KeyboardInterrupt:
-		    break
-		except:
-		    print("Error:", word)
-		    print(format_exc())
-	print("Output:", output_fpath)
-
-def run_old(language = "de", eval_vocabulary=False, visualize = False, show_plot = False):
-    print("Language:", language)
-    print("Evaluation:", eval_vocabulary)
-    print("Visuzlize:", visualize)
-
-    wv_fpath = "model/cc.{}.300.vec.gz".format(language)
-    wv_gensim_fpath = wv_fpath + ".gensim"
-
-    if not exists(wv_fpath):
-        wv_uri = "https://s3-us-west-1.amazonaws.com/fasttext-vectors/word-vectors-v2/cc.{}.300.vec.gz".format(language)
-        print("Downloading the fasttext model from {}".format(wv_uri))
-        r = requests.get(wv_uri, stream=True)
-        path = "model/cc.{}.300.vec.gz".format(language)
-        with open(path, "wb") as f:
-            total_length = int(r.headers.get("content-length"))
-            for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1): 
-                if chunk:
-                    f.write(chunk)
-                    f.flush()
-                    
     if eval_vocabulary:
         voc = get_target_words(language)    
     else:
         voc = get_sorted_vocabulary(wv_fpath)
     words = {w: None for w in voc}
 
-    if not exists(wv_gensim_fpath):
-        load_globally(wv_fpath) # loads wv 
-        save_to_gensim_format(wv, wv_gensim_fpath)
+    print("Language:", language)
+    print("Visuzlize:", visualize)
+    print("Vocabulary: {} words", len(voc))
+
+    wv_fpath, wv_pkl_fpath = ensure_word_embeddings(language)
+
+    # ensure the word vectors are saved in the fast to load gensim format
+    if not exists(wv_pkl_fpath):
+        load_globally(wv_fpath) # loads wv
+        save_to_gensim_format(wv, wv_pkl_fpath)
     else:
-        load_globally(wv_gensim_fpath)
-        
-    for topn in [50, 100, 200]: 
+        load_globally(wv_pkl_fpath)
+
+    # perform word sense induction
+    for topn in [50, 100, 200]:
         output_fpath = wv_fpath + ".top{}.inventory.tsv".format(topn)
         with codecs.open(output_fpath, "w", "utf-8") as out:
             out.write("word\tcid\tkeyword\tcluster\n")
@@ -308,7 +242,7 @@ def run_old(language = "de", eval_vocabulary=False, visualize = False, show_plot
                     if visualize:
                         plt_fpath = output_fpath + ".{}.png".format(word)
                         draw_ego(words[word]["network"], show_plot, plt_fpath)
-                    lines = get_cluster_lines(words[word]["network"], words[word]["nodes"])
+                        lines = get_cluster_lines(words[word]["network"], words[word]["nodes"])
                     for l in lines: out.write(l)
                 except KeyboardInterrupt:
                     break
@@ -316,7 +250,8 @@ def run_old(language = "de", eval_vocabulary=False, visualize = False, show_plot
                     print("Error:", word)
                     print(format_exc())
         print("Output:", output_fpath)
-    
+
+
 
 def main():
     parser = argparse.ArgumentParser(description='Graph-Vector Word Sense Induction appraoch.')
