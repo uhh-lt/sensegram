@@ -19,6 +19,8 @@ from clint.textui import progress
 from os.path import join, exists
 
 
+wsi_data_dir = "/home/panchenko/russe-wsi-full/data/"
+
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
@@ -33,7 +35,6 @@ except NameError:
 
 def get_ru_wsi_vocabulary():
     dataset_names = ["active-dict", "wiki-wiki", "bts-rnc"]
-    wsi_data_dir = "/home/panchenko/russe-wsi-full/data/"
 
     voc = set(["ключ", "замок", "коса"])
 

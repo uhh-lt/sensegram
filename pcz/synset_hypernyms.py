@@ -89,9 +89,9 @@ def run(inventory_fpath):
         weight_type="score",
         max_cluster_words=20)
 
-    for max_top_synsets in range(1,10):
+    for max_top_synsets in [1]:
         for max_hyper_synset_size in [3, 5, 10, 15, 20]:
-            for hc_max in [1, 2, 3, 0]: 
+            for hc_max in [1, 2, 3]: 
                 print("="*50)
                 print("max number of synsets:", max_top_synsets)
                 print("max hyper synset size:", max_hyper_synset_size)
