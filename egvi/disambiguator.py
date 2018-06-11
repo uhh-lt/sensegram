@@ -1,11 +1,18 @@
-"""dependencies required to use of this file:
-pip install gensim clint requests pandas """
+"""Dependencies required to use of this file can be installed as following:
+   pip install gensim clint requests pandas nltk
+   python -m nltk.downloader punkt """
+
 
 import requests
 from clint.textui import progress
 from os.path import exists
 from gensim.models import KeyedVectors
 from pandas import read_csv
+from nltk.tokenize import word_tokenize
+from collections import defaultdict, namedtuple
+
+
+Sense = namedtuple('Sense', 'keyword cluster')
 
 
 def ensure_word_embeddings(language):
@@ -35,17 +42,44 @@ class WSD(object):
             :param language code of the target language of the inventory, e.g. "en", "de" or "fr" """
 
         _, wv_pkl_fpath = ensure_word_embeddings(language)
-        wv = KeyedVectors.load(wv_pkl_fpath)
+        self._wv = KeyedVectors.load(wv_pkl_fpath)
+        self._inventory = self._load_inventory(inventory_fpath)
+
+    def _load_inventory(self, inventory_fpath):
         inventory_df = read_csv(inventory_fpath, sep="\t", encoding="utf-8")
-        # convert inventory into somehting more digestable e.g. dictionary word -> sense information
+
+        inventory = defaultdict(lambda: list())
+        for i, row in inventory_df.iterrows():
+            cluster_words = [cw.strip() for cw in row.cluster.split(",")]
+            inventory[row.word].append(Sense(row.keyword, cluster_words))
+
+        return inventory
+
+    def disambiguate(self, target_word, context):
+        """ Perform word sense disambiguation: find the correct sense of the target word inside
+        the provided context.
+        :param target_word an ambigous word that need to be disambiguated
+        :param context context of the target_word that allows to disambigute its meaning, represented as a string
+        :return sense id of the target_word and a confidence of the prediction """
+
+        try:
+            # try to use nltk tokenizer
+            tokens = word_tokenize(context)
+        except LookupError:
+            # do the simple tokenization if not installed
+            tokens = context.split(" ")
+
+        return self.disambiguate_tokenized(target_word, tokens)
+
+    def disambiguate_tokenized(self, target_word, tokens):
+        """ Perform word sense disambiguation: find the correct sense of the target word inside
+        the provided context.
+        :param target_word an ambigous word that need to be disambiguated
+        :param tokens context of the target_word that allows to disambigute its meaning, represented as a list of tokens
+        :return sense id of the target_word and a confidence of the prediction """
+
+        return 1, 0.99
 
 
-    def disambiguate(self, target_word, context, context_is_tokenized=False):
-        """ wsd """
-
-        if context_is_tokenized:
-            tokens = context
-        else:
-            tokens = context.split(" ") # or something more involved ... if the language is European
 
 
