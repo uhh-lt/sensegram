@@ -70,12 +70,12 @@ class WSD(object):
 
         return inventory
 
-    def disambiguate(self, target_word, context):
+    def disambiguate(self, context, target_word):
         """ Perform word sense disambiguation: find the correct sense of the target word inside
         the provided context.
-        :param target_word an ambigous word that need to be disambiguated
         :param context context of the target_word that allows to disambigute its meaning, represented as a string
-        :return sense id of the target_word and a confidence of the prediction """
+        :param target_word an ambigous word that need to be disambiguated
+        :return a list of tuples (sense, confidence) """
 
         try:
             # try to use nltk tokenizer
@@ -84,15 +84,15 @@ class WSD(object):
             # do the simple tokenization if not installed
             tokens = context.split(" ")
 
-        return self.disambiguate_tokenized(target_word, tokens)
+        return self.disambiguate_tokenized(tokens, target_word)
 
-    def disambiguate_tokenized(self, target_word, tokens, most_significant_num=3):
+    def disambiguate_tokenized(self, tokens, target_word, most_significant_num=3):
         """ Perform word sense disambiguation: find the correct sense of the target word inside
         the provided context.
-        :param target_word an ambigous word that need to be disambiguated
         :param tokens context of the target_word that allows to disambigute its meaning, represented as a list of tokens
+        :param target_word an ambigous word that need to be disambiguated
         :param most_significant_num number of the most significant context words which are takein into account from the tokens
-        :return sense id of the target_word and a confidence of the prediction """
+        :return a list of tuples (sense, confidence) """
 
         # get the inventory
         if target_word not in self._inventory:
@@ -115,9 +115,11 @@ class WSD(object):
         # retrieve vectors of all context words
         context_vectors = {}
         for context_word in tokens:
-            is_not_target = not (context_word.lower().startswith(target_word.lower()) and
+            is_target = (context_word.lower().startswith(target_word.lower()) and
                                  len(context_word) - len(target_word) <= 1)
-            if is_not_target and context_word in self._wv.vocab:
+            if is_target: continue
+
+            if context_word in self._wv.vocab:
                 context_vectors[context_word] = self._wv[context_word]
             else:
                 print("Warning: context word '{}' is not in the word embedding model. Skipping the word.".format(context_word))
