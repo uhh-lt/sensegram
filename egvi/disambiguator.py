@@ -14,7 +14,17 @@ from operator import itemgetter
 from numpy import mean
 
 
-Sense = namedtuple('Sense', 'keyword cluster')
+SenseBase = namedtuple('Sense', 'keyword cluster')
+
+class Sense(SenseBase): # this is needed as list is an unhashable type
+    def get_hash(self):
+        return hash(self.keyword + "".join(self.cluster))
+
+    def __hash__(self):
+        return self.get_hash()
+
+    def __eq__(self, other):
+        return self.get_hash() == other.get_hash()
 
 
 def ensure_word_embeddings(language):
@@ -105,7 +115,9 @@ class WSD(object):
         # retrieve vectors of all context words
         context_vectors = {}
         for context_word in tokens:
-            if context_word in self._wv.vocab:
+            is_not_target = not (context_word.lower().startswith(target_word.lower()) and
+                                 len(context_word) - len(target_word) <= 1)
+            if is_not_target and context_word in self._wv.vocab:
                 context_vectors[context_word] = self._wv[context_word]
             else:
                 print("Warning: context word '{}' is not in the word embedding model. Skipping the word.".format(context_word))
@@ -114,16 +126,16 @@ class WSD(object):
         context_word_scores = {}
         for context_word in context_vectors:
             scores = []
-            for sense_vector in sense_vectors:
-                scores.append(context_vectors[context_word].dot(sense_vector))
+            for sense in sense_vectors:
+                scores.append(context_vectors[context_word].dot(sense_vectors[sense]))
             context_word_scores[context_word] = abs(max(scores) - min(scores))
 
-        best_context_words = sorted(context_word_scores, key=itemgetter(1), reverse=True)[:most_significant_num]
+        best_context_words = sorted(context_word_scores.items(), key=itemgetter(1), reverse=True)[:most_significant_num]
 
         # average the selected context words
-        best_context_vectors = [context_vectors[context_word] for context_word in best_context_words]
-        context_vector = mean(best_context_vectors)
+        best_context_vectors = [context_vectors[context_word] for context_word, _ in best_context_words]
+        context_vector = mean(best_context_vectors, axis=0)
 
         # pick the sense which is the most similar to the context vector
-        sense_scores = [(senses, context_vector.dot(sense_vectors[sense])) for sense in sense_vectors]
+        sense_scores = [(sense, context_vector.dot(sense_vectors[sense])) for sense in sense_vectors]
         return sorted(sense_scores, key=itemgetter(1), reverse=True)
