@@ -85,7 +85,7 @@ class WSD(object):
         senses = []
         for word in words:
             if word in self._inventory:
-                senses += self.inventory[word]
+                senses += self._inventory[word]
 
         return senses
 
@@ -148,7 +148,7 @@ class WSD(object):
                                  len(context_word) - len(target_word) <= 1)
             if is_target: continue
 
-            if self._skip_unknown_words and self._verbose and context_word in self._wv.vocab:
+            if self._skip_unknown_words and self._verbose and context_word not in self._wv.vocab:
                 print("Warning: context word '{}' is not in the word embedding model. Skipping the word.".format(context_word))
             else:
                 context_vectors[context_word] = self._wv[context_word]
