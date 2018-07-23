@@ -50,20 +50,19 @@ def main():
                                       "skip-gram model).", default=1, type=int)
     parser.add_argument('-size', help="Set size of word vectors (default is 300).", default=300, type=int)
     parser.add_argument('-window', help="Set max skip length between words (default is 5).", default=5, type=int)
-    parser.add_argument('-threads', help="Use <int> threads (default {}).".format(cpu_count()), default=cpu_count(), type=int)
+    parser.add_argument('-threads', help="Use <int> threads (default {}).".format(cpu_count()),
+                        default=cpu_count(), type=int)
     parser.add_argument('-iter', help="Run <int> training iterations (default 5).", default=5, type=int)
     parser.add_argument('-min_count', help="This will discard words that appear less than <int> times"
                                            " (default is 10).", default=10, type=int)
-    #parser.add_argument('-only_letters', help="Use only words built from letters/dash/point for DT.", action="store_true")
-    #parser.add_argument('-vocab_limit', help="Use only <int> most frequent words from word vector model"
-    #                                         " for DT. By default use all words (default is none).", default=None, type=int)
     parser.add_argument('-N', help="Number of nodes in each ego-network (default is 200).", default=200, type=int)
     parser.add_argument('-n', help="Maximum number of edges a node can have in the network"
                                    " (default is 200).", default=200, type=int)
     parser.add_argument('-min_size', help="Minimum size of the cluster (default is 5).", default=5, type=int)
     parser.add_argument('-make-pcz', help="Perform two extra steps to label the original sense inventory with"
                                           " hypernymy labels and disambiguate the list of related words."
-                                          "The obtained resource is called proto-concepualization or PCZ.", action="store_true")
+                                          "The obtained resource is called proto-concepualization or PCZ.",
+                        action="store_true")
     args = parser.parse_args()
 
     vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath = get_paths(

@@ -8,8 +8,6 @@ install:
 	make install-faiss
 
 install-ubuntu-16-04:
-	sudo apt-get update
-	sudo apt-get install swig libopenblas-dev python-dev gcc g++ python3-pip unzip
 	make install-anaconda3
 	make install 
 
@@ -25,6 +23,11 @@ train-wikipedia:
 	bash train.sh model/wikipedia.txt.gz
 
 install-faiss:
+    conda install faiss-cpu -c pytorch
+
+install-faiss-sources:
+	sudo apt-get update
+	sudo apt-get install swig libopenblas-dev python-dev gcc g++ python3-pip unzip
 	rm -rf faiss
 	git clone https://github.com/facebookresearch/faiss.git 
 	# for compilation using other linux distributions see the faiss/makefile.inc and change it accordingly
