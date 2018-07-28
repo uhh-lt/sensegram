@@ -39,7 +39,7 @@ def load_vocabulary(vocabulary_fpath):
     return voc
 
 
-def add_phrases(tokens, phrases):
+def add_phrases(tokens, phrases, do_restore_bigrams):
     """ Add multiword phrases to the input sequence of tokens. """
 
     def get_ngram_max(phrases):
@@ -72,20 +72,20 @@ def add_phrases(tokens, phrases):
         skip_tokens = 0
 
         for i in range(len(splitted_tokens)):
-            for ngram_size in range(ngram_max, 2 -1 , -1):
-                phrase_candidate = "_".join(splitted_tokens[i:i + ngram_size])
-                if phrase_candidate in phrases:
-                    phrase_tokens.append(phrase_candidate)
-                    skip_tokens = ngram_size
-                    break
-
             if skip_tokens > 0:
                 skip_tokens -= 1
                 continue
 
-            phrase_tokens.append(splitted_tokens[i])
+            for ngram_size in range(ngram_max, 2 -1 , -1):
+                phrase_candidate = "_".join(splitted_tokens[i:i + ngram_size])
+                if phrase_candidate in phrases:
+                    phrase_tokens.append(phrase_candidate)
+                    print("+++", phrase_candidate)
+                    skip_tokens = ngram_size - 1
+                    break
 
-        print("\n", phrase_tokens)
+            if skip_tokens == 0:
+                phrase_tokens.append(splitted_tokens[i])
 
         return phrase_tokens
 
@@ -109,6 +109,7 @@ def add_phrases(tokens, phrases):
 
             bigram_candidate_space = " ".join(tokens_with_phrases[i:i+2])
             bigram_candidate_under = "_".join(tokens_with_phrases[i:i+2])
+
             if "_" not in bigram_candidate_space and bigram_candidate_under in bigrams:
                 tokens_with_phrases_and_bigrams.append(bigram_candidate_under)
                 skip = True
@@ -118,36 +119,40 @@ def add_phrases(tokens, phrases):
         return tokens_with_phrases_and_bigrams
 
     tokens_with_phrases = add_dict_phrases(tokens, phrases)
-    tokens_with_phrases_and_bigrams = restore_bigrams(tokens_with_phrases, tokens)
 
-    return tokens_with_phrases_and_bigrams
+    if do_restore_bigrams:
+        return restore_bigrams(tokens_with_phrases, tokens)
+    else:
+        return tokens_with_phrases
 
 
 def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, size, threads,
-                          min_count, detect_phrases=True, vocabulary_fpath=""):
+                          min_count, detect_bigrams=True, phrases_fpath=""):
 
     tic = time()
-    sentences = GzippedCorpusStreamer(corpus_fpath) 
+    sentences = GzippedCorpusStreamer(corpus_fpath)
     
-    if detect_phrases:
-        print("Extracting phrases from the corpus:", corpus_fpath)
+    if detect_bigrams:
+        print("Extracting bigrams from the corpus:", corpus_fpath)
 
-        if exists(vocabulary_fpath): vocabulary = load_vocabulary(vocabulary_fpath)
-        else: vocabulary = set()
-
-        phrases = Phrases(sentences, min_count=min_count, common_terms=vocabulary)
-
+        phrases = Phrases(sentences, min_count=min_count)
         bigram = Phraser(phrases)
-        input_sentences = list(bigram[sentences])
-        print("Time, sec.:", time()-tic)
-    else:
-        input_sentences = sentences
+        sentences = list(bigram[sentences])
+        print("Time, sec.:", time() - tic)
 
-    # modify input_sentences
-    # input_sentences add_phrases(input_sentences[2], set(["stateless_societies", "a_political_philosophy"]))
+    if exists(phrases_fpath):
+        tic = time()
+        print("Finding phrases from the input dictionary:", phrases_fpath)
+
+        phrases = load_vocabulary(phrases_fpath)
+        sentences_tmp = sentences
+        sentences = [add_phrases(sentence, phrases, detect_bigrams) for sentence in sentences_tmp]
+
+        print("Time, sec.:", time() - tic)
+
 
     print("Training word vectors:", corpus_fpath)
-    model = Word2Vec(input_sentences,
+    model = Word2Vec(sentences,
                      min_count=min_count,
                      size=size,
                      window=window, 
