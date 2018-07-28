@@ -46,6 +46,9 @@ def main():
                                                  'corpus using the SkipGram approach based on word2vec and graph '
                                                  'clustering of ego networks of semantically related terms.')
     parser.add_argument('train_corpus', help="Path to a training corpus in text form (can be .gz).")
+    parser.add_argument('-voc', help="Path to a file with extra vocabulary words, e.g. multiword expressions,"
+                                     "which should be included into the vocabulary of the model. Each "
+                                     "line of this text file should contain one word or phrase with no header.")
     parser.add_argument('-cbow', help="Use the continuous bag of words model (default is 1, use 0 for the "
                                       "skip-gram model).", default=1, type=int)
     parser.add_argument('-size', help="Set size of word vectors (default is 300).", default=300, type=int)
@@ -71,7 +74,8 @@ def main():
     if not exists(vectors_fpath):
         print(vectors_fpath)
         learn_word_embeddings(args.train_corpus, vectors_fpath, args.cbow, args.window,
-                              args.iter, args.size, args.threads, args.min_count, detect_phrases=True)
+                              args.iter, args.size, args.threads, args.min_count,
+                              detect_phrases=True, vocabulary_fpath=args.voc)
     else:
         print("Using existing vectors:", vectors_fpath)
  

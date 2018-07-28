@@ -4,7 +4,7 @@ from gensim.utils import tokenize
 from gensim.models.phrases import Phrases, Phraser
 from gensim.models import Word2Vec
 from time import time
-
+from os.path import exists
 
 class GzippedCorpusStreamer(object):
     def __init__(self, corpus_fpath):
@@ -25,21 +25,127 @@ class GzippedCorpusStreamer(object):
                               to_lower=False,
                               lower=False))
 
+def load_vocabulary(vocabulary_fpath):
+    voc = set()
+    with codecs.open(vocabulary_fpath, "r", "utf-8") as voc_file:
+        for line in voc_file:
+            word = line.strip()
+            voc.add(word)
+            voc.add(word.capitalize())
+            word = word.replace(" ", "_")
+            voc.add(word)
+            voc.add(word.capitalize())
 
-def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, size, threads, min_count, detect_phrases=True):
+    return voc
+
+
+def add_phrases(tokens, phrases):
+    """ Add multiword phrases to the input sequence of tokens. """
+
+    def get_ngram_max(phrases):
+        max_len = 0
+
+        for p in phrases:
+            p_len = len(p.split("_"))
+            if max_len < p_len: max_len = p_len
+
+        return max_len
+
+    def split_tokens(tokens):
+        splitted_tokens = []
+
+        for t in tokens:
+            if "_" in t:
+                splitted = t.split("_")
+                for st in splitted:
+                    splitted_tokens.append(st)
+            else:
+                splitted_tokens.append(t)
+
+        return splitted_tokens
+
+    def add_dict_phrases(tokens, phrases):
+        splitted_tokens = split_tokens(tokens)
+        ngram_max = get_ngram_max(phrases)
+
+        phrase_tokens = []
+        skip_tokens = 0
+
+        for i in range(len(splitted_tokens)):
+            for ngram_size in range(ngram_max, 2 -1 , -1):
+                phrase_candidate = "_".join(splitted_tokens[i:i + ngram_size])
+                if phrase_candidate in phrases:
+                    phrase_tokens.append(phrase_candidate)
+                    skip_tokens = ngram_size
+                    break
+
+            if skip_tokens > 0:
+                skip_tokens -= 1
+                continue
+
+            phrase_tokens.append(splitted_tokens[i])
+
+        print("\n", phrase_tokens)
+
+        return phrase_tokens
+
+    def get_bigrams(tokens):
+        bigrams = set()
+
+        for t in tokens:
+            if "_" in t: bigrams.add(t)
+
+        return bigrams
+
+    def restore_bigrams(tokens_with_phrases, tokens_with_bigrams):
+        bigrams = get_bigrams(tokens_with_bigrams)
+
+        tokens_with_phrases_and_bigrams = []
+        skip = False
+        for i in range(len(tokens_with_phrases)):
+            if skip:
+                skip = False
+                continue
+
+            bigram_candidate_space = " ".join(tokens_with_phrases[i:i+2])
+            bigram_candidate_under = "_".join(tokens_with_phrases[i:i+2])
+            if "_" not in bigram_candidate_space and bigram_candidate_under in bigrams:
+                tokens_with_phrases_and_bigrams.append(bigram_candidate_under)
+                skip = True
+            else:
+                tokens_with_phrases_and_bigrams.append(tokens_with_phrases[i])
+
+        return tokens_with_phrases_and_bigrams
+
+    tokens_with_phrases = add_dict_phrases(tokens, phrases)
+    tokens_with_phrases_and_bigrams = restore_bigrams(tokens_with_phrases, tokens)
+
+    return tokens_with_phrases_and_bigrams
+
+
+def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, size, threads,
+                          min_count, detect_phrases=True, vocabulary_fpath=""):
 
     tic = time()
     sentences = GzippedCorpusStreamer(corpus_fpath) 
     
     if detect_phrases:
         print("Extracting phrases from the corpus:", corpus_fpath)
-        phrases = Phrases(sentences)
+
+        if exists(vocabulary_fpath): vocabulary = load_vocabulary(vocabulary_fpath)
+        else: vocabulary = set()
+
+        phrases = Phrases(sentences, min_count=min_count, common_terms=vocabulary)
+
         bigram = Phraser(phrases)
         input_sentences = list(bigram[sentences])
         print("Time, sec.:", time()-tic)
     else:
         input_sentences = sentences
-    
+
+    # modify input_sentences
+    # input_sentences add_phrases(input_sentences[2], set(["stateless_societies", "a_political_philosophy"]))
+
     print("Training word vectors:", corpus_fpath)
     model = Word2Vec(input_sentences,
                      min_count=min_count,
