@@ -4,10 +4,11 @@ from gensim.utils import tokenize
 from gensim.models.phrases import Phrases, Phraser
 from gensim.models import Word2Vec
 from time import time
-from os.path import exists
+from os.path import exists, isfile, isdir
 from tqdm import tqdm
 from multiprocessing import cpu_count, Pool
 from collections import defaultdict
+from glob import glob
 
 
 class GzippedCorpusStreamer(object):
@@ -15,15 +16,16 @@ class GzippedCorpusStreamer(object):
         self._corpus_fpath = corpus_fpath
         
     def __iter__(self):
-        # os.path.isfile("bob.txt")  # Does bob.txt exist?  Is it a file, or a directory?
-        # os.path.isdir("bob")
-        # if self._corpus_fpath is a directory then for each files
-        # otherwise just read ...
-        corpus_fpath = self._corpus_fpath
-        yield from self._read_file(corpus_fpath)
+        if isdir(self._corpus_fpath) and not isfile(self._corpus_fpath):
+            for corpus_fpath in glob(self._corpus_fpath + "/*"):
+                print("Reading from file:", corpus_fpath)
+                yield from self._read_file(corpus_fpath)
+        else:
+            print("Reading from file:", self._corpus_fpath)
+            yield from self._read_file(self._corpus_fpath)
 
     def _read_file(self, corpus_fpath):
-        if corpus_fpath.endswith(".gz"):
+        if corpus_fpath.endswith(".txt.gz"):
             corpus = gzip.open(corpus_fpath, "r", "utf-8")
         else:
             corpus = codecs.open(corpus_fpath, "r", "utf-8")
@@ -149,17 +151,17 @@ class PhraseDetector(object):
             return tokens_with_phrases
 
 
-def detect_phrases(corpus_fpath, phrases_fpath, batch_size=100000):
+def detect_phrases(corpus_fpath, phrases_fpath, batch_size=500000):
     """ Gets a text corpus as input, detect phrases and saves an updated corpus to filesystem.
     The path to the resulting corpus is returned from this function. """
 
-    output_fpath = corpus_fpath + ".phrases.txt"
+    output_fpath = corpus_fpath + ".phrases.gz"
     sentences = GzippedCorpusStreamer(corpus_fpath)
     pd = PhraseDetector(phrases_fpath, do_restore_bigrams=False)
     pool = Pool(processes=cpu_count())
 
     s_batch = []
-    with codecs.open(output_fpath, "w", "utf-8") as out:
+    with gzip.open(output_fpath, "wt", encoding="utf-8") as out:
         for s in tqdm(sentences):
 
             s_batch.append(s)
@@ -182,7 +184,7 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
     if exists(phrases_fpath):
         tic = time()
         print("Finding phrases from the input dictionary:", phrases_fpath)
-        corpus_fpath = detect_phrases(corpus_fpath, phrases_fpath, batch_size=100000)
+        corpus_fpath = detect_phrases(corpus_fpath, phrases_fpath, batch_size=500000)
         print("Time, sec.: {}".format(time() - tic))
 
     sentences = GzippedCorpusStreamer(corpus_fpath)
