@@ -7,6 +7,7 @@ from time import time
 from os.path import exists
 from tqdm import tqdm
 from multiprocessing import cpu_count, Pool
+from collections import defaultdict
 
 
 class GzippedCorpusStreamer(object):
@@ -41,6 +42,13 @@ class PhraseDetector(object):
         self._restore_bigrams = do_restore_bigrams
         self._phrases = self._load_vocabulary(vocabulary_fpath)
         self._ngram_max = self._get_ngram_max(self._phrases)
+        self._stats = defaultdict(int)
+        for p in self._phrases:
+            self._stats[p] = 0
+
+    def print_stats(self):
+        for phrase in self._stats:
+            print("phrase:\t{}\t{}".format(phrase, self._stats[phrase]))
 
     def _load_vocabulary(self, vocabulary_fpath):
         voc = set()
@@ -92,6 +100,7 @@ class PhraseDetector(object):
                 phrase_candidate = "_".join(splitted_tokens[i:i + ngram_size])
                 if phrase_candidate in self._phrases:
                     phrase_tokens.append(phrase_candidate)
+                    self._stats[phrase_candidate] += 1
                     skip_tokens = ngram_size - 1
                     break
 
@@ -140,7 +149,7 @@ class PhraseDetector(object):
             return tokens_with_phrases
 
 
-def detect_phrases(corpus_fpath, phrases_fpath, batch_size=1000000):
+def detect_phrases(corpus_fpath, phrases_fpath, batch_size=100000):
     """ Gets a text corpus as input, detect phrases and saves an updated corpus to filesystem.
     The path to the resulting corpus is returned from this function. """
 
@@ -159,6 +168,8 @@ def detect_phrases(corpus_fpath, phrases_fpath, batch_size=1000000):
                     out.write("{}\n".format(" ".join(s)))
 
                 s_batch = []
+
+    pd.print_stats()
 
     return output_fpath
 
@@ -183,7 +194,7 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
         # pd = PhraseDetector(phrases_fpath, detect_bigrams)
         # pool = Pool(processes=cpu_count())
         # sentences = [s for s in tqdm(pool.map(pd.add_phrases, list(sentences)))]
-        corpus_fpath = detect_phrases(corpus_fpath, phrases_fpath, batch_size=1000000)
+        corpus_fpath = detect_phrases(corpus_fpath, phrases_fpath, batch_size=100000)
         print("Time, sec.: {}".format(time() - tic))
 
 
