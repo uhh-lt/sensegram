@@ -6,6 +6,7 @@ from gensim.models import Word2Vec
 from time import time
 from os.path import exists
 from tqdm import tqdm
+from multiprocessing import cpu_count, Pool
 
 
 class GzippedCorpusStreamer(object):
@@ -91,7 +92,6 @@ class PhraseDetector(object):
                 phrase_candidate = "_".join(splitted_tokens[i:i + ngram_size])
                 if phrase_candidate in self._phrases:
                     phrase_tokens.append(phrase_candidate)
-                    print("+++", phrase_candidate)
                     skip_tokens = ngram_size - 1
                     break
 
@@ -159,10 +159,16 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
         print("Finding phrases from the input dictionary:", phrases_fpath)
 
         pd = PhraseDetector(phrases_fpath, detect_bigrams)
-        sentences_tmp = sentences
-        sentences = [pd.add_phrases(sentence) for sentence in tqdm(sentences_tmp)]
 
-        print("Time, sec.:", time() - tic)
+        tic = time()
+        sentences_tmp = sentences
+        sentences = [pd.add_phrases(sentence) for sentence in sentences_tmp]
+        print("single, sec.:", time() - tic)
+
+        tic = time()
+        pool = Pool(processes=cpu_count())
+        sentences = [s for s in tqdm(pool.map(pd.add_phrases, sentences))]
+        print("multi {}, sec.: {}".format(cpu_count(), time() - tic))
 
 
     print("Training word vectors:", corpus_fpath)
