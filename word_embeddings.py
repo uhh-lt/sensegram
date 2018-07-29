@@ -160,7 +160,7 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
 
         pd = PhraseDetector(phrases_fpath, detect_bigrams)
         pool = Pool(processes=cpu_count())
-        sentences = [s for s in tqdm(pool.map(pd.add_phrases, sentences))]
+        sentences = [s for s in tqdm(pool.map(pd.add_phrases, list(sentences)))]
         print("Time, sec.: {}".format(time() - tic))
 
 
