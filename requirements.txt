@@ -9,3 +9,4 @@ stop_words
 chinese_whispers
 spacy
 sklearn
+tqdm

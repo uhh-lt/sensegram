@@ -5,25 +5,35 @@ from gensim.models.phrases import Phrases, Phraser
 from gensim.models import Word2Vec
 from time import time
 from os.path import exists
+from tqdm import tqdm
+
 
 class GzippedCorpusStreamer(object):
     def __init__(self, corpus_fpath):
         self._corpus_fpath = corpus_fpath
         
     def __iter__(self):
-        if self._corpus_fpath.endswith(".gz"):
-            corpus = gzip.open(self._corpus_fpath, "r", "utf-8")
+        # os.path.isfile("bob.txt")  # Does bob.txt exist?  Is it a file, or a directory?
+        # os.path.isdir("bob")
+        # if self._corpus_fpath is a directory then for each files
+        # otherwise just read ...
+        corpus_fpath = self._corpus_fpath
+        yield from self._read_file(corpus_fpath)
+
+    def _read_file(self, corpus_fpath):
+        if corpus_fpath.endswith(".gz"):
+            corpus = gzip.open(corpus_fpath, "r", "utf-8")
         else:
-            corpus = codecs.open(self._corpus_fpath, "r", "utf-8")
-            
+            corpus = codecs.open(corpus_fpath, "r", "utf-8")
         for line in corpus:
-                yield list(tokenize(line,
-                              lowercase=False,
-                              deacc=False,
-                              encoding='utf8',
-                              errors='strict',
-                              to_lower=False,
-                              lower=False))
+            yield list(tokenize(line,
+                                lowercase=False,
+                                deacc=False,
+                                encoding='utf8',
+                                errors='strict',
+                                to_lower=False,
+                                lower=False))
+
 
 def load_vocabulary(vocabulary_fpath):
     voc = set()
@@ -146,7 +156,7 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
 
         bigram_transformer = load_vocabulary(phrases_fpath)
         sentences_tmp = sentences
-        sentences = [add_phrases(sentence, bigram_transformer, detect_bigrams) for sentence in sentences_tmp]
+        sentences = [add_phrases(sentence, bigram_transformer, detect_bigrams) for sentence in tqdm(sentences_tmp)]
 
         print("Time, sec.:", time() - tic)
 
