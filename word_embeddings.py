@@ -140,6 +140,29 @@ class PhraseDetector(object):
             return tokens_with_phrases
 
 
+def detect_phrases(corpus_fpath, phrases_fpath, batch_size=1000000):
+    """ Gets a text corpus as input, detect phrases and saves an updated corpus to filesystem.
+    The path to the resulting corpus is returned from this function. """
+
+    output_fpath = corpus_fpath + ".phrases.txt"
+    sentences = GzippedCorpusStreamer(corpus_fpath)
+    pd = PhraseDetector(phrases_fpath, do_restore_bigrams=False)
+    pool = Pool(processes=cpu_count())
+
+    s_batch = []
+    with codecs.open(output_fpath, "w", "utf-8") as out:
+        for s in tqdm(sentences):
+
+            s_batch.append(s)
+            if len(s_batch) == batch_size:
+                for s in pool.map(pd.add_phrases, s_batch):
+                    out.write("{}\n".format(" ".join(s)))
+                s_batch = []
+                print(".", end="")
+
+    return output_fpath
+
+
 def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, size, threads,
                           min_count, detect_bigrams=True, phrases_fpath=""):
 
@@ -157,10 +180,10 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
     if exists(phrases_fpath):
         tic = time()
         print("Finding phrases from the input dictionary:", phrases_fpath)
-
-        pd = PhraseDetector(phrases_fpath, detect_bigrams)
-        pool = Pool(processes=cpu_count())
-        sentences = [s for s in tqdm(pool.map(pd.add_phrases, list(sentences)))]
+        # pd = PhraseDetector(phrases_fpath, detect_bigrams)
+        # pool = Pool(processes=cpu_count())
+        # sentences = [s for s in tqdm(pool.map(pd.add_phrases, list(sentences)))]
+        corpus_fpath = detect_phrases(corpus_fpath, phrases_fpath, batch_size=10000)
         print("Time, sec.: {}".format(time() - tic))
 
 
