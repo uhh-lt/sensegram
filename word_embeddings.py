@@ -178,6 +178,13 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
                           min_count, detect_bigrams=True, phrases_fpath=""):
 
     tic = time()
+
+    if exists(phrases_fpath):
+        tic = time()
+        print("Finding phrases from the input dictionary:", phrases_fpath)
+        corpus_fpath = detect_phrases(corpus_fpath, phrases_fpath, batch_size=100000)
+        print("Time, sec.: {}".format(time() - tic))
+
     sentences = GzippedCorpusStreamer(corpus_fpath)
     
     if detect_bigrams:
@@ -187,16 +194,6 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
         bigrams = Phraser(bigram_transformer)
         sentences = list(bigrams[sentences])
         print("Time, sec.:", time() - tic)
-
-    if exists(phrases_fpath):
-        tic = time()
-        print("Finding phrases from the input dictionary:", phrases_fpath)
-        # pd = PhraseDetector(phrases_fpath, detect_bigrams)
-        # pool = Pool(processes=cpu_count())
-        # sentences = [s for s in tqdm(pool.map(pd.add_phrases, list(sentences)))]
-        corpus_fpath = detect_phrases(corpus_fpath, phrases_fpath, batch_size=100000)
-        print("Time, sec.: {}".format(time() - tic))
-
 
     print("Training word vectors:", corpus_fpath)
     model = Word2Vec(sentences,
