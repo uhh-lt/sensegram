@@ -157,8 +157,8 @@ def detect_phrases(corpus_fpath, phrases_fpath, batch_size=1000000):
             if len(s_batch) == batch_size:
                 for s in pool.map(pd.add_phrases, s_batch):
                     out.write("{}\n".format(" ".join(s)))
+
                 s_batch = []
-                print(".", end="")
 
     return output_fpath
 
@@ -183,7 +183,7 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
         # pd = PhraseDetector(phrases_fpath, detect_bigrams)
         # pool = Pool(processes=cpu_count())
         # sentences = [s for s in tqdm(pool.map(pd.add_phrases, list(sentences)))]
-        corpus_fpath = detect_phrases(corpus_fpath, phrases_fpath, batch_size=10000)
+        corpus_fpath = detect_phrases(corpus_fpath, phrases_fpath, batch_size=1000000)
         print("Time, sec.: {}".format(time() - tic))
 
 
