@@ -135,18 +135,18 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
     if detect_bigrams:
         print("Extracting bigrams from the corpus:", corpus_fpath)
 
-        phrases = Phrases(sentences, min_count=min_count)
-        bigram = Phraser(phrases)
-        sentences = list(bigram[sentences])
+        bigram_transformer = Phrases(sentences, min_count=min_count)
+        bigrams = Phraser(bigram_transformer)
+        sentences = list(bigrams[sentences])
         print("Time, sec.:", time() - tic)
 
     if exists(phrases_fpath):
         tic = time()
         print("Finding phrases from the input dictionary:", phrases_fpath)
 
-        phrases = load_vocabulary(phrases_fpath)
+        bigram_transformer = load_vocabulary(phrases_fpath)
         sentences_tmp = sentences
-        sentences = [add_phrases(sentence, phrases, detect_bigrams) for sentence in sentences_tmp]
+        sentences = [add_phrases(sentence, bigram_transformer, detect_bigrams) for sentence in sentences_tmp]
 
         print("Time, sec.:", time() - tic)
 

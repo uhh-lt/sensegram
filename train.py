@@ -48,7 +48,8 @@ def main():
     parser.add_argument('train_corpus', help="Path to a training corpus in text form (can be .gz).")
     parser.add_argument('-phrases', help="Path to a file with extra vocabulary words, e.g. multiword expressions,"
                                      "which should be included into the vocabulary of the model. Each "
-                                     "line of this text file should contain one word or phrase with no header.")
+                                     "line of this text file should contain one word or phrase with no header.",
+                        default="")
     parser.add_argument('-cbow', help="Use the continuous bag of words model (default is 1, use 0 for the "
                                       "skip-gram model).", default=1, type=int)
     parser.add_argument('-size', help="Set size of word vectors (default is 300).", default=300, type=int)
