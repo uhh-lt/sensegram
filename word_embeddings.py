@@ -35,24 +35,26 @@ class GzippedCorpusStreamer(object):
                                 lower=False))
 
 
-def load_vocabulary(vocabulary_fpath):
-    voc = set()
-    with codecs.open(vocabulary_fpath, "r", "utf-8") as voc_file:
-        for line in voc_file:
-            word = line.strip()
-            voc.add(word)
-            voc.add(word.capitalize())
-            word = word.replace(" ", "_")
-            voc.add(word)
-            voc.add(word.capitalize())
+class PhraseDetector(object):
+    def __init__(self, vocabulary_fpath, do_restore_bigrams=True):
+        self._restore_bigrams = do_restore_bigrams
+        self._phrases = self._load_vocabulary(vocabulary_fpath)
+        self._ngram_max = self._get_ngram_max(self._phrases)
 
-    return voc
+    def _load_vocabulary(self, vocabulary_fpath):
+        voc = set()
+        with codecs.open(vocabulary_fpath, "r", "utf-8") as voc_file:
+            for line in voc_file:
+                word = line.strip()
+                voc.add(word)
+                voc.add(word.capitalize())
+                word = word.replace(" ", "_")
+                voc.add(word)
+                voc.add(word.capitalize())
 
+        return voc
 
-def add_phrases(tokens, phrases, do_restore_bigrams):
-    """ Add multiword phrases to the input sequence of tokens. """
-
-    def get_ngram_max(phrases):
+    def _get_ngram_max(self, phrases):
         max_len = 0
 
         for p in phrases:
@@ -61,7 +63,7 @@ def add_phrases(tokens, phrases, do_restore_bigrams):
 
         return max_len
 
-    def split_tokens(tokens):
+    def _split_tokens(self, tokens):
         splitted_tokens = []
 
         for t in tokens:
@@ -74,9 +76,8 @@ def add_phrases(tokens, phrases, do_restore_bigrams):
 
         return splitted_tokens
 
-    def add_dict_phrases(tokens, phrases):
-        splitted_tokens = split_tokens(tokens)
-        ngram_max = get_ngram_max(phrases)
+    def _add_dict_phrases(self, tokens):
+        splitted_tokens = self._split_tokens(tokens) if self._restore_bigrams else tokens
 
         phrase_tokens = []
         skip_tokens = 0
@@ -86,9 +87,9 @@ def add_phrases(tokens, phrases, do_restore_bigrams):
                 skip_tokens -= 1
                 continue
 
-            for ngram_size in range(ngram_max, 2 -1 , -1):
+            for ngram_size in range(self._ngram_max, 2 - 1, -1):
                 phrase_candidate = "_".join(splitted_tokens[i:i + ngram_size])
-                if phrase_candidate in phrases:
+                if phrase_candidate in self._phrases:
                     phrase_tokens.append(phrase_candidate)
                     print("+++", phrase_candidate)
                     skip_tokens = ngram_size - 1
@@ -99,7 +100,7 @@ def add_phrases(tokens, phrases, do_restore_bigrams):
 
         return phrase_tokens
 
-    def get_bigrams(tokens):
+    def _get_bigrams(self, tokens):
         bigrams = set()
 
         for t in tokens:
@@ -107,8 +108,8 @@ def add_phrases(tokens, phrases, do_restore_bigrams):
 
         return bigrams
 
-    def restore_bigrams(tokens_with_phrases, tokens_with_bigrams):
-        bigrams = get_bigrams(tokens_with_bigrams)
+    def _restore_bigrams(self, tokens_with_phrases, tokens_with_bigrams):
+        bigrams = self._get_bigrams(tokens_with_bigrams)
 
         tokens_with_phrases_and_bigrams = []
         skip = False
@@ -117,8 +118,8 @@ def add_phrases(tokens, phrases, do_restore_bigrams):
                 skip = False
                 continue
 
-            bigram_candidate_space = " ".join(tokens_with_phrases[i:i+2])
-            bigram_candidate_under = "_".join(tokens_with_phrases[i:i+2])
+            bigram_candidate_space = " ".join(tokens_with_phrases[i:i + 2])
+            bigram_candidate_under = "_".join(tokens_with_phrases[i:i + 2])
 
             if "_" not in bigram_candidate_space and bigram_candidate_under in bigrams:
                 tokens_with_phrases_and_bigrams.append(bigram_candidate_under)
@@ -128,12 +129,15 @@ def add_phrases(tokens, phrases, do_restore_bigrams):
 
         return tokens_with_phrases_and_bigrams
 
-    tokens_with_phrases = add_dict_phrases(tokens, phrases)
+    def add_phrases(self, tokens):
+        """ Add multiword phrases to the input sequence of tokens. """
 
-    if do_restore_bigrams:
-        return restore_bigrams(tokens_with_phrases, tokens)
-    else:
-        return tokens_with_phrases
+        tokens_with_phrases = self._add_dict_phrases(tokens)
+
+        if self._restore_bigrams:
+           return self._restore_bigrams(tokens_with_phrases, tokens)
+        else:
+            return tokens_with_phrases
 
 
 def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, size, threads,
@@ -154,9 +158,9 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
         tic = time()
         print("Finding phrases from the input dictionary:", phrases_fpath)
 
-        bigram_transformer = load_vocabulary(phrases_fpath)
+        pd = PhraseDetector(phrases_fpath, detect_bigrams)
         sentences_tmp = sentences
-        sentences = [add_phrases(sentence, bigram_transformer, detect_bigrams) for sentence in tqdm(sentences_tmp)]
+        sentences = [pd.add_phrases(sentence) for sentence in tqdm(sentences_tmp)]
 
         print("Time, sec.:", time() - tic)
 
