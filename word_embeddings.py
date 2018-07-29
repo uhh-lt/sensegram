@@ -159,16 +159,9 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
         print("Finding phrases from the input dictionary:", phrases_fpath)
 
         pd = PhraseDetector(phrases_fpath, detect_bigrams)
-
-        tic = time()
-        sentences_tmp = sentences
-        sentences = [pd.add_phrases(sentence) for sentence in sentences_tmp]
-        print("single, sec.:", time() - tic)
-
-        tic = time()
         pool = Pool(processes=cpu_count())
         sentences = [s for s in tqdm(pool.map(pd.add_phrases, sentences))]
-        print("multi {}, sec.: {}".format(cpu_count(), time() - tic))
+        print("Time, sec.: {}".format(time() - tic))
 
 
     print("Training word vectors:", corpus_fpath)
