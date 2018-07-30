@@ -104,6 +104,7 @@ class PhraseDetector(object):
                     phrase_tokens.append(phrase_candidate)
                     self._stats[phrase_candidate] += 1
                     skip_tokens = ngram_size - 1
+                    print("+++", phrase_candidate)
                     break
 
             if skip_tokens == 0:
