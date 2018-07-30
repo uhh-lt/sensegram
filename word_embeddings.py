@@ -4,11 +4,11 @@ from gensim.utils import tokenize
 from gensim.models.phrases import Phrases, Phraser
 from gensim.models import Word2Vec
 from time import time
-from os.path import exists, isfile, isdir
+from os import listdir
+from os.path import exists, isdir, join
 from tqdm import tqdm
 from multiprocessing import cpu_count, Pool
 from collections import defaultdict
-from glob import glob
 
 
 class GzippedCorpusStreamer(object):
@@ -16,8 +16,9 @@ class GzippedCorpusStreamer(object):
         self._corpus_fpath = corpus_fpath
         
     def __iter__(self):
-        if isdir(self._corpus_fpath) and not isfile(self._corpus_fpath):
-            for corpus_fpath in glob(self._corpus_fpath + "/*"):
+        if isdir(self._corpus_fpath):
+            for fname in listdir(self._corpus_fpath):
+                corpus_fpath = join(self._corpus_fpath, fname)
                 print("Reading from file:", corpus_fpath)
                 yield from self._read_file(corpus_fpath)
         else:
@@ -172,6 +173,9 @@ def detect_phrases(corpus_fpath, phrases_fpath, batch_size=500000):
 
                 s_batch = []
 
+        for s in pool.map(pd.add_phrases, s_batch): out.write("{}\n".format(" ".join(s)))
+
+
     pd.print_stats()
 
     return output_fpath
@@ -185,7 +189,7 @@ def learn_word_embeddings(corpus_fpath, vectors_fpath, cbow, window, iter_num, s
     if exists(phrases_fpath):
         tic = time()
         print("Finding phrases from the input dictionary:", phrases_fpath)
-        corpus_fpath = detect_phrases(corpus_fpath, phrases_fpath, batch_size=500000)
+        corpus_fpath = detect_phrases(corpus_fpath, phrases_fpath, batch_size=5000)
         print("Time, sec.: {}".format(time() - tic))
 
     sentences = GzippedCorpusStreamer(corpus_fpath)
