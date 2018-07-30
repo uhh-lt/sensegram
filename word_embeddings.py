@@ -156,7 +156,7 @@ def detect_phrases(corpus_fpath, phrases_fpath, batch_size=500000):
     """ Gets a text corpus as input, detect phrases and saves an updated corpus to filesystem.
     The path to the resulting corpus is returned from this function. """
 
-    output_fpath = corpus_fpath + ".phrases.gz"
+    output_fpath = corpus_fpath + ".phrases.txt.gz"
     sentences = GzippedCorpusStreamer(corpus_fpath)
     pd = PhraseDetector(phrases_fpath, do_restore_bigrams=False)
     pool = Pool(processes=cpu_count())
