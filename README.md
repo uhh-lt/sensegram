@@ -79,15 +79,15 @@ optional arguments:
 
 The training produces following output files:
 
-* `model/ + CORPUS_NAME + .word_vectors` - word vectors
-* `model/ + CORPUS_NAME + .sense_vectors` - sense vectors
-* `model/ + CORPUS_NAME + .sense_vectors.inventory.csv` - sense probabilities  
+* `model/ + CORPUS_NAME + .word_vectors` - word vectors in the word2vec text format
+* `model/ + CORPUS_NAME + .sense_vectors` - sense vectors in the word2vec text format
+* `model/ + CORPUS_NAME + .sense_vectors.inventory.csv` - sense probabilities in TSV format
 
 In addition, it produces several intermediary files that can be investigated for error analysis or removed after training:
 
-* `model/ + CORPUS_NAME + .graph` - word similarity graph (distributional thesaurus) 
-* `model/ + corpus_name + .clusters` - sense clusters produced by chinese-whispers
-* `model/ + corpus_name + .minsize + MIN_SIZE` - clusters that remained after filtering out of small clusters 
+* `model/ + CORPUS_NAME + .graph` - word similarity graph (distributional thesaurus) in TSV format
+* `model/ + corpus_name + .clusters` - sense clusters produced by chinese-whispers in TSV format
+* `model/ + corpus_name + .minsize + MIN_SIZE` - clusters that remained after filtering out of small clusters in TSV format
 
 In [train.sh](train.sh) we provide an example for usage of the `train.py` script. You can test it using the command ``make train``. More useful commands can be found in the [Makefile](Makefile).
 
