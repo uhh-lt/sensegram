@@ -28,6 +28,22 @@ If you use the method please cite the following paper:
 }
 ```
 
+## Use cases
+
+This software can be used to:
+
+- Generation of word sense embeddigns from a raw text corpus
+
+- Generation of word sense embeddings from a pretrained word embeddings (in the word2vec format)
+
+- Generation of graphs of semantically related words
+
+- Generation of graphs of semantically related word senses
+
+- Generation of a word sense inventory specific to the input text corpus
+
+
+
 ## Installation
 
 This project is implemented in Python 3. It makes use of the word2vec toolkit (via gensim), FAISS for computation of graphs of related words, and the Chinese Whispers graph clustering algorithm. We suggest using Ubuntu Linux 16.04 for computation of the models and using it on a computational server (ideally from 64Gb of RAM and 16 cores) as some stages are computational intensive. To install all dependencies on Ubuntu Linux 16.04 use the following commands:
