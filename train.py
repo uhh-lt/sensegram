@@ -14,19 +14,6 @@ from word_graph import compute_graph_of_related_words
 import pcz
 
 
-def get_paths(corpus_fpath, min_size):
-    corpus_name = basename(corpus_fpath)
-    model_dir = "model/"
-    ensure_dir(model_dir)
-    vectors_fpath = join(model_dir, corpus_name + ".word_vectors")
-    neighbours_fpath = join(model_dir, corpus_name + ".graph")
-    clusters_fpath = join(model_dir, corpus_name + ".clusters")
-    clusters_minsize_fpath = clusters_fpath + ".minsize" + str(min_size) # clusters that satisfy min_size
-    clusters_removed_fpath = clusters_minsize_fpath + ".removed" # cluster that are smaller than min_size
-
-    return vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath
-
-
 def word_sense_induction(neighbours_fpath, clusters_fpath, n, threads):
     print("\nStart clustering of word ego-networks.")
     tic = time()
@@ -70,8 +57,16 @@ def main():
                         action="store_true")
     args = parser.parse_args()
 
-    vectors_fpath, neighbours_fpath, clusters_fpath, clusters_minsize_fpath, clusters_removed_fpath = get_paths(
-        args.train_corpus, args.min_size)
+    corpus_name = basename(args.train_corpus)
+    model_dir = "model/"
+    ensure_dir(model_dir)
+    vectors_fpath = join(model_dir, corpus_name + ".cbow{}-size{}-window{}-iter{}-mincount{}-bigrams{}.word_vectors".format(
+        args.cbow, args.size, args.window, args.iter, args.mincount, args.bigrams))
+    neighbours_fpath = join(model_dir, corpus_name + ".N{}.graph".format(args.N))
+    clusters_fpath = join(model_dir, corpus_name + ".n{}.clusters".format(args.n))
+    clusters_minsize_fpath = clusters_fpath + ".minsize" + str(args.min_size)  # clusters that satisfy min_size
+    clusters_removed_fpath = clusters_minsize_fpath + ".removed"  # cluster that are smaller than min_size
+
     
     if not exists(vectors_fpath):
         learn_word_embeddings(args.train_corpus, vectors_fpath, args.cbow, args.window,
