@@ -61,19 +61,23 @@ def main():
     ensure_dir(model_dir)
     vectors_fpath = join(model_dir, corpus_name + ".cbow{}-size{}-window{}-iter{}-mincount{}-bigrams{}.word_vectors".format(
         args.cbow, args.size, args.window, args.iter, args.min_count, args.bigrams))
+    vectors_short_fpath = join(model_dir, corpus_name + ".word_vectors")
     neighbours_fpath = join(model_dir, corpus_name + ".N{}.graph".format(args.N))
     clusters_fpath = join(model_dir, corpus_name + ".n{}.clusters".format(args.n))
     clusters_minsize_fpath = clusters_fpath + ".minsize" + str(args.min_size)  # clusters that satisfy min_size
     clusters_removed_fpath = clusters_minsize_fpath + ".removed"  # cluster that are smaller than min_size
 
     
-    if not exists(vectors_fpath):
+    if exists(vectors_fpath):
+        print("Using existing vectors:", vectors_fpath)
+    elif exists(vectors_short_fpath):
+        print("Using existing vectors:", vectors_short_fpath)
+        vectors_fpath = vectors_short_fpath
+    else:
         learn_word_embeddings(args.train_corpus, vectors_fpath, args.cbow, args.window,
                               args.iter, args.size, args.threads, args.min_count,
                               detect_bigrams=args.bigrams, phrases_fpath=args.phrases)
-    else:
-        print("Using existing vectors:", vectors_fpath)
- 
+
     if not exists(neighbours_fpath):
         compute_graph_of_related_words(vectors_fpath, neighbours_fpath, neighbors=args.N)
     else:
