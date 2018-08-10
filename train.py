@@ -81,7 +81,7 @@ def main():
         print("Using existing vectors:", vectors_fpath)
  
     if not exists(neighbours_fpath):
-        compute_graph_of_related_words(vectors_fpath, neighbours_fpath)
+        compute_graph_of_related_words(vectors_fpath, neighbours_fpath, neighbors=args.N)
     else:
         print("Using existing neighbors:", neighbours_fpath)
         
