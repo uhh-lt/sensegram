@@ -4,7 +4,6 @@ from os.path import basename
 from time import time
 from os.path import join
 from multiprocessing import cpu_count
-
 from utils.common import ensure_dir
 import filter_clusters
 import vector_representations.build_sense_vectors
@@ -61,7 +60,7 @@ def main():
     model_dir = "model/"
     ensure_dir(model_dir)
     vectors_fpath = join(model_dir, corpus_name + ".cbow{}-size{}-window{}-iter{}-mincount{}-bigrams{}.word_vectors".format(
-        args.cbow, args.size, args.window, args.iter, args.mincount, args.bigrams))
+        args.cbow, args.size, args.window, args.iter, args.min_count, args.bigrams))
     neighbours_fpath = join(model_dir, corpus_name + ".N{}.graph".format(args.N))
     clusters_fpath = join(model_dir, corpus_name + ".n{}.clusters".format(args.n))
     clusters_minsize_fpath = clusters_fpath + ".minsize" + str(args.min_size)  # clusters that satisfy min_size
@@ -97,7 +96,6 @@ def main():
         isas_fpath = ""
         # in: clusters_minsize_fpath
         clusters_with_isas_fpath = clusters_minsize_fpath + ".isas"
-
 
         # disambiguate the original sense clusters
         clusters_disambiguated_fpath = clusters_with_isas_fpath + ".disambiguated"
