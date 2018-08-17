@@ -23,7 +23,7 @@ train-wikipedia:
 	bash train.sh model/wikipedia.txt.gz
 
 install-faiss:
-    conda install faiss-cpu -c pytorch
+	conda install faiss-cpu -c pytorch
 
 install-faiss-sources:
 	sudo apt-get update
