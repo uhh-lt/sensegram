@@ -7,7 +7,7 @@ install:
 	python -m spacy download en
 	make install-faiss
 
-install-ubuntu-16-04:
+install-with-anaconda:
 	make install-anaconda3
 	make install 
 
