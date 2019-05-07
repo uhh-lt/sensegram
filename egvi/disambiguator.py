@@ -37,8 +37,9 @@ def ensure_word_embeddings(language):
         return wv_fpath, wv_pkl_fpath
    
     # The other 157 languages
-    wv_fpath = "cc.{}.300.vec.gz".format(language)
+    wv_fpath = "model/cc.{}.300.vec.gz".format(language)
     wv_pkl_fpath = wv_fpath + ".pkl"
+    
     if not exists(wv_fpath):
         wv_uri = "https://s3-us-west-1.amazonaws.com/fasttext-vectors/word-vectors-v2/cc.{}.300.vec.gz".format(language)
         print("Downloading the fasttext model from {}".format(wv_uri))
@@ -50,6 +51,7 @@ def ensure_word_embeddings(language):
                 if chunk:
                     f.write(chunk)
                     f.flush()
+    
     return wv_fpath, wv_pkl_fpath
 
 

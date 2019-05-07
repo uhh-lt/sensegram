@@ -212,6 +212,8 @@ def get_cluster_lines(G, nodes):
 def run(language="ru", eval_vocabulary=False, visualize=True, show_plot=False):
     # parameters
 
+    wv_fpath, wv_pkl_fpath = ensure_word_embeddings(language)
+
     if eval_vocabulary:
         voc = get_target_words(language)    
     else:
@@ -222,7 +224,6 @@ def run(language="ru", eval_vocabulary=False, visualize=True, show_plot=False):
     print("Visuzlize:", visualize)
     print("Vocabulary: {} words".format(len(voc)))
 
-    wv_fpath, wv_pkl_fpath = ensure_word_embeddings(language)
 
     # ensure the word vectors are saved in the fast to load gensim format
     if not exists(wv_pkl_fpath):
