@@ -29,7 +29,14 @@ class Sense(SenseBase): # this is needed as list is an unhashable type
 
 def ensure_word_embeddings(language):
     """ Ensures that the word vectors exist by downloading them if needed. """
-
+   
+    # English - the 158-th language
+    if language == "en": 
+        wv_fpath = "model/crawl-300d-2M.vec.gz" # for English you need to pre-download it manually (currently)
+        wv_pkl_fpath = wv_fpath + ".pkl"
+        return wv_fpath, wv_pkl_fpath
+   
+    # The other 157 languages
     wv_fpath = "cc.{}.300.vec.gz".format(language)
     wv_pkl_fpath = wv_fpath + ".pkl"
     if not exists(wv_fpath):

@@ -220,7 +220,7 @@ def run(language="ru", eval_vocabulary=False, visualize=True, show_plot=False):
 
     print("Language:", language)
     print("Visuzlize:", visualize)
-    print("Vocabulary: {} words", len(voc))
+    print("Vocabulary: {} words".format(len(voc)))
 
     wv_fpath, wv_pkl_fpath = ensure_word_embeddings(language)
 
@@ -242,7 +242,7 @@ def run(language="ru", eval_vocabulary=False, visualize=True, show_plot=False):
                     if visualize:
                         plt_fpath = output_fpath + ".{}.png".format(word)
                         draw_ego(words[word]["network"], show_plot, plt_fpath)
-                        lines = get_cluster_lines(words[word]["network"], words[word]["nodes"])
+                    lines = get_cluster_lines(words[word]["network"], words[word]["nodes"])
                     for l in lines: out.write(l)
                 except KeyboardInterrupt:
                     break
