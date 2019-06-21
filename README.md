@@ -53,6 +53,9 @@ git clone --recursive https://github.com/tudarmstadt-lt/sensegram.git
 make install-ubuntu-16-04
 ```
 
+Optional: Set the ``PYTHONPATH`` variable to the root directory of this repository (needed only for working with the "egvi" scripts), e.g. 
+``export PYTHONPATH="/home/user/sensegram:$PYTHONPATH"
+
 Note that this command also will bring you an appropriate vesion of Python 3 via Anaconda. If you already have a properly configured recent version of Python 3 and/or running a system different from Ubuntu 16.04, use the command ``make install`` to install the dependencies. Note however, that in this case, you will also need to install manually binary dependencies required by FAISS yourself. 
 
 

@@ -12,6 +12,7 @@ from nltk.tokenize import word_tokenize
 from collections import defaultdict, namedtuple
 from operator import itemgetter
 from numpy import mean
+import os
 
 
 SenseBase = namedtuple('Sense', 'word keyword cluster')
@@ -27,9 +28,16 @@ class Sense(SenseBase): # this is needed as list is an unhashable type
         return self.get_hash() == other.get_hash()
 
 
+def ensure_dir(f):
+    """ Make the directory. """
+    if not os.path.exists(f): os.makedirs(f)
+
+
 def ensure_word_embeddings(language):
     """ Ensures that the word vectors exist by downloading them if needed. """
-   
+  
+    ensure_dir("model")
+
     # English - the 158-th language
     if language == "en": 
         wv_fpath = "model/crawl-300d-2M.vec.gz" # for English you need to pre-download it manually (currently)
@@ -44,7 +52,7 @@ def ensure_word_embeddings(language):
         wv_uri = "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.{}.300.vec.gz".format(language)
         print("Downloading the fasttext model from {}".format(wv_uri))
         r = requests.get(wv_uri, stream=True)
-        path = "cc.{}.300.vec.gz".format(language)
+        path = "model/cc.{}.300.vec.gz".format(language)
         with open(path, "wb") as f:
             total_length = int(r.headers.get("content-length"))
             for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length / 1024) + 1):
