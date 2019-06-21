@@ -41,7 +41,7 @@ def ensure_word_embeddings(language):
     wv_pkl_fpath = wv_fpath + ".pkl"
     
     if not exists(wv_fpath):
-        wv_uri = "https://s3-us-west-1.amazonaws.com/fasttext-vectors/word-vectors-v2/cc.{}.300.vec.gz".format(language)
+        wv_uri = "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.{}.300.vec.gz".format(language)
         print("Downloading the fasttext model from {}".format(wv_uri))
         r = requests.get(wv_uri, stream=True)
         path = "cc.{}.300.vec.gz".format(language)
