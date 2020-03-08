@@ -40,8 +40,15 @@ def ensure_word_embeddings(language):
 
     # English - the 158-th language
     if language == "en": 
-        wv_fpath = "model/crawl-300d-2M.vec.gz" # for English you need to pre-download it manually (currently)
-        wv_pkl_fpath = wv_fpath + ".pkl"
+        
+        wv_fpath = "model/crawl-300d-2M.vec" # for English you need to pre-download it manually (currently)
+        if exists(wv_fpath):
+            wv_pkl_fpath = wv_fpath + ".pkl"
+        elif exists(wv_fpath + ".gz"):
+            wv_pkl_fpath = wv_fpath + ".gz.pkl"
+        else:
+            print("Error: path not found: ''".format(wv_fpath))
+
         return wv_fpath, wv_pkl_fpath
    
     # The other 157 languages

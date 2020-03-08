@@ -23,7 +23,7 @@ wsi_data_dir = "/home/panchenko/russe-wsi-full/data/"
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 TOPN = 50
-verbose = True
+verbose = False
 
 try:
     wv
@@ -53,11 +53,21 @@ def get_ru_wsi_vocabulary():
 
 
 def get_sorted_vocabulary(vectors_fpath):
-    with gzip.open(vectors_fpath, "rb") as in_f:
-        vocabulary = []
-        for i, line in enumerate(in_f):
-            if i == 0: continue
-            vocabulary.append( str(line, "utf-8").split(" ")[0] )
+    is_gzip = vectors_fpath.endswith(".gz")
+    if is_gzip:
+        in_f = gzip.open(vectors_fpath, "rb") 
+    else:
+        in_f = open(vectors_fpath, "r")
+    
+    vocabulary = []
+    for i, line in enumerate(in_f):
+        if i == 0: continue
+        if is_gzip:
+            line = str(line, "utf-8")
+        vocabulary.append(line.split(" ")[0] )
+    
+    in_f.close()
+    
     return vocabulary
             
 def save_to_gensim_format(wv, output_fpath):
@@ -72,7 +82,7 @@ def load_globally(word_vectors_fpath):
     if not wv:
         print("Loading word vectors from:", word_vectors_fpath)
         tic = time()
-        if word_vectors_fpath.endswith(".vec.gz"):
+        if word_vectors_fpath.endswith(".vec.gz") or word_vectors_fpath.endswith(".vec"):
             wv = KeyedVectors.load_word2vec_format(word_vectors_fpath, binary=False, unicode_errors="ignore")
         else:
             wv = KeyedVectors.load(word_vectors_fpath)
@@ -85,7 +95,7 @@ def load_globally(word_vectors_fpath):
 
 def get_nns(target, topn=TOPN):
     nns = wv.most_similar(positive=[target], negative=[], topn=topn)
-    nns = [(word, score) for word, score in nns if minimize(word) != minimize(target)]
+    nns = [(word, score) for word, score in nns] # if minimize(word) != minimize(target)]
     return nns
 
 
@@ -103,13 +113,25 @@ def get_pair(first, second):
     return sorted_pair         
 
 
+def get_all_nodes(ego, topn=TOPN):  
+    nodes = Counter()
+    
+    nns = get_nns(ego, topn)
+    print(len(nns))
+    for i in range(len(nns)):
+        topi = nns[i][0]
+        nodes.update([topi])
+    
+    return nodes
+
+
 def get_disc_pairs(ego, topn=TOPN):  
     pairs = set()
     nns = get_nns(ego, topn)
     
     for i in range(len(nns)):
         topi = nns[i][0]
-        nns_topi = get_nns(topi, topn) 
+        nns_topi = get_nns(topi, topn)  
         nns_untopi = wv.most_similar(positive=[ego], negative=[topi], topn=topn)
         untopi = nns_untopi[0][0]
         if in_nns(nns, untopi): pairs.add(get_pair(topi, untopi))
@@ -136,7 +158,35 @@ def wsi(ego, topn=TOPN):
 
     pairs = get_disc_pairs(ego, topn)
     nodes = get_nodes(pairs)   
+    all_nodes = get_all_nodes(ego, topn)
+   
+    ###############################################
+    # print information about the nodes
+    print("\n")
+    print("="*70, "\n")
+    print(ego)
+
+    print("\nall nodes ({}): {}".format(
+        len(all_nodes),
+        ", ".join(sorted(all_nodes.keys()))
+        ))
     
+    print("\nnodes ({}): {}".format(
+        len(nodes),
+        ", ".join(sorted(nodes.keys()))
+        ))
+    
+    diff = set(all_nodes.keys()).difference( set(nodes.keys()) )
+    print("\ndiff ({}): {}".format(
+        len(diff),
+        ", ".join(sorted(diff))
+        ))
+
+    print("\n pairs:")
+    print("\n".join(["{} --//-- {}".format(src, dst) for src, dst in pairs]))
+
+    ###################################################
+
     ego_network.add_nodes_from( [(node, {'size': size}) for node, size in nodes.items()] )
     
     for r_node in ego_network:
@@ -149,28 +199,38 @@ def wsi(ego, topn=TOPN):
         for w, rr_node in related_related_nodes_ego:
             if get_pair(r_node, rr_node) not in pairs:
                 related_edges.append( (r_node, rr_node, {"weight": w}) )
-            else:
-                print("Skipping:", r_node, rr_node)
+        
         ego_network.add_edges_from(related_edges)
 
     chinese_whispers(ego_network, weighting="top", iterations=20)
     if verbose: print("{}\t{:f} sec.".format(ego, time()-tic))
-
     return {"network": ego_network,  "nodes": nodes}
 
 
 def draw_ego(G, show=False, save_fpath=""):
-    colors = [1. / G.node[node]['label'] for node in G.nodes()]
-    sizes = [300. * G.node[node]['size'] for node in G.nodes()]  
+    label2id = {}
+    colors = []
+    sizes = []
+    for node in G.nodes():
+        l = G.node[node]['label']
+        if l not in label2id: label2id[l] = len(label2id) + 1
+        l = label2id[l]
+        colors.append( 1./l )
+        sizes.append( 1500. * G.node[node]['size'] )
 
     plt.clf()
     fig = plt.gcf()
     fig.set_size_inches(20, 20)
 
     nx.draw_networkx(G, cmap=plt.get_cmap('gist_rainbow'),
+                     pos=nx.spring_layout(G, k=0.75), 
                      node_color=colors,
                      font_color='black',
-                     node_size=sizes)
+                     font_size=16,
+                     font_weight='bold',
+                     alpha=0.75,
+                     node_size=sizes,
+                     edge_color='gray')
 
     if show: plt.show()
     if save_fpath != "":
@@ -241,7 +301,7 @@ def run(language="ru", eval_vocabulary=False, visualize=True, show_plot=False):
                 try:
                     words[word] = wsi(word, topn=topn)
                     if visualize:
-                        plt_fpath = output_fpath + ".{}.png".format(word)
+                        plt_fpath = output_fpath + ".{}.pdf".format(word)
                         draw_ego(words[word]["network"], show_plot, plt_fpath)
                     lines = get_cluster_lines(words[word]["network"], words[word]["nodes"])
                     for l in lines: out.write(l)
