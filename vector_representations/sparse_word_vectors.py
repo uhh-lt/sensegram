@@ -5,7 +5,7 @@ import gzip
 from traceback import format_exc
 from pprint import pprint
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.externals import joblib
+import joblib
 import numpy as np
 from sys import stderr
 from os.path import exists
