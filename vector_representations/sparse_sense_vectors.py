@@ -1,7 +1,7 @@
 from vector_representations.sense_vectors import SenseVectors
 from collections import defaultdict
 import codecs
-from sklearn.externals import joblib
+import joblib
 from scipy.sparse import csr_matrix
 from scipy.sparse.linalg import norm
 
