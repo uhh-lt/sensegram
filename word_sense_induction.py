@@ -67,6 +67,7 @@ def ego_network_clustering(neighbors_fpath, clusters_fpath, max_related=300, num
     global G
     global n
     G = CRSGraph(neighbors_fpath)
+    n = max_related
     
     with codecs.open(clusters_fpath, "w", "utf-8") as output, Pool(num_cores) as pool:
         output.write("word\tcid\tcluster\tisas\n")
